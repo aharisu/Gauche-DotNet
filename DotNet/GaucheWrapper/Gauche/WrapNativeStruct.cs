@@ -103,7 +103,7 @@ namespace GaucheDotNet.Native
         public int flags;
     }
 
-	//TODO 最新のGaucheでは構造が変わっている
+    //TODO 最新のGaucheでは構造が変わっている
     [StructLayout(LayoutKind.Sequential)]
     public struct ScmModule
     {
@@ -129,7 +129,7 @@ namespace GaucheDotNet.Native
     /// <returns>ScmObj</returns>
     public delegate IntPtr GlocSetter(IntPtr gloc, IntPtr value);
 
-	//TODO 最新のGaucheでは構造が変わっている
+    //TODO 最新のGaucheでは構造が変わっている
     [StructLayout(LayoutKind.Sequential)]
     public unsafe struct ScmGloc
     {
@@ -196,12 +196,13 @@ namespace GaucheDotNet.Native
         public IntPtr data;
     }
 
-	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct ScmClrObject
-	{
-		public IntPtr tag;
-		public IntPtr handle;
-	}
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct ScmClrObject
+    {
+        public IntPtr tag;
+        public IntPtr handle;
+    }
 
 
 }
+

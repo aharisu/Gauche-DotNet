@@ -20,7 +20,7 @@
 using namespace System;
 
 value struct ArgType {
-	MethodArgKind kind;
-	Type^ type;
-	TypeSpecAttr attr;
+    MethodArgKind kind;
+    Type^ type;
+    TypeSpecAttr attr;
 };

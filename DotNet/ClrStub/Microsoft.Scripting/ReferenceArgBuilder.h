@@ -22,14 +22,14 @@ using namespace System;
 ref class ReferenceArgBuilder : SimpleArgBuilder
 {
 public:
-	ReferenceArgBuilder(int index, System::Type^ parameterType)
-		:SimpleArgBuilder(index, parameterType)
-	{
-	}
+    ReferenceArgBuilder(int index, System::Type^ parameterType)
+        :SimpleArgBuilder(index, parameterType)
+    {
+    }
 
-	property int Priority 
-	{
-		virtual int get() override {return 5;}
-	}
+    property int Priority 
+    {
+        virtual int get() override {return 5;}
+    }
 
 };

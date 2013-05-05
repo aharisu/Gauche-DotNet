@@ -66,15 +66,15 @@ DECDLL int ClrReferenceAssembly(const char* assemblyName);
 DECDLL int ClrValidTypeName(const char* fullTypeName);
 
 DECDLL void* ClrNew(
-					TypeSpec* methodSpec
-					, MethodArg* args, int numArg
-					);
+                    TypeSpec* methodSpec
+                    , MethodArg* args, int numArg
+                    );
 
 DECDLL void* ClrCallMethod(
-						 TypeSpec* methodSpec
-						 , void* obj, int isStatic
-						 , MethodArg* args, int numArg
-						 );
+                         TypeSpec* methodSpec
+                         , void* obj, int isStatic
+                         , MethodArg* args, int numArg
+                         );
 
 #ifdef __cplusplus
 }

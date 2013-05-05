@@ -20,10 +20,10 @@ using namespace System;
 ref class None
 {
 private:
-	None()
-	{ }
+    None()
+    { }
 
 public:
-	static Type^ Type = None::typeid;
+    static Type^ Type = None::typeid;
 
 };

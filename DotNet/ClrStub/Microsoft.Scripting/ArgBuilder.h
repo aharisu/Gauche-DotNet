@@ -18,8 +18,8 @@
 ref class ArgBuilder abstract
 {
 public:
-	property int Priority
-	{
-		virtual int get() abstract;
-	}
+    property int Priority
+    {
+        virtual int get() abstract;
+    }
 };

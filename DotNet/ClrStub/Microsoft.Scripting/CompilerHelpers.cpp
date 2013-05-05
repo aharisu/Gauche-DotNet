@@ -44,13 +44,13 @@ namespace CompilerHelpers
 
     bool IsParamArray(ParameterInfo^ parameter)
     {
-		return parameter->IsDefined(ParamArrayAttribute::typeid, false);
+        return parameter->IsDefined(ParamArrayAttribute::typeid, false);
     }
 
     bool IsOutParameter(ParameterInfo^ pi)
     {
         // not using IsIn/IsOut properties as they are not available in Silverlight:
-		return (pi->Attributes & (ParameterAttributes::Out | ParameterAttributes::In)) == ParameterAttributes::Out;
+        return (pi->Attributes & (ParameterAttributes::Out | ParameterAttributes::In)) == ParameterAttributes::Out;
     }
 
     bool IsStatic(MethodBase^ mi)
@@ -74,7 +74,7 @@ namespace CompilerHelpers
         return types;
     }
 
-	static bool ImplicitConvertMatrix[10][9] = {
+    static bool ImplicitConvertMatrix[10][9] = {
         // → To type
         //↓ From type
         //Int16, UInt16, Int32, UInt32, Int64, UInt64, Single, Double, Decimal
@@ -88,14 +88,14 @@ namespace CompilerHelpers
         {   false,  false, false, false, false, false, true, true, true,}, //Int64
         {   false,  false, false, false, false, false, true, true, true,}, //UInt64
         {   false,  false, false, false, false, false, false,  true, true,}, //Single
-	};
+    };
 
     bool CanImplicitConvertFrom(TypeCode fromTypeCode, TypeCode toTypeCode)
     {
         //プリミティブ型の暗黙的変換が可能か？
-		return ((int)TypeCode::Char <= (int)fromTypeCode && (int)fromTypeCode <= (int)TypeCode::Single)
-			&& ((int)TypeCode::Int16 <= (int)toTypeCode && (int)toTypeCode <= (int)TypeCode::Decimal)
-			&& ImplicitConvertMatrix[(int)(fromTypeCode - TypeCode::Char), (int)(toTypeCode - TypeCode::Int16)];
+        return ((int)TypeCode::Char <= (int)fromTypeCode && (int)fromTypeCode <= (int)TypeCode::Single)
+            && ((int)TypeCode::Int16 <= (int)toTypeCode && (int)toTypeCode <= (int)TypeCode::Decimal)
+            && ImplicitConvertMatrix[(int)(fromTypeCode - TypeCode::Char), (int)(toTypeCode - TypeCode::Int16)];
     }
 
     bool CanConvertFrom(Type^ fromType, Type^ toType)
@@ -103,7 +103,7 @@ namespace CompilerHelpers
         if (fromType == toType
             || toType->IsAssignableFrom(fromType)
             || (fromType->IsPrimitive && toType->IsPrimitive 
-			&& CanImplicitConvertFrom(Type::GetTypeCode(fromType), Type::GetTypeCode(toType)) )
+            && CanImplicitConvertFrom(Type::GetTypeCode(fromType), Type::GetTypeCode(toType)) )
             )
         {
             return true;
@@ -122,15 +122,15 @@ namespace CompilerHelpers
         else if (fromType->IsPrimitive)
         {
             //変換後型がObject型なら適当な大きい数字
-			if (toType == Object::typeid)
+            if (toType == Object::typeid)
             {
                 return 99;
             }
             else
             {
                 //プリミティブ型の暗黙的変換の距離を計算する
-				TypeCode fromTypeCode = Type::GetTypeCode(fromType);
-				TypeCode toTypeCode = Type::GetTypeCode(toType);
+                TypeCode fromTypeCode = Type::GetTypeCode(fromType);
+                TypeCode toTypeCode = Type::GetTypeCode(toType);
                 if (CanImplicitConvertFrom(fromTypeCode, toTypeCode))
                 {
                     return (int)(toTypeCode - fromTypeCode);
@@ -144,14 +144,14 @@ namespace CompilerHelpers
         {
             //変換後の型がインタフェースの場合
 
-			for each(Type^ t in fromType->GetInterfaces())
-			{
-				if(t == toType)
-				{
-					return 1;
-				}
-			}
-			return -1;
+            for each(Type^ t in fromType->GetInterfaces())
+            {
+                if(t == toType)
+                {
+                    return 1;
+                }
+            }
+            return -1;
         }
         else if (toType->IsPrimitive)
         {
@@ -171,11 +171,11 @@ namespace CompilerHelpers
                 {
                     return diff;
                 }
-				else if (fromType == Object::typeid)
+                else if (fromType == Object::typeid)
                 {
                     return -1;
                 }
-				++diff;
+                ++diff;
             }
         }
     }

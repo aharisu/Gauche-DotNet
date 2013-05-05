@@ -24,27 +24,27 @@ using namespace System::Reflection;
 ref class SimpleArgBuilder : ArgBuilder
 {
 public:
-	SimpleArgBuilder(int index, Type^ parameterType)
-		:Index(index)
-		,Type(parameterType)
-		, IsParamsArray(false)
-	{
-	}
+    SimpleArgBuilder(int index, Type^ parameterType)
+        :Index(index)
+        ,Type(parameterType)
+        , IsParamsArray(false)
+    {
+    }
 
-	SimpleArgBuilder(int index, Type^ parameterType, ParameterInfo^ paramInfo)
-		:Index(index)
-		,Type(parameterType)
-		,IsParamsArray(CompilerHelpers::IsParamArray(paramInfo))
-	{
-	}
+    SimpleArgBuilder(int index, Type^ parameterType, ParameterInfo^ paramInfo)
+        :Index(index)
+        ,Type(parameterType)
+        ,IsParamsArray(CompilerHelpers::IsParamArray(paramInfo))
+    {
+    }
 
-	property int Priority 
-	{
-		virtual int get() override {return 0;}
-	}
+    property int Priority 
+    {
+        virtual int get() override {return 0;}
+    }
 
 public:
-	initonly int Index;
-	initonly Type^ Type;
-	initonly bool IsParamsArray;
+    initonly int Index;
+    initonly Type^ Type;
+    initonly bool IsParamsArray;
 };

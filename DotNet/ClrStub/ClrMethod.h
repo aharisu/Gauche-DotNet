@@ -44,71 +44,72 @@ using namespace System::Runtime::InteropServices;
 ref class ClrMethod sealed
 {
 private:
-	ClrMethod(TypeSpec* methodSpec
-		, void* obj, bool isStatic
-		, MethodArg* args, int numArg)
-		:_methodSpec(methodSpec)
-		,_obj(obj)
-		,_isStatic(isStatic)
-		,_args(args)
-		,_numArg(numArg)
-	{}
+    ClrMethod(TypeSpec* methodSpec
+        , void* obj, bool isStatic
+        , MethodArg* args, int numArg)
+        :_methodSpec(methodSpec)
+        ,_obj(obj)
+        ,_isStatic(isStatic)
+        ,_args(args)
+        ,_numArg(numArg)
+    {}
 
-	void* CallNew();
-	void* CallMethod();
+    void* CallNew();
+    void* CallMethod();
 
-	bool CreateArgTypes(StringBuilder^ builder, array<ArgType>^% argTypes);
-	MethodInfo^ MakeGenericMethod(MethodInfo^ mi, array<ArgType>^ argTypes);
-	MethodBase^ CreateCandidate(MethodBase^ info, array<ArgType>^ argTypes);
-	array<Object^>^ ConstractArguments(MethodCandidate^ callMethod);
+    bool CreateArgTypes(StringBuilder^ builder, array<ArgType>^% argTypes);
+    MethodInfo^ MakeGenericMethod(MethodInfo^ mi, array<ArgType>^ argTypes);
+    MethodBase^ CreateCandidate(MethodBase^ info, array<ArgType>^ argTypes);
+    array<Object^>^ ConstractArguments(MethodCandidate^ callMethod);
 
 public:
-	static Type^ GetType(String^ name);
+    static Type^ GetType(String^ name);
 
-	static void* CallNew(TypeSpec* methodSpec, MethodArg* args, int numArg)
-	{
-		ClrMethod method(methodSpec, 0, true,  args, numArg);
-		try
-		{
-			return method.CallNew();
-		}
-		catch (Exception^ e)
-		{
-			GaucheDotNet::Native::GoshInvoke::Scm_Raise(
-				GaucheDotNet::Native::GoshInvoke::Scm_MakeClrError(
-					GaucheDotNet::Native::GoshInvoke::Scm_MakeString(
-						e->Message , -1, -1, GaucheDotNet::Gosh::StringFlags::Copying)
-					, GaucheDotNet::Native::GoshInvoke::Scm_MakeClrObject((IntPtr)GCHandle::Alloc(e))
-					));
-						
-			return 0;
-		}
-	}
+    static void* CallNew(TypeSpec* methodSpec, MethodArg* args, int numArg)
+    {
+        ClrMethod method(methodSpec, 0, true,  args, numArg);
+        try
+        {
+            return method.CallNew();
+        }
+        catch (Exception^ e)
+        {
+            GaucheDotNet::Native::GoshInvoke::Scm_Raise(
+                GaucheDotNet::Native::GoshInvoke::Scm_MakeClrError(
+                    GaucheDotNet::Native::GoshInvoke::Scm_MakeString(
+                        e->Message , -1, -1, GaucheDotNet::Gosh::StringFlags::Copying)
+                    , GaucheDotNet::Native::GoshInvoke::Scm_MakeClrObject((IntPtr)GCHandle::Alloc(e))
+                    ));
+                        
+            return 0;
+        }
+    }
 
-	static void* CallMethod(TypeSpec* methodSpec, void* obj, bool isStatic, MethodArg* args, int numArg)
-	{
-		ClrMethod method(methodSpec, obj, isStatic,  args, numArg);
-		try
-		{
-			return method.CallMethod();
-		} 
-		catch (Exception^ e)
-		{
-			GaucheDotNet::Native::GoshInvoke::Scm_Raise(
-				GaucheDotNet::Native::GoshInvoke::Scm_MakeClrError(
-					GaucheDotNet::Native::GoshInvoke::Scm_MakeString(
-						e->Message , -1, -1, GaucheDotNet::Gosh::StringFlags::Copying)
-					, GaucheDotNet::Native::GoshInvoke::Scm_MakeClrObject((IntPtr)GCHandle::Alloc(e))
-					));
-						
-			return 0;
-		}
-	}
+    static void* CallMethod(TypeSpec* methodSpec, void* obj, bool isStatic, MethodArg* args, int numArg)
+    {
+        ClrMethod method(methodSpec, obj, isStatic,  args, numArg);
+        try
+        {
+            return method.CallMethod();
+        } 
+        catch (Exception^ e)
+        {
+            GaucheDotNet::Native::GoshInvoke::Scm_Raise(
+                GaucheDotNet::Native::GoshInvoke::Scm_MakeClrError(
+                    GaucheDotNet::Native::GoshInvoke::Scm_MakeString(
+                        e->Message , -1, -1, GaucheDotNet::Gosh::StringFlags::Copying)
+                    , GaucheDotNet::Native::GoshInvoke::Scm_MakeClrObject((IntPtr)GCHandle::Alloc(e))
+                    ));
+                        
+            return 0;
+        }
+    }
 
 private:
-	initonly TypeSpec* _methodSpec;
-	initonly void* _obj;
-	initonly bool _isStatic;
-	MethodArg* _args;
-	initonly int _numArg;
+    initonly TypeSpec* _methodSpec;
+    initonly void* _obj;
+    initonly bool _isStatic;
+    MethodArg* _args;
+    initonly int _numArg;
 };
+

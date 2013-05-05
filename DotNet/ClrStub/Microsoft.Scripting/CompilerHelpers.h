@@ -21,15 +21,16 @@ using namespace System::Collections::Generic;
 
 namespace CompilerHelpers
 {
-	Type^ GetReturnType(MethodBase^ mi);
-	bool IsParamsMethod(MethodBase^ method);
+    Type^ GetReturnType(MethodBase^ mi);
+    bool IsParamsMethod(MethodBase^ method);
     bool IsParamsMethod(array<ParameterInfo^>^ pis);
     bool IsParamArray(ParameterInfo^ parameter);
-	bool IsOutParameter(ParameterInfo^ pi);
-	bool IsStatic(MethodBase^ mi);
-	Type^ GetType(Object^ obj);
-	array<Type^>^ GetTypes(array<Object^>^ args);
-	bool CanImplicitConvertFrom(TypeCode fromTypeCode, TypeCode toTypeCode);
-	bool CanConvertFrom(Type^ fromType, Type^ toType);
-	int DistanceBetweenType(Type^ fromType, Type^ toType);
+    bool IsOutParameter(ParameterInfo^ pi);
+    bool IsStatic(MethodBase^ mi);
+    Type^ GetType(Object^ obj);
+    array<Type^>^ GetTypes(array<Object^>^ args);
+    bool CanImplicitConvertFrom(TypeCode fromTypeCode, TypeCode toTypeCode);
+    bool CanConvertFrom(Type^ fromType, Type^ toType);
+    int DistanceBetweenType(Type^ fromType, Type^ toType);
 }
+

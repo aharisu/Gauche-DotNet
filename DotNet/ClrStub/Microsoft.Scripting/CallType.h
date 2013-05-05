@@ -18,6 +18,6 @@
 using namespace System;
 
 enum class CallType {
-	None = 0,
-	ImplicitInstance
+    None = 0,
+    ImplicitInstance
 };

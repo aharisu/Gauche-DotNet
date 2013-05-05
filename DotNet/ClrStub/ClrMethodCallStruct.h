@@ -38,34 +38,34 @@ extern "C" {
 #endif
 
 typedef enum {
-	TYPESPEC_ATTR_NORMAL,
-	TYPESPEC_ATTR_REF,
-	TYPESPEC_ATTR_OUT,
-	TYPESPEC_ATTR_PARAMS,
-	TYPESPEC_ATTR_UNSPECIFY
+    TYPESPEC_ATTR_NORMAL,
+    TYPESPEC_ATTR_REF,
+    TYPESPEC_ATTR_OUT,
+    TYPESPEC_ATTR_PARAMS,
+    TYPESPEC_ATTR_UNSPECIFY
 }TypeSpecAttr;
 
 typedef struct TypeSpecRec
 {
-	const char* name;
-	struct TypeSpecRec* genericSpec;
-	int numGenericSpec;
-	struct TypeSpecRec* paramSpec;
-	int numParamSpec;
-	TypeSpecAttr attr;
+    const char* name;
+    struct TypeSpecRec* genericSpec;
+    int numGenericSpec;
+    struct TypeSpecRec* paramSpec;
+    int numParamSpec;
+    TypeSpecAttr attr;
 } TypeSpec;
 
 typedef enum {
-	METHOD_ARG_CLROBJECT,
-	METHOD_ARG_INT,
-	METHOD_ARG_STRING
+    METHOD_ARG_CLROBJECT,
+    METHOD_ARG_INT,
+    METHOD_ARG_STRING
 }MethodArgKind;
 
 typedef struct MethodArgRec
 {
-	MethodArgKind kind;
-	void* ptr;
-	void* value;
+    MethodArgKind kind;
+    void* ptr;
+    void* value;
 } MethodArg;
 
 #ifdef __cplusplus

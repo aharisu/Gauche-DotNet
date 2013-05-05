@@ -57,10 +57,10 @@ namespace GaucheDotNet
         {
             get
             {
-				unsafe
-				{
-					return GCHandle.FromIntPtr(((Native.ScmClrObject*)_ptr)->handle).Target;
-				}
+                unsafe
+                {
+                    return GCHandle.FromIntPtr(((Native.ScmClrObject*)_ptr)->handle).Target;
+                }
             }
         }
 
@@ -71,3 +71,4 @@ namespace GaucheDotNet
         }
     }
 }
+

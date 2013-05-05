@@ -71,3 +71,4 @@ namespace GaucheDotNet
         public abstract object Apply(params object[] args);
     }
 }
+

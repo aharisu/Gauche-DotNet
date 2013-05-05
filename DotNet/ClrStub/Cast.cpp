@@ -19,33 +19,33 @@ namespace GaucheDotNet
             {
                 return new GoshFixnum(num >> 2);
             }
-			else if (num == GoshInvoke::SCM_FALSE)
+            else if (num == GoshInvoke::SCM_FALSE)
             {
-				return Gosh::False;
+                return Gosh::False;
             }
-			else if (num == GoshInvoke::SCM_TRUE)
+            else if (num == GoshInvoke::SCM_TRUE)
             {
-				return Gosh::True;
+                return Gosh::True;
             }
-			else if (num == GoshInvoke::SCM_NIL)
+            else if (num == GoshInvoke::SCM_NIL)
             {
-				return Gosh::NIL;
+                return Gosh::NIL;
             }
-			else if (num == GoshInvoke::SCM_EOF)
+            else if (num == GoshInvoke::SCM_EOF)
             {
-				return Gosh::EOF;
+                return Gosh::EOF;
             }
-			else if (num == GoshInvoke::SCM_UNDEFINED)
+            else if (num == GoshInvoke::SCM_UNDEFINED)
             {
-				return Gosh::Undefined;
+                return Gosh::Undefined;
             }
-			else if (num == GoshInvoke::SCM_UNBOUND)
+            else if (num == GoshInvoke::SCM_UNBOUND)
             {
-				return Gosh::Unbound;
+                return Gosh::Unbound;
             }
             else
             {
-				/*
+                /*
                 switch ((Gosh.KnownClass)GoshInvoke.Scm_IsKnownType(ptr))
                 {
                     case Gosh.KnownClass.Pair:
@@ -87,13 +87,13 @@ namespace GaucheDotNet
                     default:
                         throw new InvalidCastException("unknown type");
                 }
-				*/
+                */
                 default:
                     throw new InvalidCastException("unknown type");
             }
         }
 
-		/*
+        /*
         public static object ToObj(IntPtr ptr)
         {
 #if X64
@@ -237,7 +237,7 @@ namespace GaucheDotNet
             GCHandle handle = GCHandle.Alloc(obj);
             return GoshInvoke.Scm_MakeClrObject((IntPtr)handle);
         }
-		*/
+        */
 
     };
 };

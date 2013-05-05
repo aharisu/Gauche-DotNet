@@ -40,11 +40,11 @@ namespace GaucheDotNet
     {
         private int _num;
 
-		public int Num
-		{
-			get { return _num; }
-			set { _num = value; }
-		}
+        public int Num
+        {
+            get { return _num; }
+            set { _num = value; }
+        }
 
         public GoshFixnum(int num)
         {
@@ -55,10 +55,10 @@ namespace GaucheDotNet
         {
 #if X64
             Int64 num = ptr.ToInt64();
-			this._num = (int)(num >> 2);
+            this._num = (int)(num >> 2);
 #else
             Int32 num = ptr.ToInt32();
-			this._num = num >> 2;
+            this._num = num >> 2;
 #endif
         }
 
@@ -82,3 +82,4 @@ namespace GaucheDotNet
     }
     #endregion }
 }
+

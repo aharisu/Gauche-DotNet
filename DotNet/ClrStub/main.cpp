@@ -5,5 +5,5 @@ using namespace System::Runtime::InteropServices;
 
 int main(array<String^>^ args)
 {
-	return 0;
+    return 0;
 }

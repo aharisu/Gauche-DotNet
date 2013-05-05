@@ -22,20 +22,20 @@ using namespace System;
 ref class ParamsArgBuilder : ArgBuilder
 {
 public:
-	ParamsArgBuilder(int start, int count, Type^ elementType)
-		:_start(start)
-		, _count(count)
-		, _elementType(elementType)
-	{
-	}
+    ParamsArgBuilder(int start, int count, Type^ elementType)
+        :_start(start)
+        , _count(count)
+        , _elementType(elementType)
+    {
+    }
 
-	property int Priority 
-	{
-		virtual int get() override {return 4;}
-	}
+    property int Priority 
+    {
+        virtual int get() override {return 4;}
+    }
 
 private:
-	int _start;
-	int _count;
-	Type^ _elementType;
+    int _start;
+    int _count;
+    Type^ _elementType;
 };

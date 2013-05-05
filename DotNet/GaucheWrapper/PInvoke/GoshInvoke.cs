@@ -637,16 +637,16 @@ namespace GaucheDotNet.Native
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr Scm_ConditionTypeName(IntPtr c);
 
-		/// <param name="message">ScmString*</param>
-		/// <param name="clrException">ScmClrObject*</param>
-		/// <returns>ScmCondition*</returns>
-		[DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
-		public static extern IntPtr Scm_MakeClrError(IntPtr message, IntPtr clrException);
+        /// <param name="message">ScmString*</param>
+        /// <param name="clrException">ScmClrObject*</param>
+        /// <returns>ScmCondition*</returns>
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeClrError(IntPtr message, IntPtr clrException);
 
-		/// <param name="condition">ScmObj</param>
-		/// <returns>ScmObj</returns>
-		[DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
-		public static extern IntPtr Scm_Raise(IntPtr condition);
+        /// <param name="condition">ScmObj</param>
+        /// <returns>ScmObj</returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_Raise(IntPtr condition);
 
         #endregion }
 
@@ -683,3 +683,4 @@ namespace GaucheDotNet.Native
 
     }
 }
+

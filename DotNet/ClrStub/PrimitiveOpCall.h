@@ -40,160 +40,160 @@ using namespace System::Reflection;
 
 static Object^ PrimitiveTypeImplicitConversion(Object^ obj, Type^ toType)
 {
-	TypeCode objTypeCode = Type::GetTypeCode(obj->GetType());
-	TypeCode toTypeCode = Type::GetTypeCode(toType);
+    TypeCode objTypeCode = Type::GetTypeCode(obj->GetType());
+    TypeCode toTypeCode = Type::GetTypeCode(toType);
 
-	if(objTypeCode == toTypeCode)
-	{
-		return obj;
-	}
-	else if(CompilerHelpers::CanImplicitConvertFrom(objTypeCode, toTypeCode))
-	{
-		return Convert::ChangeType(obj, toTypeCode);
-	}
-	else
-	{
-		return nullptr;
-	}
+    if(objTypeCode == toTypeCode)
+    {
+        return obj;
+    }
+    else if(CompilerHelpers::CanImplicitConvertFrom(objTypeCode, toTypeCode))
+    {
+        return Convert::ChangeType(obj, toTypeCode);
+    }
+    else
+    {
+        return nullptr;
+    }
 }
 
 static void PreprocessPrimitiveOp(array<ArgType>^ typeSpec, Object^% instance, Object^% secondArg, bool allowUnaryOp, bool allowBinaryOp)
 {
-	if(typeSpec != nullptr && 
-		typeSpec->Length != ((secondArg == nullptr) ? 2 : 3))
-	{
-		//メソッドの型指定子と引数の数が合っていません
-		throw gcnew ArgumentException("not match type specifier and number of arguments");
-	}
+    if(typeSpec != nullptr && 
+        typeSpec->Length != ((secondArg == nullptr) ? 2 : 3))
+    {
+        //メソッドの型指定子と引数の数が合っていません
+        throw gcnew ArgumentException("not match type specifier and number of arguments");
+    }
 
-	if(secondArg == nullptr)
-	{
-		if(!allowUnaryOp)
-		{
-			//単項演算は定義されていません
-			throw gcnew ArgumentException("Unary operation is not defined");
-		}
+    if(secondArg == nullptr)
+    {
+        if(!allowUnaryOp)
+        {
+            //単項演算は定義されていません
+            throw gcnew ArgumentException("Unary operation is not defined");
+        }
 
-		if(typeSpec != nullptr)
-		{
-			instance = PrimitiveTypeImplicitConversion(instance, typeSpec[1].type);
-			if(instance == nullptr)
-			{
-				//型指定子と実際のオブジェクトの型が異なります。
-				throw gcnew ArgumentException("not match type specifier and type of instance object");
-			}
-		}
-	}
-	else
-	{
-		if(!allowBinaryOp)
-		{
-			//2項演算は定義されていません
-			throw gcnew ArgumentException("Binary operation is not defined");
-		}
+        if(typeSpec != nullptr)
+        {
+            instance = PrimitiveTypeImplicitConversion(instance, typeSpec[1].type);
+            if(instance == nullptr)
+            {
+                //型指定子と実際のオブジェクトの型が異なります。
+                throw gcnew ArgumentException("not match type specifier and type of instance object");
+            }
+        }
+    }
+    else
+    {
+        if(!allowBinaryOp)
+        {
+            //2項演算は定義されていません
+            throw gcnew ArgumentException("Binary operation is not defined");
+        }
 
-		if(typeSpec != nullptr)
-		{
-			instance = PrimitiveTypeImplicitConversion(instance, typeSpec[1].type);
-			if(instance == nullptr)
-			{
-				//型指定子と実際のオブジェクトの型が異なります。
-				throw gcnew ArgumentException("not match type specifier and type of instance object");
-			}
-			secondArg = PrimitiveTypeImplicitConversion(secondArg, typeSpec[2].type);
-			if(secondArg == nullptr)
-			{
-				//型指定子と実際のオブジェクトの型が異なります。
-				throw gcnew ArgumentException("not match type specifier and type of argument object");
-			}
-		}
-	}
+        if(typeSpec != nullptr)
+        {
+            instance = PrimitiveTypeImplicitConversion(instance, typeSpec[1].type);
+            if(instance == nullptr)
+            {
+                //型指定子と実際のオブジェクトの型が異なります。
+                throw gcnew ArgumentException("not match type specifier and type of instance object");
+            }
+            secondArg = PrimitiveTypeImplicitConversion(secondArg, typeSpec[2].type);
+            if(secondArg == nullptr)
+            {
+                //型指定子と実際のオブジェクトの型が異なります。
+                throw gcnew ArgumentException("not match type specifier and type of argument object");
+            }
+        }
+    }
 }
 
 static Object^ PrimitiveAdd(array<ArgType>^ typeSpec, Object^ instance, Object^ secondArg)
 {
-	PreprocessPrimitiveOp(typeSpec, instance, secondArg, true, true);
+    PreprocessPrimitiveOp(typeSpec, instance, secondArg, true, true);
 
-	if(secondArg == nullptr)
-	{
-		switch(Type::GetTypeCode(instance->GetType()))
-		{
-		case TypeCode::Byte:
-		case TypeCode::SByte:
-		case TypeCode::Int16:
-		case TypeCode::UInt16:
-		case TypeCode::Int32:
-		case TypeCode::UInt32:
-		case TypeCode::Int64:
-		case TypeCode::UInt64:
-		case TypeCode::Single:
-		case TypeCode::Double:
-		case TypeCode::Decimal:
-			return instance;
-		}
-	}
-	else
-	{
-		Object^ ret = ImplicitConversionAdd(instance, secondArg);
-		if(ret != nullptr)
-		{
-			return ret;
-		}
-	}
-	//無効な演算子
-	throw gcnew ArgumentException("invalid operation");
+    if(secondArg == nullptr)
+    {
+        switch(Type::GetTypeCode(instance->GetType()))
+        {
+        case TypeCode::Byte:
+        case TypeCode::SByte:
+        case TypeCode::Int16:
+        case TypeCode::UInt16:
+        case TypeCode::Int32:
+        case TypeCode::UInt32:
+        case TypeCode::Int64:
+        case TypeCode::UInt64:
+        case TypeCode::Single:
+        case TypeCode::Double:
+        case TypeCode::Decimal:
+            return instance;
+        }
+    }
+    else
+    {
+        Object^ ret = ImplicitConversionAdd(instance, secondArg);
+        if(ret != nullptr)
+        {
+            return ret;
+        }
+    }
+    //無効な演算子
+    throw gcnew ArgumentException("invalid operation");
 }
 
 static Object^ PrimitiveSub(array<ArgType>^ typeSpec, Object^ instance, Object^ secondArg)
 {
-	PreprocessPrimitiveOp(typeSpec, instance, secondArg, true, true);
+    PreprocessPrimitiveOp(typeSpec, instance, secondArg, true, true);
 
-	if(secondArg == nullptr)
-	{
-		switch(Type::GetTypeCode(instance->GetType()))
-		{
-		case TypeCode::Byte:
-			return -(Byte)instance;
-		case TypeCode::SByte:
-			return -(SByte)instance;
-		case TypeCode::Int16:
-			return -(Int16)instance;
-		case TypeCode::UInt16:
-			return -(UInt16)instance;
-		case TypeCode::Int32:
-			return -(Int32)instance;
-		case TypeCode::Int64:
-			return -(Int64)instance;
-		case TypeCode::Single:
-			return -(Single)instance;
-		case TypeCode::Double:
-			return -(Double)instance;
-		case TypeCode::Decimal:
-			return -(Decimal)instance;
-		}
-	}
-	else
-	{
-		Object^ ret = ImplicitConversionSub(instance, secondArg);
-		if(ret != nullptr)
-		{
-			return ret;
-		}
-	}
+    if(secondArg == nullptr)
+    {
+        switch(Type::GetTypeCode(instance->GetType()))
+        {
+        case TypeCode::Byte:
+            return -(Byte)instance;
+        case TypeCode::SByte:
+            return -(SByte)instance;
+        case TypeCode::Int16:
+            return -(Int16)instance;
+        case TypeCode::UInt16:
+            return -(UInt16)instance;
+        case TypeCode::Int32:
+            return -(Int32)instance;
+        case TypeCode::Int64:
+            return -(Int64)instance;
+        case TypeCode::Single:
+            return -(Single)instance;
+        case TypeCode::Double:
+            return -(Double)instance;
+        case TypeCode::Decimal:
+            return -(Decimal)instance;
+        }
+    }
+    else
+    {
+        Object^ ret = ImplicitConversionSub(instance, secondArg);
+        if(ret != nullptr)
+        {
+            return ret;
+        }
+    }
 
-	//無効な演算子
-	throw gcnew ArgumentException("invalid operation");
+    //無効な演算子
+    throw gcnew ArgumentException("invalid operation");
 }
 
 static Object^ PrimitiveNot(array<ArgType>^ typeSpec, Object^ instance, Object^ secondArg)
 {
-	PreprocessPrimitiveOp(typeSpec, instance, secondArg, true, false);
+    PreprocessPrimitiveOp(typeSpec, instance, secondArg, true, false);
 
-	if(instance->GetType() == Boolean::typeid)
-	{
-		return !(Boolean)instance;
-	}
+    if(instance->GetType() == Boolean::typeid)
+    {
+        return !(Boolean)instance;
+    }
 
-	//無効な演算子
-	throw gcnew ArgumentException("invalid operation");
+    //無効な演算子
+    throw gcnew ArgumentException("invalid operation");
 }
