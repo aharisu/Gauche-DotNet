@@ -1,0 +1,47 @@
+
+/autom4te.cache
+*.log
+*.status
+*.o
+*.so
+*.dll
+*.gen.*
+*lib.c
+Makefile
+
+
+/aclocal.m4
+/configure
+/dotnetlib.c
+/gauche-dotnet.gpd
+/Makefile
+/VERSION
+/out/scm
+/out/dll
+/out/header
+/out/README
+/out/LICENSE
+
+/lib/dotnet.scm
+
+## for Visual Studio
+*.suo
+*.user
+*.ncb
+
+[Db]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]in/
+[Oo]bj/
+
+## auto generation file
+DotNet/ClrStub/ImplicitConvertionOp.h
+DotNet/GaucheWrapper/Gauche/Object/Procedure/ClrSubr.cs
+src/ClassType.cs
+src/class_getter.c
+
+## auto copy file
+src/ClrBridge.h
+src/ClrMethodCallStruct.h

@@ -1,0 +1,108 @@
+# General info
+SHELL       = @SHELL@
+prefix      = @prefix@
+exec_prefix = @exec_prefix@
+bindir      = @bindir@
+libdir      = @libdir@
+datadir     = @datadir@
+datarootdir = @datarootdir@
+srcdir      = @srcdir@
+VPATH       = $(srcdir)
+
+# These may be overridden by make invocators
+DESTDIR        =
+GOSH           = "@GOSH@"
+GAUCHE_CONFIG  = "@GAUCHE_CONFIG@"
+GAUCHE_PACKAGE = "@GAUCHE_PACKAGE@"
+INSTALL        = "@GAUCHE_INSTALL@" -C
+
+# Other parameters
+SOEXT  = @SOEXT@
+OBJEXT = @OBJEXT@
+EXEEXT = @EXEEXT@
+LOCAL_PATHS = "@LOCAL_PATHS@"
+
+LIBS = @LIBS@
+DEFS = @DEFS@
+
+ARCHFILES = gauche_dotnet.$(SOEXT) 
+
+TARGET    = $(ARCHFILES)
+GENERATED = *.o *.gen.* *lib.c gauche_dotnet.$(SOEXT)
+CONFIG_GENERATED = Makefile 
+
+GAUCHE_BINDIR     = "@GAUCHE_BINDIR@"
+GAUCHE_PKGINCDIR  = "$(DESTDIR)@GAUCHE_PKGINCDIR@"
+GAUCHE_PKGLIBDIR  = "$(DESTDIR)@GAUCHE_PKGLIBDIR@"
+GAUCHE_PKGARCHDIR = "$(DESTDIR)@GAUCHE_PKGARCHDIR@"
+
+SCRIPTDIR = "@SCRIPTDIR@"
+OUTDIR = "@OUTDIR@"
+GENSTUB = "@GENSTUB@"
+
+MINGW_STATIC_LIBGCC = @MINGW_STATIC_LIBGCC@
+
+dotnet_TYPE_HDRS = dotnet_type.gen.h	\
+									 ClrBridge.h \
+									 macro.stub.header	\
+
+dotnet_STUB_TYPE_HDRS = dotnet_type.gen.stub.header \
+
+dotnet_SRCS = gauche_dotnet.c \
+	      dotnetlib.c \
+	      dotnet_type.gen.c	\
+	      class_getter.c \
+	      for_clr.c \
+
+all : $(TARGET)
+
+
+#generate sutb -> c file
+.SUFFIXES:.stub .c
+
+.stub.c:
+	$(GOSH) -I$(SCRIPTDIR) $(GENSTUB) $<
+
+
+dotnetlib.c: $(dotnet_STUB_TYPE_HDRS)
+
+#generate type file
+dotnet_type.gen.c dotnet_type.gen.h dotnet_type.gen.stub.header: dotnet_type.scm
+	$(GOSH) -I$(SCRIPTDIR) dotnet_type.scm
+
+#compile core
+gauche_dotnet.$(SOEXT): $(dotnet_SRCS) $(dotnet_TYPE_HDRS) $(dotnet_STUB_TYPE_HDRS)
+	$(GAUCHE_PACKAGE) compile \
+		--local=$(LOCAL_PATHS) \
+		--verbose \
+		--libs="$(MINGW_STATIC_LIBGCC) $(LIBS) -L. -lClrStub" \
+		--cflags="$(DEFS) -I$(GAUCHE_PKGINCDIR) " \
+		gauche_dotnet \
+		$(dotnet_SRCS)
+
+
+check :
+	@rm -f test.log
+	$(GOSH) -I. -I$(srcdir) test.scm > test.log
+
+install :
+	$(INSTALL) -m 555 -T $(GAUCHE_PKGARCHDIR) $(ARCHFILES)
+	$(INSTALL) -m 555 -T $(GAUCHE_BINDIR) ClrStub.dll GaucheWrapper.dll
+
+uninstall :
+	$(INSTALL) -U $(GAUCHE_PKGARCHDIR) $(ARCHFILES)
+	$(INSTALL) -U $(GAUCHE_BINDIR) ClrStub.dll GaucheWrapper.dll
+
+clean :
+	$(GAUCHE_PACKAGE) compile --clean $(dotnet_SRCS) 
+	rm -rf $(TARGET) $(GENERATED) *~ test.log so_locations
+
+distclean : clean
+	rm -rf $(CONFIG_GENERATED)
+
+maintainer-clean : clean
+	rm -rf $(CONFIG_GENERATED) configure VERSION
+
+collect :
+	@if test "$(ARCHFILES)" != ""; then (cp -p -u $(ARCHFILES) $(OUTDIR)/dll/); fi
+

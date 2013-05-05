@@ -1,0 +1,174 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".cs" #>
+<#
+/*
+ * ClrSubr.tt
+ *
+ * MIT License
+ * Copyright 2013 aharisu
+ * All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ *
+ * aharisu
+ * foo.yobina@gmail.com
+ */
+
+
+const int ARGC = 3;
+#>
+//Auto generation code. Do not edit.
+
+using System;
+using System.Runtime.InteropServices;
+using GaucheDotNet.Native;
+
+namespace GaucheDotNet
+{
+<#
+for(int i = 0;i < ARGC;++i)
+{
+#>
+	public delegate R Func<<#=GetFuncGenericArgs(i, false)#>R>(<#=GetFuncGenericArgs(i, true)#>);
+<#
+}
+#>
+
+    public static partial class Gosh
+    {
+<#
+for(int i = 0;i < ARGC;++i)
+{
+	string genericArgs = GetFuncGenericArgs(i, false) + "R";
+#>
+        public static GoshProc MakeSubr<<#=genericArgs#>>(Func<<#=genericArgs#>> func)
+        {
+            Procedure.ClrSubr<<#=genericArgs#>> subr = new Procedure.ClrSubr<<#=genericArgs#>>(func);
+            IntPtr objPtr =GoshInvoke.Scm_MakeSubr(subr.GaucheEntry, IntPtr.Zero, <#=i#>, 0, (IntPtr)GoshInvoke.SCM_FALSE);
+            subr.setObjectPtr(objPtr);
+
+            return subr;
+        }
+
+<#
+}
+#>
+	}
+
+}
+
+namespace GaucheDotNet.Procedure
+{
+<#
+for(int i = 0;i < ARGC;++i)
+{
+	string genericArgs = GetFuncGenericArgs(i, false) + "R";
+#>
+	class ClrSubr<<#=genericArgs#>> : GoshProc
+	{
+		public readonly Func<<#=genericArgs#>> _func;
+
+		public ClrSubr(Func<<#=genericArgs#>> func)
+			:base(IntPtr.Zero)
+			{
+				this._func = func;
+			}
+
+		public void setObjectPtr(IntPtr ptr)
+		{
+			this._ptr = ptr;
+		}
+
+		public override int Required { get { return <#=i#>; } }
+		
+		public override object Apply(params object[] args)
+		{
+			if (args.Length != <#=i#>)
+			{
+				throw new ArgumentException("invalid argument count, required <#=i#> got " + args.Length);
+			}
+
+			return _func(
+<#
+for(int j = 0;j < i;++j)
+{
+#>
+				<#=((j != 0) ? "," : "")#>Util.DownCast<A<#=(j+1)#>>(args[<#=j#>], false)
+<#
+}
+#>
+			);
+		}
+
+		public IntPtr GaucheEntry(IntPtr args, int num, IntPtr data)
+		{
+			if (num != <#=i#>)
+			{
+				//TODO Error
+			}
+
+			R ret = _func(
+<#
+for(int j = 0;j < i;++j)
+{
+#>
+				<#=((j != 0) ? "," : "")#>Util.DownCast<A<#=(j+1)#>>(Cast.ToObj(Marshal.ReadIntPtr(args, IntPtr.Size * <#=j#>)), true)
+<#
+}
+#>
+			);
+
+			//TODO Values
+			return Cast.ToIntPtr(ret);
+		}
+	}
+
+<#
+}
+#>
+}
+
+<#+
+private static string GetFuncGenericArgs(int c, bool argName)
+{
+	string generic = "";
+	for(int i = 0;i < c;++i)
+	{
+		if(generic.Length != 0)
+		{
+			generic += ", ";
+		}
+
+		generic += ("A" + (i + 1));
+		if(argName)
+		{
+		generic += " arg" + (i + 1);
+		}
+	}
+
+	if(!argName && generic.Length != 0) 
+	{
+		generic += ", ";
+	}
+
+	return generic;
+}
+#>

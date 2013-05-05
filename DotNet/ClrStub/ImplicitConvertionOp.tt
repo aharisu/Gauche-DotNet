@@ -1,0 +1,298 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#v3.5" #>
+<#@ output extension=".h" #>
+<#
+/*
+ * ImplicitConvertionOp.tt
+ *
+ * MIT License
+ * Copyright 2013 aharisu
+ * All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ *
+ * aharisu
+ * foo.yobina@gmail.com
+ */
+
+string[][] Operands = new string[][] {
+	new string[] {"+", "Add"},
+	new string[] {"-", "Sub"},
+	new string[] {"*", "Mul"},
+	new string[] {"/", "Div"},
+	new string[] {"%", "Remainder", "Single", "Double", "Decimal"},
+	new string[] {"&", "LogAnd", "Single", "Double", "Decimal"},
+	new string[] {"|", "LogOr" , "Single", "Double", "Decimal"},
+	new string[] {"^", "LogXOr", "Single", "Double", "Decimal"},
+	new string[] {"<<", "LeftShift", "UInt32", "Int64", "UInt64", "Single", "Double", "Decimal"},
+	new string[] {">>", "RightShift", "UInt32", "Int64", "UInt64", "Single", "Double", "Decimal"},
+	new string[] {"==", "Ep"},
+	new string[] {"!=", "NotEq"},
+	new string[] {">", "Gt"},
+	new string[] {">=", "GtEp"},
+	new string[] {"<", "Lt"},
+	new string[] {"<=", "LtEp"},
+};
+#>
+//Auto generation code. Do not edit.
+#pragma once
+
+using namespace System;
+using namespace System::Reflection;
+//空のswitchステートメント警告を表示させない
+#pragma warning(push)
+#pragma warning(disable :  4060)
+
+<#
+	foreach(string[] operand in Operands)
+	{
+		string op = operand[0];
+		string opName = operand[1];
+		string[] ignore = new string[operand.Length - 2];
+		Array.Copy(operand, 2, ignore, 0, ignore.Length);
+#>
+
+static Object^ ImplicitConversion<#=opName#>(Object^ obj1, Object^ obj2)
+{
+    TypeCode obj1TypeCode = Type::GetTypeCode(obj1->GetType());
+    TypeCode obj2TypeCode = Type::GetTypeCode(obj2->GetType());
+    switch (obj1TypeCode)
+    {
+        case TypeCode::Byte:
+			switch(obj2TypeCode)
+			{
+			<#= GenTypeConvertIf(ignore, op, "Byte") #>
+			<#= GenTypeConvertIf(ignore, op, "Int16") #>
+			<#= GenTypeConvertIf(ignore, op, "UInt16") #>
+			<#= GenTypeConvertIf(ignore, op, "Int32") #>
+			<#= GenTypeConvertIf(ignore, op, "UInt32") #>
+			<#= GenTypeConvertIf(ignore, op, "Int64") #>
+			<#= GenTypeConvertIf(ignore, op, "UInt64") #>
+			<#= GenTypeConvertIf(ignore, op, "Single") #>
+			<#= GenTypeConvertIf(ignore, op, "Double") #>
+			<#= GenTypeConvertIf(ignore, op, "Decimal") #>
+			}
+            break;
+        case TypeCode::SByte:
+			switch(obj2TypeCode)
+			{
+			<#= GenTypeConvertIf(ignore, op, "SByte") #>
+			<#= GenTypeConvertIf(ignore, op, "Int16") #>
+			<#= GenTypeConvertIf(ignore, op, "Int32") #>
+			<#= GenTypeConvertIf(ignore, op, "Int64") #>
+			<#= GenTypeConvertIf(ignore, op, "Single") #>
+			<#= GenTypeConvertIf(ignore, op, "Double") #>
+			<#= GenTypeConvertIf(ignore, op, "Decimal") #>
+			}
+            break;
+        case TypeCode::Int16:
+			switch(obj2TypeCode)
+			{
+			<#= GenTypeConvertIf(ignore, op, "Int16") #>
+			<#= GenTypeConvertIf(ignore, op, "Int32") #>
+			<#= GenTypeConvertIf(ignore, op, "Int64") #>
+			<#= GenTypeConvertIf(ignore, op, "Single") #>
+			<#= GenTypeConvertIf(ignore, op, "Double") #>
+			<#= GenTypeConvertIf(ignore, op, "Decimal") #>
+
+			<#= GenTypeConvertIf(ignore, op, "SByte", "Int16") #>
+			<#= GenTypeConvertIf(ignore, op, "Byte", "Int16") #>
+			}
+            break;
+        case TypeCode::UInt16:
+			switch(obj2TypeCode)
+			{
+			<#= GenTypeConvertIf(ignore, op, "UInt16") #>
+			<#= GenTypeConvertIf(ignore, op, "Int32") #>
+			<#= GenTypeConvertIf(ignore, op, "UInt32") #>
+			<#= GenTypeConvertIf(ignore, op, "Int64") #>
+			<#= GenTypeConvertIf(ignore, op, "UInt64") #>
+			<#= GenTypeConvertIf(ignore, op, "Single") #>
+			<#= GenTypeConvertIf(ignore, op, "Double") #>
+			<#= GenTypeConvertIf(ignore, op, "Decimal") #>
+
+			<#= GenTypeConvertIf(ignore, op, "Byte", "UInt16") #>
+			}
+            break;
+        case TypeCode::Int32:
+			switch(obj2TypeCode)
+			{
+			<#= GenTypeConvertIf(ignore, op, "Int32") #>
+			<#= GenTypeConvertIf(ignore, op, "Int64") #>
+			<#= GenTypeConvertIf(ignore, op, "Single") #>
+			<#= GenTypeConvertIf(ignore, op, "Double") #>
+			<#= GenTypeConvertIf(ignore, op, "Decimal") #>
+
+			<#= GenTypeConvertIf(ignore, op, "SByte", "Int32") #>
+			<#= GenTypeConvertIf(ignore, op, "Byte", "Int32") #>
+			<#= GenTypeConvertIf(ignore, op, "Int16", "Int32") #>
+			<#= GenTypeConvertIf(ignore, op, "UInt16", "Int32") #>
+			}
+            break;
+        case TypeCode::UInt32:
+			switch(obj2TypeCode)
+			{
+			<#= GenTypeConvertIf(ignore, op, "UInt32") #>
+			<#= GenTypeConvertIf(ignore, op, "Int64") #>
+			<#= GenTypeConvertIf(ignore, op, "UInt64") #>
+			<#= GenTypeConvertIf(ignore, op, "Single") #>
+			<#= GenTypeConvertIf(ignore, op, "Double") #>
+			<#= GenTypeConvertIf(ignore, op, "Decimal") #>
+
+			<#= GenTypeConvertIf(ignore, op, "Byte", "UInt32") #>
+			<#= GenTypeConvertIf(ignore, op, "UInt16", "UInt32") #>
+			}
+            break;
+        case TypeCode::Int64:
+			switch(obj2TypeCode)
+			{
+			<#= GenTypeConvertIf(ignore, op, "Int64") #>
+			<#= GenTypeConvertIf(ignore, op, "Single") #>
+			<#= GenTypeConvertIf(ignore, op, "Double") #>
+			<#= GenTypeConvertIf(ignore, op, "Decimal") #>
+
+			<#= GenTypeConvertIf(ignore, op, "SByte", "Int64") #>
+			<#= GenTypeConvertIf(ignore, op, "Byte", "Int64") #>
+			<#= GenTypeConvertIf(ignore, op, "Int16", "Int64") #>
+			<#= GenTypeConvertIf(ignore, op, "UInt16", "Int64") #>
+			<#= GenTypeConvertIf(ignore, op, "Int32", "Int64") #>
+			<#= GenTypeConvertIf(ignore, op, "UInt32", "Int64") #>
+			}
+            break;
+        case TypeCode::UInt64:
+			switch(obj2TypeCode)
+			{
+			<#= GenTypeConvertIf(ignore, op, "UInt64") #>
+			<#= GenTypeConvertIf(ignore, op, "Single") #>
+			<#= GenTypeConvertIf(ignore, op, "Double") #>
+			<#= GenTypeConvertIf(ignore, op, "Decimal") #>
+
+			<#= GenTypeConvertIf(ignore, op, "Byte", "UInt64") #>
+			<#= GenTypeConvertIf(ignore, op, "UInt16", "UInt64") #>
+			<#= GenTypeConvertIf(ignore, op, "UInt32", "UInt64") #>
+			}
+            break;
+        case TypeCode::Char:
+			switch(obj2TypeCode)
+			{
+			<#= GenTypeConvertIf(ignore, op, "Char") #>
+			<#= GenTypeConvertIf(ignore, op, "UInt16") #>
+			<#= GenTypeConvertIf(ignore, op, "Int32") #>
+			<#= GenTypeConvertIf(ignore, op, "UInt32") #>
+			<#= GenTypeConvertIf(ignore, op, "Int64") #>
+			<#= GenTypeConvertIf(ignore, op, "UInt64") #>
+			<#= GenTypeConvertIf(ignore, op, "Single") #>
+			<#= GenTypeConvertIf(ignore, op, "Double") #>
+			<#= GenTypeConvertIf(ignore, op, "Decimal") #>
+			}
+            break;
+        case TypeCode::Single:
+			switch(obj2TypeCode)
+			{
+			<#= GenTypeConvertIf(ignore, op, "Single") #>
+			<#= GenTypeConvertIf(ignore, op, "Double") #>
+
+			<#= GenTypeConvertIf(ignore, op, "SByte", "Single") #>
+			<#= GenTypeConvertIf(ignore, op, "Byte", "Single") #>
+			<#= GenTypeConvertIf(ignore, op, "Int16", "Single") #>
+			<#= GenTypeConvertIf(ignore, op, "UInt16", "Single") #>
+			<#= GenTypeConvertIf(ignore, op, "Int32", "Single") #>
+			<#= GenTypeConvertIf(ignore, op, "UInt32", "Single") #>
+			<#= GenTypeConvertIf(ignore, op, "Int64", "Single") #>
+			<#= GenTypeConvertIf(ignore, op, "UInt64", "Single") #>
+			}
+            break;
+        case TypeCode::Double:
+			switch(obj2TypeCode)
+			{
+			<#= GenTypeConvertIf(ignore, op, "Double") #>
+
+			<#= GenTypeConvertIf(ignore, op, "SByte", "Double") #>
+			<#= GenTypeConvertIf(ignore, op, "Byte", "Double") #>
+			<#= GenTypeConvertIf(ignore, op, "Int16", "Double") #>
+			<#= GenTypeConvertIf(ignore, op, "UInt16", "Double") #>
+			<#= GenTypeConvertIf(ignore, op, "Int32", "Double") #>
+			<#= GenTypeConvertIf(ignore, op, "UInt32", "Double") #>
+			<#= GenTypeConvertIf(ignore, op, "Int64", "Double") #>
+			<#= GenTypeConvertIf(ignore, op, "UInt64", "Double") #>
+			<#= GenTypeConvertIf(ignore, op, "Single", "Double") #>
+			}
+            break;
+        case TypeCode::Decimal:
+			switch(obj2TypeCode)
+			{
+			<#= GenTypeConvertIf(ignore, op, "Decimal") #>
+
+			<#= GenTypeConvertIf(ignore, op, "SByte", "Decimal") #>
+			<#= GenTypeConvertIf(ignore, op, "Byte", "Decimal") #>
+			<#= GenTypeConvertIf(ignore, op, "Int16", "Decimal") #>
+			<#= GenTypeConvertIf(ignore, op, "UInt16", "Decimal") #>
+			<#= GenTypeConvertIf(ignore, op, "Int32", "Decimal") #>
+			<#= GenTypeConvertIf(ignore, op, "UInt32", "Decimal") #>
+			<#= GenTypeConvertIf(ignore, op, "Int64", "Decimal") #>
+			<#= GenTypeConvertIf(ignore, op, "UInt64", "Decimal") #>
+			}
+
+            break;
+    }
+
+    return nullptr;
+}
+
+<#
+	}
+#>
+#pragma warning(pop)
+
+<#+
+
+private static string GenTypeConvertIf(string[] ignore, string op, string type)
+{
+	if(Array.Exists(ignore, (t) => t == type))
+	{
+		return "";
+	}
+
+	string text = "";
+	text += "case TypeCode::" + type  + ":";
+	text += " return Convert::To" + type + "(obj1) "
+		+ op
+		+ " (" + type + ")obj2;";
+
+	return text;
+}
+
+private static string GenTypeConvertIf(string[] ignore, string op, string type, string castType)
+{
+	if(Array.Exists(ignore, (t) => t == castType))
+	{
+		return "";
+	}
+
+	string text = "";
+	text += "case TypeCode::" + type  + ":";
+	text += "return (" + castType + ")obj1 "
+		+ op
+		+ " Convert::To" + castType + "(obj2);";
+
+	return text;
+}
+
+#>

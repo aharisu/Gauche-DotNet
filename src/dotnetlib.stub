@@ -1,0 +1,461 @@
+;;;
+;;; dotnetlib.stub
+;;;
+;;; MIT License
+;;; Copyright 2013 aharisu
+;;; All rights reserved.
+;;;
+;;; Permission is hereby granted, free of charge, to any person obtaining a copy
+;;; of this software and associated documentation files (the "Software"), to deal
+;;; in the Software without restriction, including without limitation the rights
+;;; to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+;;; copies of the Software, and to permit persons to whom the Software is
+;;; furnished to do so, subject to the following conditions:
+;;;
+;;; The above copyright notice and this permission notice shall be included in all
+;;; copies or substantial portions of the Software.
+;;;
+;;;
+;;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+;;; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+;;; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+;;; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+;;; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+;;; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+;;; SOFTWARE.
+;;;
+;;;
+;;; aharisu
+;;; foo.yobina@gmail.com
+;;;
+
+"
+#include \"gauche_dotnet.h\"
+#include \"dotnet_type.gen.h\"
+
+#undef NULL
+#define NULL 0
+"
+
+(include "macro.stub.header")
+(include "dotnet_type.gen.stub.header")
+
+(define-cise-stmt raise-error 
+  [(_ func-name msg)
+   `(Scm_RaiseCondition
+      (SCM_OBJ SCM_CLASS_MESSAGE_CONDITION)
+      SCM_RAISE_CONDITION_MESSAGE
+      "%s: %s"
+      ,(symbol->string func-name) ,msg)]
+  )
+
+;;-----------------
+;;ClrObject(Gauche .Net Object)
+;;
+(define-cclass <clr-object>
+  :built-in
+  "ScmClrObject" "Scm_ClrObjectClass"
+  ()
+  ( ;;slot
+   )
+  )
+
+(define-cproc clr->int (obj::<clr-object>) :: <int>
+  (let* ([ret :: int])
+    (if (ClrToInt obj (& ret))
+      (result ret)
+      (raise-error clr->int "type miss"))))
+
+(define-cproc int->clr (obj::<top>) ::<clr-object>
+  (let* ([ret :: void*])
+    (cond
+      [(is-type? obj <fixnum>)
+       (if (FixnumToClr (unboxing obj <fixnum>) (& ret))
+         (result ret)
+         (raise-error int->clr "type miss"))]
+      [else (raise-error clr<-int "type miss")])))
+
+(define-cproc clr->string (obj::<clr-object>) :: <top>
+  (let* ([ret :: ScmObj])
+    (if (ClrToGoshString obj (cast void** (& ret)))
+      (result ret)
+      (raise-error clr->string "type miss"))))
+
+(define-cproc string->clr (obj::<string>) ::<clr-object>
+  (let* ([ret :: void*])
+    (if (StringToClr (SCM_STRING_START obj) (& ret))
+      (result ret)
+      (raise-error int->clr "type miss"))))
+
+(define-cproc clr-prop-get (obj::<clr-object> name::<symbol>) :: <clr-object>
+  (result (ClrPropGet obj (SCM_STRING_START (@ name->name)))))
+
+(define-cproc clr-prop-set! (obj::<clr-object> name::<symbol> val::<top>) :: <void>
+  (let* ([ret::int])
+    (cond
+      [(is-type? val <int>)
+       (set! ret (ClrPropSetInt obj (SCM_STRING_START (@ name->name)) (unboxing val <int>)))]
+      [(is-type? val <string>)
+       (set! ret (ClrPropSetString obj (SCM_STRING_START (@ name->name)) 
+                                   (SCM_STRING_START (unboxing val <string>))))]
+      ;;TODO more primitive type
+      [(is-type? val <clr-object>)
+       (set! ret (ClrPropSetClrObj obj (SCM_STRING_START (@ name->name)) 
+                                   (unboxing val <clr-object>)))]
+      [else
+       (set! ret (ClrPropSetScmObj obj (SCM_STRING_START (@ name->name)) val))])
+    (unless ret
+      (raise-error clr-prop-set! "type missmatch"))))
+
+(define-cproc clr-reference (assembly::<symbol>) :: <void>
+  (unless (ClrReferenceAssembly (SCM_STRING_START (@ assembly->name)))
+    (raise-error clr-reference "unknown assembly")))
+
+"
+static ScmString namespace_list = SCM_STRING_CONST_INITIALIZER(\"*nsl*\", 5, 5);
+"
+
+(define-cproc clr-using (ns::<symbol>) :: <void>
+  (let* ([module :: ScmModule* (Scm_CurrentModule)]
+         [sym-ns-list :: ScmSymbol* (SCM_SYMBOL (Scm_Intern (& namespace_list)))]
+         [ns-list :: ScmObj (Scm_GlobalVariableRef module sym-ns-list SCM_BINDING_STAY_IN_MODULE)])
+    (when (SCM_UNBOUNDP ns-list)
+      (set! ns-list (SCM_OBJ (Scm_MakeBox (SCM_OBJ SCM_NIL))))
+      (Scm_DefineConst module sym-ns-list ns-list))
+    (set! (SCM_BOX_VALUE ns-list)
+      (Scm_Append2 (SCM_BOX_VALUE ns-list) (Scm_Cons (SCM_OBJ ns) (SCM_OBJ SCM_NIL))))))
+
+"
+static ScmString namespace_System = SCM_STRING_CONST_INITIALIZER(\"System.\", 7, 7);
+
+static ScmString ary_spec_begin = SCM_STRING_CONST_INITIALIZER(\"[\", 1, 1);
+static ScmString ary_spec_end = SCM_STRING_CONST_INITIALIZER(\"]\", 1, 1);
+"
+
+(define-cise-stmt (set!-append-ary-spec type dimension)
+  `(cond
+     [(or (== ,dimension 0) (== ,dimension 1))
+      (set! ,type (Scm_StringAppendC (SCM_STRING ,type) "[]" 2 2))]
+     [(== ,dimension 2)
+      (set! ,type (Scm_StringAppendC (SCM_STRING ,type) "[,]" 3 3))]
+     [(== ,dimension 3)
+      (set! ,type (Scm_StringAppendC (SCM_STRING ,type) "[,,]" 4 4))]
+     [else 
+       (set! ,type (Scm_StringAppend 
+                     (SCM_LIST4 ,type 
+                                (SCM_OBJ (& ary_spec_begin))
+                                (Scm_MakeFillString (- ,dimension 1) #\,)
+                                (SCM_OBJ (& ary_spec_end)))))]))
+
+"
+static ScmString alias_bool = SCM_STRING_CONST_INITIALIZER(\"bool\", 4, 4);
+static ScmString correct_bool = SCM_STRING_CONST_INITIALIZER(\"Boolean\", 7, 7);
+static ScmString alias_char = SCM_STRING_CONST_INITIALIZER(\"char\", 4, 4);
+static ScmString correct_char = SCM_STRING_CONST_INITIALIZER(\"Char\", 4, 4);
+static ScmString alias_byte = SCM_STRING_CONST_INITIALIZER(\"byte\", 4, 4);
+static ScmString correct_byte = SCM_STRING_CONST_INITIALIZER(\"Byte\", 4, 4);
+static ScmString alias_sbyte = SCM_STRING_CONST_INITIALIZER(\"sbyte\", 5, 5);
+static ScmString correct_sbyte = SCM_STRING_CONST_INITIALIZER(\"SByte\", 5, 5);
+static ScmString alias_short = SCM_STRING_CONST_INITIALIZER(\"short\", 5, 5);
+static ScmString correct_short = SCM_STRING_CONST_INITIALIZER(\"Int16\", 5, 5);
+static ScmString alias_ushort = SCM_STRING_CONST_INITIALIZER(\"ushort\", 6, 6);
+static ScmString correct_ushort = SCM_STRING_CONST_INITIALIZER(\"UInt16\", 6, 6);
+static ScmString alias_int = SCM_STRING_CONST_INITIALIZER(\"int\", 3, 3);
+static ScmString correct_int = SCM_STRING_CONST_INITIALIZER(\"Int32\", 5, 5);
+static ScmString alias_uint = SCM_STRING_CONST_INITIALIZER(\"uint\", 4, 4);
+static ScmString correct_uint = SCM_STRING_CONST_INITIALIZER(\"UInt32\", 6, 6);
+static ScmString alias_long = SCM_STRING_CONST_INITIALIZER(\"long\", 4, 4);
+static ScmString correct_long = SCM_STRING_CONST_INITIALIZER(\"Int64\", 5, 5);
+static ScmString alias_ulong = SCM_STRING_CONST_INITIALIZER(\"ulong\", 5, 5);
+static ScmString correct_ulong = SCM_STRING_CONST_INITIALIZER(\"UInt64\", 6, 6);
+static ScmString alias_float = SCM_STRING_CONST_INITIALIZER(\"float\", 5, 5);
+static ScmString correct_float = SCM_STRING_CONST_INITIALIZER(\"Single\", 6, 6);
+static ScmString alias_double = SCM_STRING_CONST_INITIALIZER(\"double\", 6, 6);
+static ScmString correct_double = SCM_STRING_CONST_INITIALIZER(\"Double\", 6, 6);
+static ScmString alias_decimal = SCM_STRING_CONST_INITIALIZER(\"decimal\", 7, 7);
+static ScmString correct_decimal = SCM_STRING_CONST_INITIALIZER(\"Decimal\", 7, 7);
+static ScmString alias_string = SCM_STRING_CONST_INITIALIZER(\"string\", 6, 6);
+static ScmString correct_string = SCM_STRING_CONST_INITIALIZER(\"String\", 6, 6);
+"
+(define-cfn resolve-aliasname (name::ScmString*) :: ScmString* :static
+  (when (Scm_CharLowercaseP (Scm_StringRef name 0 0))
+    (cond
+      [(Scm_StringEqual name (& alias_int))
+       (return (& correct_int))]
+      [(Scm_StringEqual name (& alias_string))
+       (return (& correct_string))]
+      [(Scm_StringEqual name (& alias_bool))
+       (return (& correct_bool))]
+      [(Scm_StringEqual name (& alias_char))
+       (return (& correct_char))]
+      [(Scm_StringEqual name (& alias_double))
+       (return (& correct_double))]
+      [(Scm_StringEqual name (& alias_byte))
+       (return (& correct_byte))]
+      [(Scm_StringEqual name (& alias_sbyte))
+       (return (& correct_sbyte))]
+      [(Scm_StringEqual name (& alias_short))
+       (return (& correct_short))]
+      [(Scm_StringEqual name (& alias_ushort))
+       (return (& correct_ushort))]
+      [(Scm_StringEqual name (& alias_uint))
+       (return (& correct_uint))]
+      [(Scm_StringEqual name (& alias_long))
+       (return (& correct_long))]
+      [(Scm_StringEqual name (& alias_ulong))
+       (return (& correct_ulong))]
+      [(Scm_StringEqual name (& alias_float))
+       (return (& correct_float))]
+      [(Scm_StringEqual name (& alias_decimal))
+       (return (& correct_decimal))]))
+  (return name))
+
+(define-cfn build-generic-type (type::ScmString* genericSpec::TypeSpec* numGenericSpec::int) :: ScmString* :static
+  (if (> numGenericSpec 0)
+    (let* ([builder::ScmDString]
+           [num-buf::(.array char (10))])
+      (Scm_DStringInit (& builder))
+      (Scm_DStringAdd (& builder) type)
+      (SCM_DSTRING_PUTB (& builder) #\`)
+      (snprintf num-buf 10 "%d" numGenericSpec)
+      (Scm_DStringPutz (& builder) num-buf -1)
+      (SCM_DSTRING_PUTB (& builder) #\[)
+      (Scm_DStringPutz (& builder) 
+                       (ref (aref genericSpec 0) name)
+                       -1)
+      (let* ([i::int 1]) 
+        (for [() (< i numGenericSpec) (pre++ i)]
+          (SCM_DSTRING_PUTB (& builder) #\,)
+          (Scm_DStringPutz (& builder) 
+                           (ref (aref genericSpec i) name)
+                           -1)))
+      (SCM_DSTRING_PUTB (& builder) #\])
+      (return (cast ScmString* (Scm_DStringGet (& builder) 0))))
+    (return type)))
+
+;;TODO delegate
+(define-cfn get-clrfulltype (sym-type::ScmSymbol* genericSpec::TypeSpec* numGenericSpec::int) :: ScmString* :static
+  ;;parse-array-spec
+  (let* ([type::ScmObj (SCM_OBJ (Scm_StringScanChar (@ sym-type->name) 
+                                                    (SCM_CHAR #\*)
+                                                    SCM_STRING_SCAN_BOTH))])
+    (set! (-> (Scm_VM) numVals) 1)
+    (if (== type SCM_FALSE)
+      ;;no array specifier
+      (set! type (SCM_OBJ (build-generic-type (resolve-aliasname (@ sym-type->name))
+                                              genericSpec numGenericSpec)))
+      ;;has array specifier(*...)
+      (let* ([ary-spec::(const ScmStringBody*) (SCM_STRING_BODY (aref (-> (Scm_VM) vals) 0))]
+             [str::(const char*) (SCM_STRING_BODY_START ary-spec)]
+             [dimension::int 0])
+        (set! type (SCM_OBJ (build-generic-type (resolve-aliasname (SCM_STRING type))
+                                              genericSpec numGenericSpec)))
+        (unless (SCM_STRING_BODY_SINGLE_BYTE_P ary-spec)
+          (raise-error clr-type "invalid type spec"))
+        (dotimes [i (SCM_STRING_BODY_LENGTH ary-spec)]
+          (cond
+            [(== (aref str i) #\*)
+             (set!-append-ary-spec type dimension)
+             (set! dimension 0)]
+            [(and (< #\0 (aref str i)) (<= (aref str i) #\9))
+             (set! dimension (+ (* dimension 10) (- (aref str i) #\0)))]
+            [else (raise-error clr-type "invalid type spec")]))
+        (set!-append-ary-spec type dimension)))
+    ;;resolve clr type
+    (when (ClrValidTypeName (SCM_STRING_START type))
+      (return (SCM_STRING type)))
+    (let* ([full-type::ScmObj (Scm_StringAppend2 (& namespace_System) (SCM_STRING type))])
+      (when (ClrValidTypeName (SCM_STRING_START (SCM_STRING full-type)))
+        (return (SCM_STRING full-type))))
+    (let* ([ns-list::ScmObj (Scm_GlobalVariableRef
+                              (Scm_CurrentModule)
+                              (SCM_SYMBOL (Scm_Intern (& namespace_list)))
+                              SCM_BINDING_STAY_IN_MODULE)])
+      (when (SCM_UNBOUNDP ns-list)
+        (raise-error clr-resolve-type "unknown type"))
+      (dolist [ns (SCM_BOX_VALUE ns-list)]
+        (let* ([fullType::ScmObj (Scm_StringAppend2
+                                   (SCM_STRING (Scm_StringAppendC (-> (unboxing ns <symbol>) name) "." 1 1))
+                                   (SCM_STRING type))])
+          (when (ClrValidTypeName (SCM_STRING_START (SCM_STRING fullType)))
+            (return (SCM_STRING fullType)))))
+      (raise-error clr-resolve-type "unknown type"))))
+
+(define-cfn is-type-delimiter (arg::ScmObj) :: int :static
+  (when (is-type? arg <keyword>)
+    (let* ([body::(const ScmStringBody*) (SCM_STRING_BODY (-> (SCM_KEYWORD arg) name))])
+      (when (and (== (SCM_STRING_BODY_LENGTH body) 1)
+              (== (aref (SCM_STRING_BODY_START body) 0) #\:))
+        (return 1))))
+  (return 0))
+
+(define-cfn type-spec-pos (args::ScmObj) :: int :static
+  (let* ([pos::int 0])
+    (dolist [arg args]
+      (if (is-type-delimiter arg)
+        (return pos))
+      (pre++ pos))
+    (return pos)))
+
+"
+static ScmString param_attr_ref = SCM_STRING_CONST_INITIALIZER(\"ref\", 3, 3);
+static ScmString param_attr_out = SCM_STRING_CONST_INITIALIZER(\"out\", 3, 3);
+static ScmString param_attr_params = SCM_STRING_CONST_INITIALIZER(\"params\", 6, 6);
+"
+(define-cfn get-param-attr (attr::ScmObj) :: int :static
+  (let* ([name::ScmString* (-> (SCM_KEYWORD attr) name)])
+    (cond
+      [(Scm_StringEqual name (& param_attr_ref))
+       (return TYPESPEC_ATTR_REF)]
+      [(Scm_StringEqual name (& param_attr_out))
+       (return TYPESPEC_ATTR_OUT)]
+      [(Scm_StringEqual name (& param_attr_params))
+       (return TYPESPEC_ATTR_PARAMS)]
+      [else (return -1)])))
+
+;;;TODO update comment
+;; Type specifier formula are
+;; <type-spec> ::= <type-name> 
+;;  | (<type-name> <type-spec> *)
+;; <type-name> ::= symbol (e.g. Int32, System.Windows.Forms.Form)
+;;
+(define-cfn parse-type-spec (spec::ScmObj method?::int) :: TypeSpec :static
+  (let* ([ret::TypeSpec])
+    (set! (@ ret.attr) TYPESPEC_ATTR_UNSPECIFY)
+    (cond
+      [(is-type? spec <symbol>)
+       (if method?
+         (set! (@ ret.name) (SCM_STRING_START (-> (unboxing spec <symbol>) name)))
+         (let* ([type::ScmString* (get-clrfulltype (unboxing spec <symbol>) 0 0)])
+           (set! (@ ret.name) (SCM_STRING_START type))))
+       (set! (@ ret.genericSpec) 0)
+       (set! (@ ret.numGenericSpec) -1)
+       (set! (@ ret.paramSpec) 0)
+       (set! (@ ret.numParamSpec) -1)]
+      [(is-type? spec <pair>)
+       (let* ([len::int (Scm_Length spec)]
+              [name::ScmObj (SCM_CAR (SCM_PAIR spec))])
+         (unless (is-type? name <symbol>)
+           (raise-error clr-call "Method specifier required symbol or list of symbol"))
+         (set! spec (SCM_CDR (SCM_PAIR spec)))
+         (pre-- len)
+         ;;parse generic specifier and parameter specifier
+         (let* ([typeSpecIndex::int (type-spec-pos spec)])
+           (set! (@ ret.numGenericSpec) (- len (- len typeSpecIndex)))
+           (if (zero? (@ ret.numGenericSpec))
+             (set! (@ ret.genericSpec) 0)
+             (set! (@ ret.genericSpec)(SCM_NEW_ARRAY TypeSpec (@ ret.numGenericSpec))))
+           ;;generic specifier
+           (dotimes [i typeSpecIndex]
+             (set! (aref (@ ret.genericSpec) i) (parse-type-spec (SCM_CAR (SCM_PAIR spec)) FALSE))
+             (set! spec (SCM_CDR (SCM_PAIR spec))))
+           (if method?
+             (set! (@ ret.name) (SCM_STRING_START (-> (unboxing name <symbol>) name)))
+             (let* ([type::ScmString* (get-clrfulltype (unboxing name <symbol>) (@ ret.genericSpec) (@ ret.numGenericSpec))])
+               (set! (@ ret.name) (SCM_STRING_START type))))
+           ;;skip delimiter of parameter specifier
+           (unless (== typeSpecIndex len)
+             (set! spec (SCM_CDR (SCM_PAIR spec))))
+           ;;parameter specifier
+           (set! (@ ret.numParamSpec) (?: (== len typeSpecIndex) 0 (- len (+ typeSpecIndex 1))))
+           (if (zero? (@ ret.numParamSpec))
+             (set! (@ ret.paramSpec) 0)
+             (set! (@ ret.paramSpec) (SCM_NEW_ARRAY TypeSpec (@ ret.numParamSpec))))
+           (let* ([i::int 0])
+             (while (!= SCM_NIL spec)
+               (let* ([attr::int TYPESPEC_ATTR_NORMAL])
+                 ;;check param attribute
+                 (when (is-type? (SCM_CAR (SCM_PAIR spec)) <keyword>)
+                   (set! attr (get-param-attr (SCM_CAR (SCM_PAIR spec))))
+                   (when (== attr -1)
+                     (raise-error type-parse "type parse missing. illegal attribute."))
+                   (set! spec (SCM_CDR (SCM_PAIR spec)))
+                   (when (== SCM_NIL spec)
+                     (raise-error type-parse "type parse missing. invalid syntax"))
+                   (pre-- (@ ret.numParamSpec)))
+                 ;;parse type spec
+                 (set! (aref (@ ret.paramSpec) i) (parse-type-spec (SCM_CAR (SCM_PAIR spec)) FALSE))
+                 (set! (ref (aref (@ ret.paramSpec) i) attr) attr))
+               ;;to next
+               (set! spec (SCM_CDR (SCM_PAIR spec)))
+               (pre++ i)))))]
+      [else (raise-error clr-call "Method specifier required symbol or list of symbol")])
+    (return ret)))
+
+(define-cproc clr-resolve-type (type::<top>) :: <string>
+  (let* ([typeSpec::TypeSpec (parse-type-spec type FALSE)])
+    (result (cast ScmString* (Scm_MakeString (@ typeSpec.name) -1 -1 0)))))
+
+(define-cfn to-method-arg (obj::ScmObj) :: MethodArg :static
+  (let* ([arg::MethodArg])
+    (cond
+      [(is-type? obj <clr-object>)
+       (set! (@ arg.ptr) (unboxing obj <clr-object>))
+       (set! (@ arg.kind) METHOD_ARG_CLROBJECT)]
+      [(is-type? obj <fixnum>)
+       (set! (@ arg.ptr) (cast _pvoid_t obj))
+       (set! (@ arg.value) (cast _pvoid_t (unboxing obj <fixnum>)))
+       (set! (@ arg.kind) METHOD_ARG_INT)]
+      [(is-type? obj <string>)
+       (set! (@ arg.ptr) (cast _pvoid_t obj)) 
+       (set! (@ arg.value) (cast _pvoid_t (SCM_STRING_START (unboxing obj <string>))))
+       (set! (@ arg.kind) METHOD_ARG_STRING)]
+      ;TODO more primitive type
+      [else
+        (set! (@ arg.ptr) (ToClrObj obj))
+        (set! (@ arg.kind) METHOD_ARG_CLROBJECT)])
+    (return arg)))
+
+"
+#define ARGS_TMP_ARY_SIZE 16
+#define SCM_CADDR(obj) (SCM_CAR(SCM_CDR(SCM_CDR(obj))))
+#define SCM_CDDDR(obj) (SCM_CDR(SCM_CDR(SCM_CDR(obj))))
+"
+(define-cproc clr-new (type::<top> :rest args) :: <clr-object>
+  (let* ([typeSpec::TypeSpec (parse-type-spec type FALSE)]
+         [len::int (Scm_Length args)]
+         [ptr-arg::MethodArg*]
+         [tmp-ary::(.array MethodArg (ARGS_TMP_ARY_SIZE))])
+    ;;parse args
+    (if (< len ARGS_TMP_ARY_SIZE)
+      (set! ptr-arg tmp-ary)
+      (set! ptr-arg (SCM_NEW_ARRAY MethodArg len)))
+    (dotimes [i len]
+      (set! (aref ptr-arg i) (to-method-arg (SCM_CAR (SCM_PAIR args))))
+      (set! args (SCM_CDR (SCM_PAIR args))))
+    ;;call constructor
+    (result (ClrNew (& typeSpec) ptr-arg len))))
+
+(define-cproc clr-call (method::<top> obj::<top> :rest args) :: <top>
+  (let* ([methodSpec::TypeSpec (parse-type-spec method TRUE)]
+         [static-type-spec::TypeSpec]
+         [static?::int]
+         [len::int (Scm_Length args)]
+         [ptr-arg::MethodArg*]
+         [tmp-ary::(.array MethodArg (ARGS_TMP_ARY_SIZE))]
+         [ptr-obj::void*])
+    ;;parse object or type specifier
+    (cond 
+      [(is-type? obj <clr-object>)
+       (set! ptr-obj (unboxing obj <clr-object>))
+       (set! static? FALSE)]
+      [else
+        (set! static-type-spec (parse-type-spec obj FALSE))
+        (set! ptr-obj (& static-type-spec))
+        (set! static? TRUE)])
+    ;;parse args
+    (if (< len ARGS_TMP_ARY_SIZE)
+      (set! ptr-arg tmp-ary)
+      (set! ptr-arg (SCM_NEW_ARRAY MethodArg len)))
+    (dotimes [i len]
+      (set! (aref ptr-arg i) (to-method-arg (SCM_CAR (SCM_PAIR args))))
+      (set! args (SCM_CDR (SCM_PAIR args))))
+    ;;call method
+    (let* ([ret::void* (ClrCallMethod
+                            (& methodSpec)
+                            ptr-obj static?
+                            ptr-arg len)])
+      (if (zero? ret)
+        (result SCM_UNDEFINED)
+        (result (boxing ret <clr-object>))))))
+
