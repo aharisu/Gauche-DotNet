@@ -10,6 +10,7 @@ namespace Example
         private class Hoge
         {
             public short Num { get; set; }
+            public String str;
         }
 
         private static void EvalStringInUser(String exp)
@@ -58,6 +59,7 @@ namespace Example
 
             Hoge hoge = new Hoge();
             hoge.Num = 300;
+            hoge.str = "Hoge";
             //define Hoge object
             GoshSymbol symHoge = Gosh.Intern("hoge");
             Gosh.Define(user, symHoge, hoge);
@@ -71,6 +73,13 @@ namespace Example
             EvalStringInUser("(clr-prop-set! hoge 'Num num)");
 
             EvalStringInUser("(+ 1 2 (clr->int (clr-prop-get hoge 'Num)))");
+
+            //get field
+            EvalStringInUser("(clr-field-get hoge 'str)");
+
+            //set field
+            EvalStringInUser("(clr-field-set! hoge 'str \"Foo\")");
+            EvalStringInUser("(clr-field-get hoge 'str)");
 
             #endregion
 

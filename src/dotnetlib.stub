@@ -87,25 +87,40 @@
       (result ret)
       (raise-error int->clr "type miss"))))
 
+(define-cise-stmt (type-case-set! obj name val kind)
+  `(let* ([ret::int])
+     (cond
+       [(is-type? val <int>)
+        (set! ret (,(string->symbol (string-append "Clr" kind "SetInt"))
+                   ,obj (SCM_STRING_START (-> ,name name))
+                   (unboxing val <int>)))]
+       [(is-type? val <string>)
+        (set! ret (,(string->symbol (string-append "Clr" kind "SetString"))
+                     ,obj (SCM_STRING_START (-> name name))
+                     (SCM_STRING_START (unboxing val <string>))))]
+       ;;TODO more primitive type
+       [(is-type? val <clr-object>)
+        (set! ret (,(string->symbol (string-append "Clr" kind "SetClrObj"))
+                    ,obj (SCM_STRING_START (-> ,name name))
+                    (unboxing val <clr-object>)))]
+       [else
+         (set! ret (,(string->symbol (string-append "Clr" kind "SetScmObj"))
+                     ,obj (SCM_STRING_START (-> ,name name))
+                     val))])
+     (unless ret
+       (raise-error clr-set! "type missmatch"))))
+
 (define-cproc clr-prop-get (obj::<clr-object> name::<symbol>) :: <clr-object>
   (result (ClrPropGet obj (SCM_STRING_START (@ name->name)))))
 
 (define-cproc clr-prop-set! (obj::<clr-object> name::<symbol> val::<top>) :: <void>
-  (let* ([ret::int])
-    (cond
-      [(is-type? val <int>)
-       (set! ret (ClrPropSetInt obj (SCM_STRING_START (@ name->name)) (unboxing val <int>)))]
-      [(is-type? val <string>)
-       (set! ret (ClrPropSetString obj (SCM_STRING_START (@ name->name)) 
-                                   (SCM_STRING_START (unboxing val <string>))))]
-      ;;TODO more primitive type
-      [(is-type? val <clr-object>)
-       (set! ret (ClrPropSetClrObj obj (SCM_STRING_START (@ name->name)) 
-                                   (unboxing val <clr-object>)))]
-      [else
-       (set! ret (ClrPropSetScmObj obj (SCM_STRING_START (@ name->name)) val))])
-    (unless ret
-      (raise-error clr-prop-set! "type missmatch"))))
+  (type-case-set! obj name val "Prop"))
+
+(define-cproc clr-field-get (obj::<clr-object> name::<symbol>) :: <clr-object>
+  (result (ClrFieldGet obj (SCM_STRING_START (@ name->name)))))
+
+(define-cproc clr-field-set! (obj::<clr-object> name::<symbol> val::<top>) :: <void>
+  (type-case-set! obj name val "Field"))
 
 (define-cproc clr-reference (assembly::<symbol>) :: <void>
   (unless (ClrReferenceAssembly (SCM_STRING_START (@ assembly->name)))

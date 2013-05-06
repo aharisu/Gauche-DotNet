@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ClrBridge.cpp
  *
  * MIT License
@@ -191,7 +191,7 @@ DECDLL int ClrPropSetString(void* obj, const char* name,  const char* value)
 
     PropertyInfo^ propInfo = hObj->GetType()->GetProperty(
         Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name))));
-    //string�^��ݒ�ł���v���p�e�B��?
+    //string型を設定できるプロパティか?
     if(!propInfo->PropertyType->IsAssignableFrom(String::typeid))
     {
         return 0;
@@ -217,6 +217,96 @@ DECDLL void* ClrPropGet(void* obj, const char* name)
 
     return (void*)(IntPtr) GCHandle::Alloc(ret);
 }
+
+#pragma region field setter / getter {
+
+DECDLL int ClrFieldSetClrObj(void* obj, const char* name,  void* clrObj)
+{
+    GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
+    Object^ hObj = gchObj.Target;
+
+    //TODO catch error
+    FieldInfo^ fieldInfo = hObj->GetType()->GetField(
+        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name))));
+
+    GCHandle gchVal = GCHandle::FromIntPtr(IntPtr(clrObj));
+    Object^ hVal = gchVal.Target;
+
+    fieldInfo->SetValue(hObj, hVal);
+
+    return 1;
+}
+
+DECDLL int ClrFieldSetScmObj(void* obj, const char* name,  void* scmObj)
+{
+    GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
+    Object^ hObj = gchObj.Target;
+
+    FieldInfo^ fieldInfo = hObj->GetType()->GetField(
+        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name))));
+
+    //ScmObj to .Net object(GoshObj instance)
+    Object^ hVal = gcnew GoshClrObject(IntPtr(scmObj));
+
+    fieldInfo->SetValue(hObj, hVal);
+
+    return 1;
+}
+
+DECDLL int ClrFieldSetInt(void* obj, const char* name,  int value)
+{
+    GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
+    Object^ hObj = gchObj.Target;
+
+    FieldInfo^ fieldInfo = hObj->GetType()->GetField(
+        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name))));
+
+    try 
+    {
+        Object^ objNum = Convert::ChangeType((Int32)value, fieldInfo->FieldType);
+        fieldInfo->SetValue(hObj, objNum);
+
+        return 1;
+    }
+    catch(InvalidCastException^)
+    {
+        return 0;
+    }
+}
+
+DECDLL int ClrFieldSetString(void* obj, const char* name,  const char* value)
+{
+    GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
+    Object^ hObj = gchObj.Target;
+
+    FieldInfo^ fieldInfo = hObj->GetType()->GetField(
+        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name))));
+
+    //string型を設定できるフィールドか?
+    if(!fieldInfo->FieldType->IsAssignableFrom(String::typeid))
+    {
+        return 0;
+    }
+
+    fieldInfo->SetValue(hObj, 
+        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(value))));
+    return 1;
+}
+
+DECDLL void* ClrFieldGet(void* obj, const char* name)
+{
+    GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
+    Object^ hObj = gchObj.Target;
+
+    FieldInfo^ fieldInfo = hObj->GetType()->GetField(
+        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name))));
+
+    Object^ ret = fieldInfo->GetValue(hObj);
+
+    return (void*)(IntPtr) GCHandle::Alloc(ret);
+}
+
+#pragma endregion }
 
 DECDLL int ClrReferenceAssembly(const char* assemblyName)
 {
