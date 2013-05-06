@@ -45,8 +45,14 @@ namespace GaucheDotNet.Procedure
 
         public override object Apply(params object[] args)
         {
+            IntPtr pair = Gosh.NIL.Ptr;
+            for (int i = args.Length - 1; i >= 0; --i)
+            {
+                pair = GoshInvoke.Scm_Cons(Cast.ToIntPtr(args[i]), pair);
+            }
+
             GoshEvalPacket packet = new GoshEvalPacket();
-            if (GoshInvoke.Scm_Apply(_ptr, Gosh.List(args).Ptr, packet.Ptr) < 0)
+            if (GoshInvoke.Scm_Apply(_ptr, pair, packet.Ptr) < 0)
             {
                 //TODO
                 //throw packet.Exception;
