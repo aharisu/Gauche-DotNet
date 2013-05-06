@@ -421,6 +421,12 @@ static ScmString param_attr_params = SCM_STRING_CONST_INITIALIZER(\"params\", 6,
         (set! (@ arg.kind) METHOD_ARG_CLROBJECT)])
     (return arg)))
 
+(define-cproc clr-new-array (type::<top> size::<fixnum>) :: <clr-object>
+  (when (< size 0)
+    (raise-error clr-new-array "array size must be a positive integer"))
+  (let* ([typeSpec::TypeSpec (parse-type-spec type FALSE)])
+    (result (ClrNewArray (& typeSpec) size))))
+
 "
 #define ARGS_TMP_ARY_SIZE 16
 #define SCM_CADDR(obj) (SCM_CAR(SCM_CDR(SCM_CDR(obj))))

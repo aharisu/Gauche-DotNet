@@ -72,6 +72,8 @@ DECDLL int ClrReferenceAssembly(const char* assemblyName);
 
 DECDLL int ClrValidTypeName(const char* fullTypeName);
 
+DECDLL void* ClrNewArray(TypeSpec* typeSpec, int size);
+
 DECDLL void* ClrNew(
                     TypeSpec* methodSpec
                     , MethodArg* args, int numArg

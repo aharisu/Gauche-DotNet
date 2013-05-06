@@ -345,6 +345,14 @@ DECDLL int ClrValidTypeName(const char* fullTypeName)
     return ClrMethod::GetType(name) == nullptr ? 0 : 1;
 }
 
+DECDLL void* ClrNewArray(TypeSpec* typeSpec, int size)
+{
+    Type^ t = ClrMethod::TypeSpecToType(typeSpec);
+    Array^ ary = Array::CreateInstance(t, size);
+
+    return (void*)(IntPtr)GCHandle::Alloc(ary);
+}
+
 DECDLL void* ClrNew(
                     TypeSpec* methodSpec
                     , MethodArg* args, int numArg
