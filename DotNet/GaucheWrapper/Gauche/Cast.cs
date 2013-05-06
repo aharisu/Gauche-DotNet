@@ -93,7 +93,6 @@ namespace GaucheDotNet
                     case KnownClass.NextMethod:
                         return new Procedure.Procedure(ptr);
 
-                    //TODO
                     case KnownClass.Subr:
                         unsafe
                         {
@@ -174,7 +173,6 @@ namespace GaucheDotNet
                     case KnownClass.NextMethod:
                         return (GoshFunc)new Procedure.Procedure(ptr).Apply;
 
-                        //TODO
                     case KnownClass.Subr:
                         unsafe 
                         {

@@ -272,6 +272,20 @@ DECDLL void* ClrCallMethod(
     return ClrMethod::CallMethod(methodSpec, obj, isStatic == 1, args, numArg);
 }
 
+DECDLL int ClrIs(TypeSpec* typeSpec, void* obj)
+{
+    GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
+    Object^ o = gchObj.Target;
+    if(o == nullptr)
+    {
+        //FALSE
+        return 0;
+    }
+
+    Type^ t = ClrMethod::TypeSpecToType(typeSpec);
+    return t->IsAssignableFrom(o->GetType()) == true ? 1 : 0;
+}
+
 #ifdef __cplusplus
 }
 #endif

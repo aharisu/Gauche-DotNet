@@ -76,6 +76,8 @@ DECDLL void* ClrCallMethod(
                          , MethodArg* args, int numArg
                          );
 
+DECDLL int ClrIs(TypeSpec* typeSpec, void* obj);
+
 #ifdef __cplusplus
 }
 #endif

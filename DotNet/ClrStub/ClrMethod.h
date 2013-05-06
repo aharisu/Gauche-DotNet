@@ -64,6 +64,7 @@ private:
 
 public:
     static Type^ GetType(String^ name);
+    static Type^ TypeSpecToType(TypeSpec* spec);
 
     static void* CallNew(TypeSpec* methodSpec, MethodArg* args, int numArg)
     {

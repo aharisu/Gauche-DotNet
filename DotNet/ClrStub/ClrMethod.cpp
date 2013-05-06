@@ -62,6 +62,13 @@ static void TypeSpecToString(TypeSpec* spec, StringBuilder^ builder)
     builder->Append(Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(spec->name))));
 }
 
+Type^ ClrMethod::TypeSpecToType(TypeSpec* spec)
+{
+    StringBuilder builder;
+    TypeSpecToString(spec, %builder);
+    return GetType(builder.ToString());
+}
+
 static array<Type^>^ ConvertToTypeArray(TypeSpec* typeSpec, int numTypeSpec)
 {
     StringBuilder builder; 

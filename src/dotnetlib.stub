@@ -459,3 +459,9 @@ static ScmString param_attr_params = SCM_STRING_CONST_INITIALIZER(\"params\", 6,
         (result SCM_UNDEFINED)
         (result (boxing ret <clr-object>))))))
 
+(define-cproc clr-is (type::<top> exp::<top>) ::<boolean>
+  (let* ([typeSpec::TypeSpec (parse-type-spec type FALSE)])
+    (if (is-type? exp <clr-object>)
+      (result (ClrIs (& typeSpec) (unboxing exp <clr-object>)))
+      (result FALSE))))
+
