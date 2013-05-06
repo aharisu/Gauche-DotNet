@@ -105,4 +105,5 @@ maintainer-clean : clean
 
 collect :
 	@if test "$(ARCHFILES)" != ""; then (cp -p -u $(ARCHFILES) $(OUTDIR)/dll/); fi
+	@cp -p -u  ClrStub.dll GaucheWrapper.dll $(OUTDIR)/bin/
 
