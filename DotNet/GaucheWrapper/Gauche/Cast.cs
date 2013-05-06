@@ -37,7 +37,7 @@ using GaucheDotNet.Native;
 
 namespace GaucheDotNet
 {
-    public static class Cast
+    public static partial class Cast
     {
         public static GoshObj Specify(IntPtr ptr)
         {
@@ -52,49 +52,49 @@ namespace GaucheDotNet
             }
             else if (num == GoshInvoke.SCM_FALSE)
             {
-                return Gosh.False;
+                return GoshBool.False;
             }
             else if (num == GoshInvoke.SCM_TRUE)
             {
-                return Gosh.True;
+                return GoshBool.True;
             }
             else if (num == GoshInvoke.SCM_NIL)
             {
-                return Gosh.NIL;
+                return GoshNIL.NIL;
             }
             else if (num == GoshInvoke.SCM_EOF)
             {
-                return Gosh.EOF;
+                return GoshEOF.EOF;
             }
             else if (num == GoshInvoke.SCM_UNDEFINED)
             {
-                return Gosh.Undefined;
+                return GoshUndefined.Undefined;
             }
             else if (num == GoshInvoke.SCM_UNBOUND)
             {
-                return Gosh.Unbound;
+                return GoshUnbound.Unbound;
             }
             else
             {
-                switch ((Gosh.KnownClass)GoshInvoke.Scm_IsKnownType(ptr))
+                switch ((KnownClass)GoshInvoke.Scm_IsKnownType(ptr))
                 {
-                    case Gosh.KnownClass.Pair:
+                    case KnownClass.Pair:
                         return new GoshPair(ptr);
 
-                    case Gosh.KnownClass.String:
+                    case KnownClass.String:
                         return new GoshString(ptr);
 
-                    case Gosh.KnownClass.Symbol:
+                    case KnownClass.Symbol:
                         return new GoshSymbol(ptr);
 
-                    case Gosh.KnownClass.Closure:
-                    case Gosh.KnownClass.Method:
-                    case Gosh.KnownClass.Generic:
-                    case Gosh.KnownClass.NextMethod:
+                    case KnownClass.Closure:
+                    case KnownClass.Method:
+                    case KnownClass.Generic:
+                    case KnownClass.NextMethod:
                         return new Procedure.Procedure(ptr);
 
                     //TODO
-                    case Gosh.KnownClass.Subr:
+                    case KnownClass.Subr:
                         unsafe
                         {
                             ScmSubr* subr = (ScmSubr*)ptr;
@@ -109,7 +109,7 @@ namespace GaucheDotNet
                             }
                         }
 
-                    case Gosh.KnownClass.ClrObject:
+                    case KnownClass.ClrObject:
                         return new GoshClrObject(ptr);
 
                     //TODO convert known class ...
@@ -141,41 +141,41 @@ namespace GaucheDotNet
             }
             else if (num == GoshInvoke.SCM_NIL)
             {
-                return Gosh.NIL;
+                return GoshNIL.NIL;
             }
             else if (num == GoshInvoke.SCM_EOF)
             {
-                return Gosh.EOF;
+                return GoshEOF.EOF;
             }
             else if (num == GoshInvoke.SCM_UNDEFINED)
             {
-                return Gosh.Undefined;
+                return GoshUndefined.Undefined;
             }
             else if (num == GoshInvoke.SCM_UNBOUND)
             {
-                return Gosh.Unbound;
+                return GoshUnbound.Unbound;
             }
             else
             {
-                switch((Gosh.KnownClass)GoshInvoke.Scm_IsKnownType(ptr))
+                switch((KnownClass)GoshInvoke.Scm_IsKnownType(ptr))
                 {
-                    case Gosh.KnownClass.Pair:
+                    case KnownClass.Pair:
                         return new GoshPair(ptr);
 
-                    case Gosh.KnownClass.String:
+                    case KnownClass.String:
                         return GoshInvoke.Scm_GetStringConst(ptr);
 
-                    case Gosh.KnownClass.Symbol:
+                    case KnownClass.Symbol:
                         return new GoshSymbol(ptr);
 
-                    case Gosh.KnownClass.Closure:
-                    case Gosh.KnownClass.Method:
-                    case Gosh.KnownClass.Generic:
-                    case Gosh.KnownClass.NextMethod:
+                    case KnownClass.Closure:
+                    case KnownClass.Method:
+                    case KnownClass.Generic:
+                    case KnownClass.NextMethod:
                         return (GoshFunc)new Procedure.Procedure(ptr).Apply;
 
                         //TODO
-                    case Gosh.KnownClass.Subr:
+                    case KnownClass.Subr:
                         unsafe 
                         {
                             ScmSubr* subr = (ScmSubr*)ptr;
@@ -190,7 +190,7 @@ namespace GaucheDotNet
                             }
                         }
 
-                    case Gosh.KnownClass.ClrObject:
+                    case KnownClass.ClrObject:
                         return GCHandle.FromIntPtr(ptr).Target;
 
                     //TODO convert known class ...

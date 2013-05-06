@@ -32,7 +32,7 @@
  * foo.yobina@gmail.com
  */
 
-
+//この定数を変更した場合、GaucheDotNetのMakeSubr.ttの定数も変更する必要があります
 const int ARGC = 3;
 #>
 //Auto generation code. Do not edit.
@@ -51,28 +51,6 @@ for(int i = 0;i < ARGC;++i)
 <#
 }
 #>
-
-    public static partial class Gosh
-    {
-<#
-for(int i = 0;i < ARGC;++i)
-{
-    string genericArgs = GetFuncGenericArgs(i, false) + "R";
-#>
-        public static GoshProc MakeSubr<<#=genericArgs#>>(Func<<#=genericArgs#>> func)
-        {
-            Procedure.ClrSubr<<#=genericArgs#>> subr = new Procedure.ClrSubr<<#=genericArgs#>>(func);
-            IntPtr objPtr =GoshInvoke.Scm_MakeSubr(subr.GaucheEntry, IntPtr.Zero, <#=i#>, 0, (IntPtr)GoshInvoke.SCM_FALSE);
-            subr.setObjectPtr(objPtr);
-
-            return subr;
-        }
-
-<#
-}
-#>
-    }
-
 }
 
 namespace GaucheDotNet.Procedure
@@ -82,7 +60,7 @@ for(int i = 0;i < ARGC;++i)
 {
     string genericArgs = GetFuncGenericArgs(i, false) + "R";
 #>
-    class ClrSubr<<#=genericArgs#>> : GoshProc
+    public class ClrSubr<<#=genericArgs#>> : GoshProc
     {
         public readonly Func<<#=genericArgs#>> _func;
 

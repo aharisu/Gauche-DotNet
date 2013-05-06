@@ -187,7 +187,7 @@ SCM_EXTERN int Scm_IsKnownType(void* ptr)
 //Auto generation code. Do not edit.
 namespace GaucheDotNet
 {
-  public static partial class Gosh
+  public static partial class Cast
   {
     public enum KnownClass : int
     {

@@ -77,7 +77,7 @@ public:
             GaucheDotNet::Native::GoshInvoke::Scm_Raise(
                 GaucheDotNet::Native::GoshInvoke::Scm_MakeClrError(
                     GaucheDotNet::Native::GoshInvoke::Scm_MakeString(
-                        e->Message , -1, -1, GaucheDotNet::Gosh::StringFlags::Copying)
+                        e->Message , -1, -1, GaucheDotNet::StringFlags::Copying)
                     , GaucheDotNet::Native::GoshInvoke::Scm_MakeClrObject((IntPtr)GCHandle::Alloc(e))
                     ));
                         
@@ -97,7 +97,7 @@ public:
             GaucheDotNet::Native::GoshInvoke::Scm_Raise(
                 GaucheDotNet::Native::GoshInvoke::Scm_MakeClrError(
                     GaucheDotNet::Native::GoshInvoke::Scm_MakeString(
-                        e->Message , -1, -1, GaucheDotNet::Gosh::StringFlags::Copying)
+                        e->Message , -1, -1, GaucheDotNet::StringFlags::Copying)
                     , GaucheDotNet::Native::GoshInvoke::Scm_MakeClrObject((IntPtr)GCHandle::Alloc(e))
                     ));
                         

@@ -39,12 +39,21 @@ namespace GaucheDotNet
 {
     public static partial class Gosh
     {
-        public static readonly GoshBool False = new GoshBool();
-        public static readonly GoshBool True = new GoshBool();
-        public static readonly GoshNIL NIL = new GoshNIL();
-        public static readonly GoshEOF EOF = new GoshEOF();
-        public static readonly GoshUndefined Undefined = new GoshUndefined();
-        public static readonly GoshUnbound Unbound = new GoshUnbound();
+        public static readonly GoshBool False = GoshBool.False;
+        public static readonly GoshBool True = GoshBool.True;
+        public static readonly GoshNIL NIL = GoshNIL.NIL;
+        public static readonly GoshEOF EOF = GoshEOF.EOF;
+        public static readonly GoshUndefined Undefined = GoshUndefined.Undefined;
+        public static readonly GoshUnbound Unbound = GoshUnbound.Unbound;
+
+        #region gauche_dotnet {
+
+        public static void Initialize()
+        {
+            GoshInvoke.GaucheDotNetInitialize();
+        }
+
+        #endregion }
 
         #region vm.h {
 

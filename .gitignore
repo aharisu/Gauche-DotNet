@@ -39,6 +39,7 @@ x86/
 ## auto generation file
 DotNet/ClrStub/ImplicitConvertionOp.h
 DotNet/GaucheWrapper/Gauche/Object/Procedure/ClrSubr.cs
+DotNet/GaucheDotNet/MakeSubr.cs
 src/ClassType.cs
 src/class_getter.c
 

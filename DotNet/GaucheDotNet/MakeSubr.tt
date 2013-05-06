@@ -1,5 +1,8 @@
-﻿/*
- * GaucheDotNet.cs
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".cs" #>
+<#
+/*
+ * MakeSubr.tt
  *
  * MIT License
  * Copyright 2013 aharisu
@@ -29,19 +32,64 @@
  * foo.yobina@gmail.com
  */
 
+
+//この定数を変更した場合、GaucheWrapperのClrSubr.ttの定数も変更する必要があります
+const int ARGC = 3;
+#>
+//Auto generation code. Do not edit.
+
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Runtime.InteropServices;
 using GaucheDotNet.Native;
 
 namespace GaucheDotNet
 {
     public static partial class Gosh
     {
-        public static void Initialize()
+<#
+for(int i = 0;i < ARGC;++i)
+{
+    string genericArgs = GetFuncGenericArgs(i, false) + "R";
+#>
+        public static GoshProc MakeSubr<<#=genericArgs#>>(Func<<#=genericArgs#>> func)
         {
-            GoshInvoke.GaucheDotNetInitialize();
+            Procedure.ClrSubr<<#=genericArgs#>> subr = new Procedure.ClrSubr<<#=genericArgs#>>(func);
+            IntPtr objPtr =GoshInvoke.Scm_MakeSubr(subr.GaucheEntry, IntPtr.Zero, <#=i#>, 0, Gosh.False.Ptr);
+            subr.setObjectPtr(objPtr);
+
+            return subr;
         }
+
+<#
+}
+#>
     }
+
 }
 
+<#+
+private static string GetFuncGenericArgs(int c, bool argName)
+{
+    string generic = "";
+    for(int i = 0;i < c;++i)
+    {
+        if(generic.Length != 0)
+        {
+            generic += ", ";
+        }
+
+        generic += ("A" + (i + 1));
+        if(argName)
+        {
+        generic += " arg" + (i + 1);
+        }
+    }
+
+    if(!argName && generic.Length != 0) 
+    {
+        generic += ", ";
+    }
+
+    return generic;
+}
+#>

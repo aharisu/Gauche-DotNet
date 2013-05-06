@@ -45,7 +45,7 @@ namespace GaucheDotNet.Procedure
 
         public override object Apply(params object[] args)
         {
-            IntPtr pair = Gosh.NIL.Ptr;
+            IntPtr pair = (IntPtr)GoshInvoke.SCM_NIL;
             for (int i = args.Length - 1; i >= 0; --i)
             {
                 pair = GoshInvoke.Scm_Cons(Cast.ToIntPtr(args[i]), pair);

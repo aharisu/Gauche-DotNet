@@ -35,62 +35,51 @@ using System.Text;
 
 namespace GaucheDotNet
 {
-    public static partial class Gosh
+
+    #region {
+    public enum CmpMode : int
     {
-
-        #region {
-        public enum CmpMode : int
-        {
-            Eq = 0,
-            Eqv = 1,
-            Equal = 2,
-        }
-        #endregion }
-
-        #region string.h {
-
-        [Flags]
-        public enum StringFlags : int
-        {
-            Immutable = 1 << 0,
-            Incomplete = 1 << 1,
-            Terminated = 1 << 2,
-            Copying = 1 << 16,
-        }
-
-        #endregion }
-
-        #region module.h {
-
-        public enum CompMode : int
-        {
-            Eq = 0,
-            Eqv = 1,
-            Equal = 2,
-        }
-
-        [Flags]
-        public enum BindingFlag : int
-        {
-            None = 0,
-            StayInModule = 1 << 0,
-            Const = 1 << 1,
-            Inlinable = 1 << 2,
-        }
-
-        public enum FindModuleFlag : int
-        {
-            /// <summary>
-            /// Create if there's no named module
-            /// </summary>
-            Create = 1,
-            /// <summary>
-            /// Do not signal an error if there's no named module, but return NULL instead.
-            /// </summary>
-            Quiet = 2,
-        }
-
-        #endregion }
+        Eq = 0,
+        Eqv = 1,
+        Equal = 2,
     }
-}
+    #endregion }
 
+    #region string.h {
+
+    [Flags]
+    public enum StringFlags : int
+    {
+        Immutable = 1 << 0,
+        Incomplete = 1 << 1,
+        Terminated = 1 << 2,
+        Copying = 1 << 16,
+    }
+
+    #endregion }
+
+    #region module.h {
+
+    [Flags]
+    public enum BindingFlag : int
+    {
+        None = 0,
+        StayInModule = 1 << 0,
+        Const = 1 << 1,
+        Inlinable = 1 << 2,
+    }
+
+    public enum FindModuleFlag : int
+    {
+        /// <summary>
+        /// Create if there's no named module
+        /// </summary>
+        Create = 1,
+        /// <summary>
+        /// Do not signal an error if there's no named module, but return NULL instead.
+        /// </summary>
+        Quiet = 2,
+    }
+
+    #endregion }
+}

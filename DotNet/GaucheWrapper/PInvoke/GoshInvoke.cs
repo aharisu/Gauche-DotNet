@@ -77,7 +77,7 @@ namespace GaucheDotNet.Native
         public static extern bool Scm_EqualP(IntPtr x, IntPtr y);
 
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool Scm_EqualM(IntPtr x, IntPtr y, Gosh.CompMode mode);
+        public static extern bool Scm_EqualM(IntPtr x, IntPtr y, CmpMode mode);
 
         //
         // FIXNUM
@@ -463,7 +463,7 @@ namespace GaucheDotNet.Native
         public static extern IntPtr Scm_MakeString(
             [MarshalAs(UnmanagedType.LPStr)][In] string str 
             , int size, int len
-            , [MarshalAs(UnmanagedType.I4)][In] Gosh.StringFlags flags);
+            , [MarshalAs(UnmanagedType.I4)][In] StringFlags flags);
 
         /// <param name="len"></param>
         /// <param name="fill">ScmChar</param>
@@ -496,7 +496,7 @@ namespace GaucheDotNet.Native
         /// <param name="flags"></param>
         /// <returns>ScmGloc*</returns>
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr Scm_FindBinding(IntPtr module, IntPtr symbol, [MarshalAs(UnmanagedType.I4)] Gosh.BindingFlag flags);
+        public static extern IntPtr Scm_FindBinding(IntPtr module, IntPtr symbol, [MarshalAs(UnmanagedType.I4)] BindingFlag flags);
 
         /// <param name="module">ScmModule*</param>
         /// <param name="symbol">ScmSymbol*</param>
@@ -504,14 +504,14 @@ namespace GaucheDotNet.Native
         /// <param name="flags"></param>
         /// <returns>ScmGloc*</returns>
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr Scm_MakeBinding(IntPtr module, IntPtr symbol, IntPtr value, [MarshalAs(UnmanagedType.I4)] Gosh.BindingFlag flags);
+        public static extern IntPtr Scm_MakeBinding(IntPtr module, IntPtr symbol, IntPtr value, [MarshalAs(UnmanagedType.I4)] BindingFlag flags);
 
         /// <param name="module">ScmModule*</param>
         /// <param name="symbol">ScmSymbol*</param>
         /// <param name="flags"></param>
         /// <returns>ScmGloc*</returns>
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr Scm_GlobalVariableRef(IntPtr module, IntPtr symbol, [MarshalAs(UnmanagedType.I4)] Gosh.BindingFlag flags);
+        public static extern IntPtr Scm_GlobalVariableRef(IntPtr module, IntPtr symbol, [MarshalAs(UnmanagedType.I4)] BindingFlag flags);
 
         /// <param name="module">ScmModule*</param>
         /// <param name="symbol">ScmSymbol*</param>
@@ -554,7 +554,7 @@ namespace GaucheDotNet.Native
         /// <param name="flags"></param>
         /// <returns>ScmModule*</returns>
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr Scm_FindModule(IntPtr name, [MarshalAs(UnmanagedType.I4)] Gosh.FindModuleFlag flags);
+        public static extern IntPtr Scm_FindModule(IntPtr name, [MarshalAs(UnmanagedType.I4)] FindModuleFlag flags);
 
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr Scm_AllModules();

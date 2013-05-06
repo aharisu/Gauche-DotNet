@@ -113,7 +113,7 @@ DECDLL int ClrToGoshString(void* clrObj, void** ret)
         *ret = (void*)GoshInvoke::Scm_MakeString(
             target->ToString()
             , -1, -1, 
-            Gosh::StringFlags::Copying);
+            StringFlags::Copying);
     }
 
     return 1;

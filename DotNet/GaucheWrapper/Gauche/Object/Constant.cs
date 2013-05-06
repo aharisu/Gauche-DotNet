@@ -39,13 +39,16 @@ namespace GaucheDotNet
 
     public class GoshBool : GoshObj
     {
-        internal GoshBool() { }
+        public static readonly GoshBool False = new GoshBool();
+        public static readonly GoshBool True = new GoshBool();
+
+        private GoshBool() { }
 
         public override IntPtr Ptr
         {
             get
             {
-                return this == Gosh.True ?
+                return this == GoshBool.True ?
                     (IntPtr)GoshInvoke.SCM_TRUE :
                     (IntPtr)GoshInvoke.SCM_FALSE;
             }
@@ -55,14 +58,16 @@ namespace GaucheDotNet
         {
             get
             {
-                return this == Gosh.True;
+                return this == GoshBool.True;
             }
         }
     }
 
     public class GoshNIL : GoshObj
     {
-        internal GoshNIL() { }
+        public static readonly GoshNIL NIL = new GoshNIL();
+
+        private GoshNIL() { }
 
         public override IntPtr Ptr
         {
@@ -72,7 +77,9 @@ namespace GaucheDotNet
 
     public class GoshEOF : GoshObj
     {
-        internal GoshEOF() { }
+        public static readonly GoshEOF EOF = new GoshEOF();
+
+        private GoshEOF() { }
 
         public override IntPtr Ptr
         {
@@ -82,7 +89,9 @@ namespace GaucheDotNet
 
     public class GoshUndefined : GoshObj
     {
-        internal GoshUndefined() { }
+        public static readonly GoshUndefined Undefined = new GoshUndefined();
+
+        private GoshUndefined() { }
 
         public override IntPtr Ptr
         {
@@ -92,7 +101,9 @@ namespace GaucheDotNet
 
     public class GoshUnbound : GoshObj
     {
-        internal GoshUnbound() { }
+        public static readonly GoshUnbound Unbound = new GoshUnbound();
+
+        private GoshUnbound() { }
 
         public override IntPtr Ptr
         {
