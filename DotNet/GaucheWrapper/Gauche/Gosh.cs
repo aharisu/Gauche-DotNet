@@ -525,7 +525,6 @@ namespace GaucheDotNet
 
         #endregion }
 
-
         #region gc {
 
         public static void GC()
@@ -543,15 +542,7 @@ namespace GaucheDotNet
             GoshInvoke.Scm_GCSentinel(obj.Ptr, name);
         }
 
-        #endregion
-
-
-        [DllImport(GoshInvoke.GaucheDotNetLib)]
-        public static extern void Printf(IntPtr ptr);
-
-        [DllImport(GoshInvoke.GaucheDotNetLib)]
-        public static extern int EvalReturnInt([MarshalAs(UnmanagedType.LPStr)][In] string form);
-
+        #endregion }
 
     }
 }
