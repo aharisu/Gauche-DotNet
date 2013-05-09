@@ -39,6 +39,42 @@ namespace GaucheDotNet
 {
     public static partial class Cast
     {
+        public static IntPtr IntToScmFixnum(int num)
+        {
+            return (IntPtr)((num << 2) + 1); 
+        }
+
+        public static int ScmFixnumToInt(IntPtr ptr)
+        {
+#if X64
+            return (int)(ptr.ToInt64() >> 2);
+#else
+            return ((int)(ptr.ToInt32() >> 2));
+#endif
+        }
+
+        public static double ScmFlonumToDouble(IntPtr ptr)
+        {
+            unsafe
+            {
+#if X64
+                return ((Native.ScmFlonum*)(ptr.ToInt64() & ~0x07))->val;
+#else
+                return ((Native.ScmFlonum*)(ptr.ToInt32() & ~0x07))->val;
+#endif
+            }
+        }
+
+        public static Int32 ScmCharToChar(IntPtr ptr)
+        {
+            return (Int32)((UInt32)ptr.ToInt32()) >> 8;
+        }
+
+        public static IntPtr CharToScmChar(Int32 ch)
+        {
+            return (IntPtr)((((UInt32)ch) << 8) + 3);
+        }
+
         public static GoshObj Specify(IntPtr ptr)
         {
 #if X64
@@ -48,7 +84,15 @@ namespace GaucheDotNet
 #endif
             if ((num & 0x03) == 1)
             {
-                return new GoshFixnum((int)(num >> 2));
+                return new GoshFixnum(ScmFixnumToInt(ptr));
+            }
+            else if ((num & 0x03) == 2)
+            {
+                return new GoshFlonum(ptr);
+            }
+            else if ((num & 0xff) == 3)
+            {
+                return new GoshChar(ScmCharToChar(ptr));
             }
             else if (num == GoshInvoke.SCM_FALSE)
             {
@@ -128,7 +172,15 @@ namespace GaucheDotNet
 #endif
             if ((num & 0x03) == 1)
             {
-                return num >> 2;
+                return Cast.ScmFixnumToInt(ptr);
+            }
+            else if ((num & 0x03) == 2)
+            {
+                return new GoshFlonum(ptr);
+            }
+            else if ((num & 0xff) == 3)
+            {
+                return Cast.ScmCharToChar(ptr);
             }
             else if (num == GoshInvoke.SCM_FALSE)
             {
@@ -156,7 +208,7 @@ namespace GaucheDotNet
             }
             else
             {
-                switch((KnownClass)GoshInvoke.Scm_IsKnownType(ptr))
+                switch ((KnownClass)GoshInvoke.Scm_IsKnownType(ptr))
                 {
                     case KnownClass.Pair:
                         return new GoshPair(ptr);
@@ -222,7 +274,11 @@ namespace GaucheDotNet
                 Int32 num = (Int32)obj;
                 if (num >= SCM_SMALL_INT_MIN && num <= SCM_SMALL_INT_MAX)
                 {
-                    return (IntPtr)((num << 2) + 1);
+                    return Cast.IntToScmFixnum(num);
+                }
+                else
+                {
+                    //TODO
                 }
             }
             else if (obj is UInt32)
@@ -230,23 +286,31 @@ namespace GaucheDotNet
                 UInt32 num = (UInt32)obj;
                 if (num <= SCM_SMALL_INT_MAX)
                 {
-                    return (IntPtr)((num << 2) + 1);
+                    return Cast.IntToScmFixnum((int)num);
+                }
+                else
+                {
+                    //TODO
                 }
             }
             else if (obj is Int16)
             {
-                return (IntPtr)(((Int16)obj << 2) + 1);
+                return Cast.IntToScmFixnum((int)(Int16)obj);
             }
             else if (obj is UInt16)
             {
-                return (IntPtr)(((UInt16)obj << 2) + 1);
+                return Cast.IntToScmFixnum((int)(UInt16)obj);
             }
             else if (obj is Int64)
             {
                 Int64 num = (Int64)obj;
                 if (num >= SCM_SMALL_INT_MIN && num <= SCM_SMALL_INT_MAX)
                 {
-                    return (IntPtr)((num << 2) + 1);
+                    return Cast.IntToScmFixnum((int)num);
+                }
+                else
+                {
+                    //TODO
                 }
             }
             else if (obj is UInt64)
@@ -254,7 +318,11 @@ namespace GaucheDotNet
                 UInt64 num = (UInt64)obj;
                 if (num <= (UInt64)SCM_SMALL_INT_MAX)
                 {
-                    return (IntPtr)((num << 2) + 1);
+                    return Cast.IntToScmFixnum((int)num);
+                }
+                else
+                {
+                    //TODO
                 }
             }
 

@@ -53,18 +53,12 @@ namespace GaucheDotNet
 
         public GoshFixnum(IntPtr ptr)
         {
-#if X64
-            Int64 num = ptr.ToInt64();
-            this._num = (int)(num >> 2);
-#else
-            Int32 num = ptr.ToInt32();
-            this._num = num >> 2;
-#endif
+            this._num = Cast.ScmFixnumToInt(ptr);
         }
 
         public override IntPtr Ptr
         {
-            get { return (IntPtr)((_num << 2) + 1); }
+            get { return Cast.IntToScmFixnum(_num); }
         }
 
         public override object Object
@@ -81,5 +75,42 @@ namespace GaucheDotNet
         }
     }
     #endregion }
+
+    #region GoshFlonum {
+    public class GoshFlonum : GoshObj
+    {
+        private readonly double _val;
+        private readonly IntPtr _ptr;
+
+        public double Num
+        {
+            get { return _val; }
+        }
+        public GoshFlonum(IntPtr ptr)
+        {
+            this._ptr = ptr;
+            this._val = Cast.ScmFlonumToDouble(ptr);
+        }
+
+        public override IntPtr Ptr
+        {
+            get { return _ptr; }
+        }
+
+        public override object Object
+        {
+            get
+            {
+                return _val;
+            }
+        }
+
+        public override string ToString()
+        {
+            return _val.ToString();
+        }
+    }
+    #endregion }
+
 }
 

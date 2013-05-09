@@ -37,6 +37,13 @@ using System.Runtime.InteropServices;
 namespace GaucheDotNet.Native
 {
     [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct ScmFlonum
+    {
+        public Double val;
+    }
+
+
+    [StructLayout(LayoutKind.Sequential)]
     public unsafe struct ScmInstance
     {
         public IntPtr tag;

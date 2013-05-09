@@ -38,6 +38,36 @@ using GaucheDotNet.Native;
 namespace GaucheDotNet
 {
 
+    public class GoshChar : GoshObj
+    {
+        private Int32 _ch;
+
+        public GoshChar(char ch)
+        {
+            this._ch = (Int32)ch;
+        }
+
+        public GoshChar(Int32 ch)
+        {
+            this._ch = ch;
+        }
+
+        public GoshChar(IntPtr ptr)
+        {
+            this._ch = Cast.ScmCharToChar(ptr);
+        }
+
+        public override IntPtr Ptr
+        {
+            get { return Cast.CharToScmChar(_ch); }
+        }
+
+        public override object Object
+        {
+            get { return _ch; }
+        }
+    }
+
     public class GoshGloc : GoshObj
     {
         protected readonly IntPtr _ptr;
