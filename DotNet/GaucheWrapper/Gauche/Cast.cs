@@ -135,7 +135,7 @@ namespace GaucheDotNet
                     case KnownClass.Method:
                     case KnownClass.Generic:
                     case KnownClass.NextMethod:
-                        return new Procedure.Procedure(ptr);
+                        return new Procedure.GoshProcedure(ptr);
 
                     case KnownClass.Subr:
                         unsafe
@@ -144,7 +144,7 @@ namespace GaucheDotNet
                             GoshInvoke.ScmSubProc func = (GoshInvoke.ScmSubProc)Marshal.GetDelegateForFunctionPointer(subr->func, typeof(GoshInvoke.ScmSubProc));
                             if (func.Target == null)
                             {
-                                return new Procedure.Procedure(ptr);
+                                return new Procedure.GoshProcedure(ptr);
                             }
                             else
                             {
@@ -223,16 +223,16 @@ namespace GaucheDotNet
                     case KnownClass.Method:
                     case KnownClass.Generic:
                     case KnownClass.NextMethod:
-                        return (GoshFunc)new Procedure.Procedure(ptr).Apply;
+                        return (GoshFunc)new Procedure.GoshProcedure(ptr).Apply;
 
                     case KnownClass.Subr:
-                        unsafe 
+                        unsafe
                         {
                             ScmSubr* subr = (ScmSubr*)ptr;
                             GoshInvoke.ScmSubProc func = (GoshInvoke.ScmSubProc)Marshal.GetDelegateForFunctionPointer(subr->func, typeof(GoshInvoke.ScmSubProc));
                             if (func.Target == null)
                             {
-                                return (GoshFunc)new Procedure.Procedure(ptr).Apply;
+                                return (GoshFunc)new Procedure.GoshProcedure(ptr).Apply;
                             }
                             else
                             {

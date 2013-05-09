@@ -32,6 +32,7 @@
 #pragma once
 
 #include "ClrMethodCallStruct.h"
+#include "ClrStubConstant.h"
 #include "Microsoft.Scripting/ArgType.h"
 
 ref class MethodCandidate;
@@ -75,13 +76,7 @@ public:
         }
         catch (Exception^ e)
         {
-            GaucheDotNet::Native::GoshInvoke::Scm_Raise(
-                GaucheDotNet::Native::GoshInvoke::Scm_MakeClrError(
-                    GaucheDotNet::Native::GoshInvoke::Scm_MakeString(
-                        e->Message , -1, -1, GaucheDotNet::StringFlags::Copying)
-                    , GaucheDotNet::Native::GoshInvoke::Scm_MakeClrObject((IntPtr)GCHandle::Alloc(e))
-                    ));
-                        
+            ClrStubConstant::RaiseClrError(e->Message, e);
             return 0;
         }
     }
@@ -95,13 +90,7 @@ public:
         } 
         catch (Exception^ e)
         {
-            GaucheDotNet::Native::GoshInvoke::Scm_Raise(
-                GaucheDotNet::Native::GoshInvoke::Scm_MakeClrError(
-                    GaucheDotNet::Native::GoshInvoke::Scm_MakeString(
-                        e->Message , -1, -1, GaucheDotNet::StringFlags::Copying)
-                    , GaucheDotNet::Native::GoshInvoke::Scm_MakeClrObject((IntPtr)GCHandle::Alloc(e))
-                    ));
-                        
+            ClrStubConstant::RaiseClrError(e->Message, e);
             return 0;
         }
     }

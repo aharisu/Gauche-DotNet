@@ -5,12 +5,21 @@ using GaucheDotNet;
 
 namespace Example
 {
+    public delegate double EventTest(int num, String str);
+
     class Program
     {
         private class Hoge
         {
             public short Num { get; set; }
             public String str;
+
+            public EventTest eventTest;
+            public event EventTest Event
+            {
+                add { eventTest += value; }
+                remove { eventTest -= value; }
+            }
         }
 
         private static void EvalStringInUser(String exp)
@@ -80,6 +89,11 @@ namespace Example
             //set field
             EvalStringInUser("(clr-field-set! hoge 'str \"Foo\")");
             EvalStringInUser("(clr-field-get hoge 'str)");
+
+            //add event
+            EvalStringInUser("(clr-event-add! hoge 'Event (lambda (num str) (print num)  (print (clr->string str)) 3.14))");
+            EvalStringInUser("(clr-event-add! hoge 'Event (lambda (num str) (print \"second\") (*  2 3.14)))");
+            Console.WriteLine(hoge.eventTest(10, "hohoho"));
 
             #endregion
 

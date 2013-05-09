@@ -68,6 +68,9 @@ DECDLL int ClrFieldSetString(void* obj, const char* name,  const char* value);
 
 DECDLL void* ClrFieldGet(void* obj, const char* name);
 
+DECDLL void ClrEventAddGoshProc(void* obj, const char* name, void* goshProc);
+DECDLL void ClrEventAddClrObj(void* obj, const char* name, void* clrObj);
+
 DECDLL int ClrReferenceAssembly(const char* assemblyName);
 
 DECDLL int ClrValidTypeName(const char* fullTypeName);

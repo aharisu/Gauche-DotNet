@@ -36,9 +36,9 @@ using GaucheDotNet.Native;
 
 namespace GaucheDotNet.Procedure
 {
-    class Procedure : GoshProc
+    public class GoshProcedure : GoshProc
     {
-        public Procedure(IntPtr ptr)
+        public GoshProcedure(IntPtr ptr)
             : base(ptr)
         {
         }
@@ -56,6 +56,7 @@ namespace GaucheDotNet.Procedure
             {
                 //TODO
                 //throw packet.Exception;
+                throw new Exception(packet.Exception.ConditionTypeName + ":" + packet.Exception.Message);
             }
 
             //TODO Values

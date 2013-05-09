@@ -122,6 +122,22 @@
 (define-cproc clr-field-set! (obj::<clr-object> name::<symbol> val::<top>) :: <void>
   (type-case-set! obj name val "Field"))
 
+(define-cproc clr-event-add! (obj::<clr-object> name::<symbol> event::<top>) :: <void>
+  (cond
+    [(is-type? event <procedure>)
+     (ClrEventAddGoshProc 
+       obj 
+       (SCM_STRING_START (-> name name))
+       (unboxing event <procedure>))]
+    [(is-type? event <clr-object>)
+     (ClrEventAddClrObj 
+       obj 
+       (SCM_STRING_START (-> name name))
+       (unboxing event <clr-object>))]
+    [else 
+      ;;TODO raise error
+      ]))
+
 (define-cproc clr-reference (assembly::<symbol>) :: <void>
   (unless (ClrReferenceAssembly (SCM_STRING_START (@ assembly->name)))
     (raise-error clr-reference "unknown assembly")))

@@ -33,6 +33,8 @@
 
 #include "ClrBridge.h"
 #include "ClrMethod.h"
+#include "ClrStubConstant.h"
+#include "ClrDelegate.h"
 
 using namespace System;
 using namespace System::Text;
@@ -304,6 +306,64 @@ DECDLL void* ClrFieldGet(void* obj, const char* name)
     Object^ ret = fieldInfo->GetValue(hObj);
 
     return (void*)(IntPtr) GCHandle::Alloc(ret);
+}
+
+#pragma endregion }
+
+#pragma region event adder / remover {
+
+static void ClrEventAddClrProc(void* obj, const char* name, GoshProc^ proc)
+{
+    GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
+    Object^ hObj = gchObj.Target;
+
+    EventInfo^ eventInfo = hObj->GetType()->GetEvent(
+        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name))));
+
+    MethodInfo^ invokeInfo = eventInfo->EventHandlerType->GetMethod("Invoke");
+    if(proc->Required != invokeInfo->GetParameters()->Length)
+    {
+        Exception^ e = gcnew ArgumentException(
+            "wrong number of arguments." 
+            + eventInfo->EventHandlerType->FullName 
+            + "  requires " + invokeInfo->GetParameters()->Length
+            + ", but got " + proc->Required + " arity funcion."
+            );
+        ClrStubConstant::RaiseClrError(e->Message, e);
+        return;
+    }
+
+    Delegate^ d = GetWrappedDelegate(eventInfo->EventHandlerType, proc);
+    eventInfo->AddEventHandler(hObj, d);
+}
+
+DECDLL void ClrEventAddGoshProc(void* obj, const char* name, void* goshProc)
+{
+    GoshProc^ proc = gcnew Procedure::GoshProcedure((IntPtr)goshProc);
+
+    ClrEventAddClrProc(obj, name, proc);
+}
+
+DECDLL void ClrEventAddClrObj(void* obj, const char* name, void* clrObj)
+{
+    Object^ hClrObj = GCHandle::FromIntPtr(IntPtr(clrObj)).Target;
+    if(hClrObj == nullptr)
+    {
+        Exception^ e = gcnew ArgumentException("clr object is null");
+        ClrStubConstant::RaiseClrError(e->Message, e);
+        return;
+    }
+    
+    //GoshProcにキャストできる型でなければ終了
+    if(!(GoshProc::typeid)->IsAssignableFrom(hClrObj->GetType()))
+    {
+        Exception^ e = gcnew ArgumentException("requires GoshProc object. but got " + hClrObj->GetType()->FullName);
+        ClrStubConstant::RaiseClrError(e->Message, e);
+        return;
+    }
+    
+
+    ClrEventAddClrProc(obj, name, (GoshProc^)hClrObj);
 }
 
 #pragma endregion }
