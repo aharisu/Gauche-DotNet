@@ -134,7 +134,7 @@
   (print "#if !defined(GAUCHE_BROKEN_LINKER_WORKAROUND)")
   (print "  else if (tag == SCM_CLASS2TAG(&" class ")) return " (+ index 6) ";")
   (print "#else")
-  (print "  else if (klass == &" class ") return " index ";")
+  (print "  else if (klass == &" class ") return " (+ index 6) ";")
   (print "#endif")
   )
 
