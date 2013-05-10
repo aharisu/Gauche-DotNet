@@ -312,7 +312,7 @@ DECDLL void* ClrFieldGet(void* obj, const char* name)
 
 #pragma region event adder / remover {
 
-static void ClrEventAddClrProc(void* obj, const char* name, GoshProc^ proc)
+static void ClrEventAddClrProc(void* obj, const char* name, GoshProc^ proc, IntPtr key)
 {
     GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
     Object^ hObj = gchObj.Target;
@@ -333,7 +333,7 @@ static void ClrEventAddClrProc(void* obj, const char* name, GoshProc^ proc)
         return;
     }
 
-    Delegate^ d = GetWrappedDelegate(eventInfo->EventHandlerType, proc);
+    Delegate^ d = GetWrappedDelegate(eventInfo->EventHandlerType, proc, key);
     eventInfo->AddEventHandler(hObj, d);
 }
 
@@ -341,7 +341,7 @@ DECDLL void ClrEventAddGoshProc(void* obj, const char* name, void* goshProc)
 {
     GoshProc^ proc = gcnew Procedure::GoshProcedure((IntPtr)goshProc);
 
-    ClrEventAddClrProc(obj, name, proc);
+    ClrEventAddClrProc(obj, name, proc, (IntPtr)goshProc);
 }
 
 DECDLL void ClrEventAddClrObj(void* obj, const char* name, void* clrObj)
@@ -363,7 +363,31 @@ DECDLL void ClrEventAddClrObj(void* obj, const char* name, void* clrObj)
     }
     
 
-    ClrEventAddClrProc(obj, name, (GoshProc^)hClrObj);
+    ClrEventAddClrProc(obj, name, (GoshProc^)hClrObj, (IntPtr)clrObj);
+}
+
+DECDLL void ClrEventRemove(void* obj, const char* name, void* proc)
+{
+    Delegate^ d = ClrStubConstant::UnregisterDelegate((IntPtr)proc);
+    if(d == nullptr)
+    {
+        return;
+    }
+
+    //DelegateTableから削除する必要がないのでFinalieが呼ばれないようにする
+    Object^ target = d->Target;
+    if(target != nullptr)
+    {
+        GC::SuppressFinalize(target);
+    }
+
+    GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
+    Object^ hObj = gchObj.Target;
+
+    EventInfo^ eventInfo = hObj->GetType()->GetEvent(
+        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name))));
+
+    eventInfo->RemoveEventHandler(hObj, d);
 }
 
 #pragma endregion }

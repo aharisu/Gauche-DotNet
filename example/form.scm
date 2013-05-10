@@ -7,12 +7,13 @@
 
 (define btn (clr-new 'Button))
 (clr-prop-set! btn 'Text "Click Me!")
-(clr-event-add! btn 'Click 
-                (lambda (sender e) 
+(letrec ([click (lambda (sender e) 
                   (print (clr->string (clr-prop-get sender 'Text)))
                   (print e)
                   (clr-call 'Show 'MessageBox "Hello Gauche DotNet World!!")
-                  ))
+                  (clr-event-remove! btn 'Click click)
+                  )])
+  (clr-event-add! btn 'Click click))
 
 (clr-call 'Add (clr-prop-get form 'Controls) btn)
 

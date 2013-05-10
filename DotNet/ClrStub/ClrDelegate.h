@@ -68,7 +68,8 @@ static void EmitLoadArg(ILGenerator^ ilGen, int index)
     }
 }
 
-static DelegateCreator^ CreateDelegateCreator(Type^ type, GoshProc^ proc)
+static DelegateCreator^ CreateDelegateCreator(Type^ type, GoshProc^ proc
+                                              , bool isRegisterDelegateTable)
 {
     //以下の様なクラスとメソッドをランタイムに定義します
     //public class {DelegateTypeName}{Guid}
@@ -79,13 +80,25 @@ static DelegateCreator^ CreateDelegateCreator(Type^ type, GoshProc^ proc)
     //    {
     //        return proc.Apply({DelegateParameter}...);
     //    }
+    //
+    //   //isRegisterDelegateTableがtrueのときは以下も定義されます
+    //   public IntPtr key;
+    //
+    //  ~{DelegateTypeName}{Guid}()
+    //   {
+    //       ClrStubConstant::UnregisterDelegate(this.key);
+    //   }
     //}
     //
     ////GenType := {DelegateTypeName}{Guid}
-    //public static Delegate Create_{GenType}(GoshProc proc)
+    //public static Delegate Create_{GenType}(GoshProc proc, IntPtr key)
     //{
     //    {GenType} obj = new {GenType}();
     //    obj.proc = proc;
+    //
+    //   //isRegisterDelegateTableがtrueのときは以下の代入式も定義されます
+    //   obj.key = key;
+    //
     //    return (Delegate)({DelegateType})obj.DelegateEventHandler;
     //}
 
@@ -97,7 +110,8 @@ static DelegateCreator^ CreateDelegateCreator(Type^ type, GoshProc^ proc)
             TypeAttributes::Class |
             TypeAttributes::AutoClass |
             TypeAttributes::AnsiClass |
-            TypeAttributes::BeforeFieldInit
+            TypeAttributes::BeforeFieldInit |
+            TypeAttributes::Sealed
         ,Object::typeid
         );
 
@@ -148,7 +162,7 @@ static DelegateCreator^ CreateDelegateCreator(Type^ type, GoshProc^ proc)
     //Applyの引数に渡すオブジェクト配列をローカル変数から取得
     ilGen->Emit(OpCodes::Ldloc_0);
     //Applyの実行
-    ilGen->Emit(OpCodes::Callvirt, ClrStubConstant::GetGoshProcApply());
+    ilGen->Emit(OpCodes::Callvirt, ClrStubConstant::GoshProcMethodInfo);
     //Delegateがvoid型なら戻り値を捨てる
     Type^ returnType = invokeInfo->ReturnType;
     if(returnType == void::typeid)
@@ -163,13 +177,52 @@ static DelegateCreator^ CreateDelegateCreator(Type^ type, GoshProc^ proc)
     }
     ilGen->Emit(OpCodes::Ret);
 
+    //DelegateTableに登録するなら
+    if(isRegisterDelegateTable)
+    {
+        //GCされるタイミングでDelegateTableから削除するためのFinalize定義
+
+        //DelegateMapのキーになるオブジェクト
+        FieldBuilder^ keyFieldBuilder = typeBuilder->DefineField("key", IntPtr::typeid
+            , FieldAttributes::Public
+            );
+
+        //Finalize定義
+        MethodBuilder^ finlizeBuilder = typeBuilder->DefineMethod("Finalize"
+            , MethodAttributes::Family | MethodAttributes::Virtual | MethodAttributes::HideBySig
+            , CallingConventions::Standard
+            , void::typeid
+            , Type::EmptyTypes
+            );
+        ilGen = finlizeBuilder->GetILGenerator();
+
+        //try
+        //{
+        ilGen->BeginExceptionBlock();
+        //ClrStubConstant::UnregisterDelegate(this.key)を実行
+        ilGen->Emit(OpCodes::Ldarg_0);
+        ilGen->Emit(OpCodes::Ldfld, keyFieldBuilder);
+        ilGen->Emit(OpCodes::Call, ClrStubConstant::UnregisterDelegateMethodInfo);
+        ilGen->Emit(OpCodes::Pop);
+        // }
+        //finally
+        // {
+        ilGen->BeginFinallyBlock();
+        ilGen->Emit(OpCodes::Ldarg_0);
+        ilGen->Emit(OpCodes::Call, ClrStubConstant::ObjectFinalizeMethodInfo);
+       ilGen->EndExceptionBlock();
+        // }
+        ilGen->Emit(OpCodes::Ret);
+    }
+
+
     //これまでに定義したクラスを作成
     Type^ eventHandlerType = typeBuilder->CreateType();
 
-
     //定義したクラスを生成しデリゲート取得するメソッド作成
     DynamicMethod createMethod("Create_" + type->Name
-        , type, gcnew array<Type^>(1) { GoshProc::typeid }
+        , type
+        , gcnew array<Type^>(2) { GoshProc::typeid, IntPtr::typeid }
         , modBuilder 
        ); 
     ilGen = createMethod.GetILGenerator();
@@ -184,6 +237,14 @@ static DelegateCreator^ CreateDelegateCreator(Type^ type, GoshProc^ proc)
     ilGen->Emit(OpCodes::Ldarg_0);
     ilGen->Emit(OpCodes::Stfld, eventHandlerType->GetField("proc"));
 
+    //DelegateTableに登録するなら
+    if(isRegisterDelegateTable)
+    {
+        ilGen->Emit(OpCodes::Ldloc_0);
+        ilGen->Emit(OpCodes::Ldarg_1);
+        ilGen->Emit(OpCodes::Stfld, eventHandlerType->GetField("key"));
+    }
+
     //定義したクラスと、処理委譲用メソッドから戻り値のデリゲート作成
     ilGen->Emit(OpCodes::Ldloc_0);
     ilGen->Emit(OpCodes::Ldftn, eventHandlerType->GetMethod("DelegateEventHandler"));
@@ -195,14 +256,21 @@ static DelegateCreator^ CreateDelegateCreator(Type^ type, GoshProc^ proc)
     return (DelegateCreator^) createMethod.CreateDelegate(DelegateCreator::typeid);
 }
 
-Delegate^ GetWrappedDelegate(Type^ type, GoshProc^ proc)
+Delegate^ GetWrappedDelegate(Type^ type, GoshProc^ proc, IntPtr delegateTableKey)
 {
     DelegateCreator^ creator = ClrStubConstant::GetDelegateCreator(type);
     if(creator == nullptr)
     {
-        creator = CreateDelegateCreator(type, proc);
+        creator = CreateDelegateCreator(type, proc
+            , delegateTableKey != IntPtr::Zero);
         ClrStubConstant::AddDelegateCreator(type, creator);
     }
+
+    Delegate^ d  = creator(proc, delegateTableKey);
+    if(delegateTableKey != IntPtr::Zero)
+    {
+        ClrStubConstant::RegisterDelegate(delegateTableKey, d);
+    }
     
-    return creator(proc);
+    return d;
 }

@@ -11,9 +11,9 @@ using namespace GaucheDotNet;
 using namespace GaucheDotNet::Native;
 
 
-delegate Delegate^ DelegateCreator(GaucheDotNet::GoshProc^ proc);
+public delegate Delegate^ DelegateCreator(GaucheDotNet::GoshProc^ proc, IntPtr key);
 
-ref class ClrStubConstant abstract sealed
+public ref class ClrStubConstant abstract sealed
 {
 public:
     static ClrStubConstant()
@@ -25,7 +25,17 @@ public:
         _asmBuilder = nullptr;
         _modBuilder = nullptr;
 
-        _goshProcMethodInfo = nullptr;
+        GoshProcMethodInfo = (GaucheDotNet::GoshProc::typeid)->GetMethod("Apply"
+            , BindingFlags::Public | BindingFlags::Instance
+            );
+
+        ObjectFinalizeMethodInfo = (Object::typeid)->GetMethod("Finalize"
+            , BindingFlags::NonPublic | BindingFlags::Instance
+            );
+
+        UnregisterDelegateMethodInfo = (ClrStubConstant::typeid)->GetMethod("UnregisterDelegate"
+            , BindingFlags::Public | BindingFlags::Static
+            );
     }
 
     static ModuleBuilder^ GetModuleBuilder()
@@ -41,18 +51,6 @@ public:
         }
 
         return _modBuilder;
-    }
-
-    static MethodInfo^ GetGoshProcApply()
-    {
-        if(_goshProcMethodInfo == nullptr)
-        {
-            _goshProcMethodInfo = (GaucheDotNet::GoshProc::typeid)->GetMethod("Apply"
-                , BindingFlags::Public | BindingFlags::Instance
-                );
-        }
-
-        return _goshProcMethodInfo;
     }
 
     static void AddDelegateCreator(Type^ type, DelegateCreator^ creator)
@@ -81,10 +79,36 @@ public:
                 , GoshInvoke::Scm_MakeClrObject((IntPtr)GCHandle::Alloc(clrException))));
     }
 
+    static void RegisterDelegate(IntPtr key, Delegate^ d)
+    {
+        _delegateTable.Add(key, GCHandle::Alloc(d, GCHandleType::Weak));
+    }
+
+    static Delegate^ UnregisterDelegate(IntPtr key)
+    {
+        GCHandle ret;
+        if(_delegateTable.TryGetValue(key, ret ))
+        {
+            _delegateTable.Remove(key);
+            return (Delegate^)ret.Target;
+        }
+        else
+        {
+            return nullptr;
+        }
+    }
+
+public: //static field
     static initonly array<Type^>^ DelegateConstructorArgs;
+
+    static initonly MethodInfo^ ObjectFinalizeMethodInfo;
+    static initonly MethodInfo^ GoshProcMethodInfo;
+    static initonly MethodInfo^ UnregisterDelegateMethodInfo;
+
 private:
     static AssemblyBuilder^ _asmBuilder;
     static ModuleBuilder^ _modBuilder;
-    static MethodInfo^ _goshProcMethodInfo;
+
     static Dictionary<Type^, DelegateCreator^> _typeToEventHandlerMap;
+    static Dictionary<IntPtr, GCHandle> _delegateTable;
 };

@@ -70,6 +70,7 @@ DECDLL void* ClrFieldGet(void* obj, const char* name);
 
 DECDLL void ClrEventAddGoshProc(void* obj, const char* name, void* goshProc);
 DECDLL void ClrEventAddClrObj(void* obj, const char* name, void* clrObj);
+DECDLL void ClrEventRemove(void* obj, const char* name, void* proc);
 
 DECDLL int ClrReferenceAssembly(const char* assemblyName);
 

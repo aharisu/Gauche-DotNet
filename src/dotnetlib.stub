@@ -135,8 +135,22 @@
        (SCM_STRING_START (-> name name))
        (unboxing event <clr-object>))]
     [else 
-      ;;TODO raise error
-      ]))
+      (Scm_Error "clr-event-add! event required <procedure> or <clr-object>, but got %S" event)]))
+
+(define-cproc clr-event-remove! (obj::<clr-object> name::<symbol> event::<top>) :: <void>
+  (cond
+    [(is-type? event <procedure>)
+     (ClrEventRemove 
+       obj 
+       (SCM_STRING_START (-> name name))
+       (unboxing event <procedure>))]
+    [(is-type? event <clr-object>)
+     (ClrEventRemove 
+       obj 
+       (SCM_STRING_START (-> name name))
+       (unboxing event <clr-object>))]
+    [else 
+      (Scm_Error "clr-event-remove!: event required <procedure> or <clr-object>, but got %S" event)]))
 
 (define-cproc clr-reference (assembly::<symbol>) :: <void>
   (unless (ClrReferenceAssembly (SCM_STRING_START (@ assembly->name)))
