@@ -47,6 +47,7 @@ namespace Example
 
             #region show Windows Form
 
+            Console.WriteLine("show windows form...");
             //load assembly
             EvalStringInUser("(clr-reference 'System.Windows.Forms)");
 
@@ -65,6 +66,8 @@ namespace Example
             #endregion
 
             #region access .Net Object
+
+            Console.WriteLine("\n\naccess .Net Object");
 
             Hoge hoge = new Hoge();
             hoge.Num = 300;
@@ -103,6 +106,8 @@ namespace Example
 
             #region create generic instance
 
+            Console.WriteLine("\n\ncreate generic instance");
+
             //create List<int> object
             EvalStringInUser("(clr-using 'System.Collections.Generic)");
             EvalStringInUser("(define l (clr-new '(List int)))");
@@ -118,6 +123,7 @@ namespace Example
             #endregion
 
             #region operations on function
+            Console.WriteLine("\n\noperations on function");
 
             //construct expression (+ 1 2 3 4) 
             GoshSymbol symAdd = Gosh.Intern("+");
@@ -186,5 +192,6 @@ namespace Example
             #endregion
 
         }
+
     }
 }
