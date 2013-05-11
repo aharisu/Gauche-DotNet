@@ -60,11 +60,39 @@
    )
   )
 
-(define-cproc clr->int (obj::<clr-object>) :: <int>
-  (let* ([ret :: int])
-    (if (ClrToInt obj (& ret))
-      (result ret)
-      (raise-error clr->int "type miss"))))
+(define-cfn to-objwrapper (obj::ScmObj allowGoshObj::int raise-error::int) :: ObjWrapper :static
+  (let* ([o::ObjWrapper])
+    (cond
+      [(is-type? obj <clr-object>)
+       (set! (@ o.ptr) (unboxing obj <clr-object>))
+       (set! (@ o.kind) OBJWRAP_CLROBJECT)]
+      [(is-type? obj <fixnum>)
+       (set! (@ o.ptr) (cast _pvoid_t obj))
+       (set! (@ o.value) (cast _pvoid_t (unboxing obj <fixnum>)))
+       (set! (@ o.kind) OBJWRAP_INT)]
+      [(is-type? obj <string>)
+       (set! (@ o.ptr) (cast _pvoid_t obj)) 
+       (set! (@ o.value) (cast _pvoid_t (SCM_STRING_START (unboxing obj <string>))))
+       (set! (@ o.kind) OBJWRAP_STRING)]
+      ;TODO more primitive type
+      [allowGoshObj
+        (set! (@ o.ptr) (ToClrObj obj))
+        (set! (@ o.kind) OBJWRAP_CLROBJECT)]
+      [raise-error
+        (Scm_Error "obj required <clr-object>, but got %S" obj)]
+      [else (set! (@ o.ptr) 0)])
+    (return o)))
+
+(define-cproc clr->int (obj::<top>) :: <int>
+  (cond
+    [(is-type? obj <fixnum>)
+     (return obj)]
+    [(is-type? obj <clr-object>)
+     (let* ([ret :: int])
+       (if (ClrToInt (unboxing obj <clr-object>) (& ret))
+         (result ret)
+         (raise-error clr->int "type miss")))]
+    [else (Scm_Error "obj required <clr-object>, but got %S" obj)]))
 
 (define-cproc int->clr (obj::<top>) ::<clr-object>
   (let* ([ret :: void*])
@@ -75,11 +103,16 @@
          (raise-error int->clr "type miss"))]
       [else (raise-error clr<-int "type miss")])))
 
-(define-cproc clr->string (obj::<clr-object>) :: <top>
-  (let* ([ret :: ScmObj])
-    (if (ClrToGoshString obj (cast void** (& ret)))
-      (result ret)
-      (raise-error clr->string "type miss"))))
+(define-cproc clr->string (obj::<top>) :: <top>
+  (cond
+    [(is-type? obj <string>)
+     (return obj)]
+    [(is-type? obj <clr-object>)
+     (let* ([ret :: ScmObj])
+       (if (ClrToGoshString (unboxing obj <clr-object>) (cast void** (& ret)))
+         (result ret)
+         (raise-error clr->string "type miss")))]
+    [else (Scm_Error "obj required <clr-object>, but got %S" obj)]))
 
 (define-cproc string->clr (obj::<string>) ::<clr-object>
   (let* ([ret :: void*])
@@ -110,8 +143,9 @@
      (unless ret
        (raise-error clr-set! "type missmatch"))))
 
-(define-cproc clr-prop-get (obj::<clr-object> name::<symbol>) :: <clr-object>
-  (result (ClrPropGet obj (SCM_STRING_START (@ name->name)))))
+(define-cproc clr-prop-get (obj::<top> name::<symbol>) :: <clr-object>
+  (let* ([o::ObjWrapper (to-objwrapper obj FALSE TRUE)])
+    (result (ClrPropGet (& o) (SCM_STRING_START (@ name->name))))))
 
 (define-cproc clr-prop-set! (obj::<clr-object> name::<symbol> val::<top>) :: <void>
   (type-case-set! obj name val "Prop"))
@@ -435,26 +469,6 @@ static ScmString param_attr_params = SCM_STRING_CONST_INITIALIZER(\"params\", 6,
   (let* ([typeSpec::TypeSpec (parse-type-spec type FALSE)])
     (result (cast ScmString* (Scm_MakeString (@ typeSpec.name) -1 -1 0)))))
 
-(define-cfn to-method-arg (obj::ScmObj) :: ObjWrapper :static
-  (let* ([arg::ObjWrapper])
-    (cond
-      [(is-type? obj <clr-object>)
-       (set! (@ arg.ptr) (unboxing obj <clr-object>))
-       (set! (@ arg.kind) OBJWRAP_CLROBJECT)]
-      [(is-type? obj <fixnum>)
-       (set! (@ arg.ptr) (cast _pvoid_t obj))
-       (set! (@ arg.value) (cast _pvoid_t (unboxing obj <fixnum>)))
-       (set! (@ arg.kind) OBJWRAP_INT)]
-      [(is-type? obj <string>)
-       (set! (@ arg.ptr) (cast _pvoid_t obj)) 
-       (set! (@ arg.value) (cast _pvoid_t (SCM_STRING_START (unboxing obj <string>))))
-       (set! (@ arg.kind) OBJWRAP_STRING)]
-      ;TODO more primitive type
-      [else
-        (set! (@ arg.ptr) (ToClrObj obj))
-        (set! (@ arg.kind) OBJWRAP_CLROBJECT)])
-    (return arg)))
-
 (define-cproc clr-new-array (type::<top> size::<fixnum>) :: <clr-object>
   (when (< size 0)
     (raise-error clr-new-array "array size must be a positive integer"))
@@ -476,7 +490,7 @@ static ScmString param_attr_params = SCM_STRING_CONST_INITIALIZER(\"params\", 6,
       (set! ptr-arg tmp-ary)
       (set! ptr-arg (SCM_NEW_ARRAY ObjWrapper len)))
     (dotimes [i len]
-      (set! (aref ptr-arg i) (to-method-arg (SCM_CAR (SCM_PAIR args))))
+      (set! (aref ptr-arg i) (to-objwrapper (SCM_CAR (SCM_PAIR args)) TRUE FALSE))
       (set! args (SCM_CDR (SCM_PAIR args))))
     ;;call constructor
     (result (ClrNew (& typeSpec) ptr-arg len))))
@@ -488,11 +502,12 @@ static ScmString param_attr_params = SCM_STRING_CONST_INITIALIZER(\"params\", 6,
          [len::int (Scm_Length args)]
          [ptr-arg::ObjWrapper*]
          [tmp-ary::(.array ObjWrapper (ARGS_TMP_ARY_SIZE))]
+         [obj-wrap::ObjWrapper (to-objwrapper obj FALSE FALSE)]
          [ptr-obj::void*])
     ;;parse object or type specifier
     (cond 
-      [(is-type? obj <clr-object>)
-       (set! ptr-obj (unboxing obj <clr-object>))
+      [(!= (@ obj-wrap.ptr) 0)
+       (set! ptr-obj (& obj-wrap))
        (set! static? FALSE)]
       [else
         (set! static-type-spec (parse-type-spec obj FALSE))
@@ -503,7 +518,7 @@ static ScmString param_attr_params = SCM_STRING_CONST_INITIALIZER(\"params\", 6,
       (set! ptr-arg tmp-ary)
       (set! ptr-arg (SCM_NEW_ARRAY ObjWrapper len)))
     (dotimes [i len]
-      (set! (aref ptr-arg i) (to-method-arg (SCM_CAR (SCM_PAIR args))))
+      (set! (aref ptr-arg i) (to-objwrapper (SCM_CAR (SCM_PAIR args)) TRUE FALSE))
       (set! args (SCM_CDR (SCM_PAIR args))))
     ;;call method
     (let* ([ret::void* (ClrCallMethod

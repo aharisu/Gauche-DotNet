@@ -42,6 +42,22 @@ using namespace System::Runtime::InteropServices;
 using namespace GaucheDotNet;
 using namespace GaucheDotNet::Native;
 
+Object^ ClrMethod::ToObject(ObjWrapper* obj)
+{
+    switch(obj->kind)
+    {
+    case OBJWRAP_INT:
+        return (int)obj->value;
+    case OBJWRAP_STRING:
+        return Marshal::PtrToStringAnsi((IntPtr)obj->value);
+    default: //OBJWRAP_CLROBJECT:
+        {
+            GCHandle gchObj = GCHandle::FromIntPtr((IntPtr)obj->ptr);
+            return gchObj.Target;
+        }
+    }
+}
+
 Type^ ClrMethod::GetType(String^ name)
 {
     for each(Assembly^ a in AppDomain::CurrentDomain->GetAssemblies())
@@ -505,8 +521,7 @@ void* ClrMethod::CallMethod()
     }
     else
     {
-        GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(_obj));
-        instance = gchObj.Target;
+        instance = ToObject((ObjWrapper*)_obj);
         targetType = instance->GetType();
 
 #pragma region プリミティブ型同士の演算子を実行する {

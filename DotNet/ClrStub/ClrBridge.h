@@ -59,7 +59,7 @@ DECDLL int ClrPropSetScmObj(void* obj, const char* name,  void* scmObj);
 DECDLL int ClrPropSetInt(void* obj, const char* name,  int value);
 DECDLL int ClrPropSetString(void* obj, const char* name,  const char* value);
 
-DECDLL void* ClrPropGet(void* obj, const char* name);
+DECDLL void* ClrPropGet(ObjWrapper* obj, const char* name);
 
 DECDLL int ClrFieldSetClrObj(void* obj, const char* name,  void* clrObj);
 DECDLL int ClrFieldSetScmObj(void* obj, const char* name,  void* scmObj);

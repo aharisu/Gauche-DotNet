@@ -94,7 +94,7 @@ namespace Example
             EvalStringInUser("(clr-field-get hoge 'str)");
 
             //add event
-            EvalStringInUser("(define ev (lambda (num str) (print num)  (print (clr->string str)) 3.14))");
+            EvalStringInUser("(define ev (lambda (num str) (print (clr->int num))  (print (clr->string str)) 3.14))");
             EvalStringInUser("(clr-event-add! hoge 'Event ev)");
             EvalStringInUser("(clr-event-add! hoge 'Event (lambda (num str) (print \"second\") (*  2 3.14)))");
             Console.WriteLine(hoge.eventTest(10, "hohoho"));

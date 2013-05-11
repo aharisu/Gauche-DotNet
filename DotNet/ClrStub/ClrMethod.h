@@ -64,6 +64,7 @@ private:
     array<Object^>^ ConstractArguments(MethodCandidate^ callMethod);
 
 public:
+    static Object^ ToObject(ObjWrapper* obj);
     static Type^ GetType(String^ name);
     static Type^ TypeSpecToType(TypeSpec* spec);
 

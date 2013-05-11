@@ -206,10 +206,9 @@ DECDLL int ClrPropSetString(void* obj, const char* name,  const char* value)
     return 1;
 }
 
-DECDLL void* ClrPropGet(void* obj, const char* name)
+DECDLL void* ClrPropGet(ObjWrapper* obj, const char* name)
 {
-    GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
-    Object^ hObj = gchObj.Target;
+    Object^ hObj = ClrMethod::ToObject(obj);
 
     PropertyInfo^ propInfo = hObj->GetType()->GetProperty(
         Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name))));
