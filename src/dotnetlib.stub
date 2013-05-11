@@ -431,24 +431,24 @@ static ScmString param_attr_params = SCM_STRING_CONST_INITIALIZER(\"params\", 6,
   (let* ([typeSpec::TypeSpec (parse-type-spec type FALSE)])
     (result (cast ScmString* (Scm_MakeString (@ typeSpec.name) -1 -1 0)))))
 
-(define-cfn to-method-arg (obj::ScmObj) :: MethodArg :static
-  (let* ([arg::MethodArg])
+(define-cfn to-method-arg (obj::ScmObj) :: ObjWrapper :static
+  (let* ([arg::ObjWrapper])
     (cond
       [(is-type? obj <clr-object>)
        (set! (@ arg.ptr) (unboxing obj <clr-object>))
-       (set! (@ arg.kind) METHOD_ARG_CLROBJECT)]
+       (set! (@ arg.kind) OBJWRAP_CLROBJECT)]
       [(is-type? obj <fixnum>)
        (set! (@ arg.ptr) (cast _pvoid_t obj))
        (set! (@ arg.value) (cast _pvoid_t (unboxing obj <fixnum>)))
-       (set! (@ arg.kind) METHOD_ARG_INT)]
+       (set! (@ arg.kind) OBJWRAP_INT)]
       [(is-type? obj <string>)
        (set! (@ arg.ptr) (cast _pvoid_t obj)) 
        (set! (@ arg.value) (cast _pvoid_t (SCM_STRING_START (unboxing obj <string>))))
-       (set! (@ arg.kind) METHOD_ARG_STRING)]
+       (set! (@ arg.kind) OBJWRAP_STRING)]
       ;TODO more primitive type
       [else
         (set! (@ arg.ptr) (ToClrObj obj))
-        (set! (@ arg.kind) METHOD_ARG_CLROBJECT)])
+        (set! (@ arg.kind) OBJWRAP_CLROBJECT)])
     (return arg)))
 
 (define-cproc clr-new-array (type::<top> size::<fixnum>) :: <clr-object>
@@ -465,12 +465,12 @@ static ScmString param_attr_params = SCM_STRING_CONST_INITIALIZER(\"params\", 6,
 (define-cproc clr-new (type::<top> :rest args) :: <clr-object>
   (let* ([typeSpec::TypeSpec (parse-type-spec type FALSE)]
          [len::int (Scm_Length args)]
-         [ptr-arg::MethodArg*]
-         [tmp-ary::(.array MethodArg (ARGS_TMP_ARY_SIZE))])
+         [ptr-arg::ObjWrapper*]
+         [tmp-ary::(.array ObjWrapper (ARGS_TMP_ARY_SIZE))])
     ;;parse args
     (if (< len ARGS_TMP_ARY_SIZE)
       (set! ptr-arg tmp-ary)
-      (set! ptr-arg (SCM_NEW_ARRAY MethodArg len)))
+      (set! ptr-arg (SCM_NEW_ARRAY ObjWrapper len)))
     (dotimes [i len]
       (set! (aref ptr-arg i) (to-method-arg (SCM_CAR (SCM_PAIR args))))
       (set! args (SCM_CDR (SCM_PAIR args))))
@@ -482,8 +482,8 @@ static ScmString param_attr_params = SCM_STRING_CONST_INITIALIZER(\"params\", 6,
          [static-type-spec::TypeSpec]
          [static?::int]
          [len::int (Scm_Length args)]
-         [ptr-arg::MethodArg*]
-         [tmp-ary::(.array MethodArg (ARGS_TMP_ARY_SIZE))]
+         [ptr-arg::ObjWrapper*]
+         [tmp-ary::(.array ObjWrapper (ARGS_TMP_ARY_SIZE))]
          [ptr-obj::void*])
     ;;parse object or type specifier
     (cond 
@@ -497,7 +497,7 @@ static ScmString param_attr_params = SCM_STRING_CONST_INITIALIZER(\"params\", 6,
     ;;parse args
     (if (< len ARGS_TMP_ARY_SIZE)
       (set! ptr-arg tmp-ary)
-      (set! ptr-arg (SCM_NEW_ARRAY MethodArg len)))
+      (set! ptr-arg (SCM_NEW_ARRAY ObjWrapper len)))
     (dotimes [i len]
       (set! (aref ptr-arg i) (to-method-arg (SCM_CAR (SCM_PAIR args))))
       (set! args (SCM_CDR (SCM_PAIR args))))

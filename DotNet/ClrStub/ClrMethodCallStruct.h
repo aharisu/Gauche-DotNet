@@ -56,17 +56,20 @@ typedef struct TypeSpecRec
 } TypeSpec;
 
 typedef enum {
-    METHOD_ARG_CLROBJECT,
-    METHOD_ARG_INT,
-    METHOD_ARG_STRING
-}MethodArgKind;
+    OBJWRAP_CLROBJECT,
+    OBJWRAP_INT,
+    OBJWRAP_STRING
+}ObjKind;
 
-typedef struct MethodArgRec
+typedef struct ObjWrapperRec
 {
-    MethodArgKind kind;
+    ObjKind kind;
+    //kindがCLROBJECTならGCHandleに変換可能なポインタが設定される
+    //それ以外の場合は、生のGaucheオブジェクトのポインタが設定される
     void* ptr;
+    //kindがCLROBJECT以外の場合に、kindごとに異なる意味の値が設定される
     void* value;
-} MethodArg;
+} ObjWrapper;
 
 #ifdef __cplusplus
 }

@@ -80,13 +80,13 @@ DECDLL void* ClrNewArray(TypeSpec* typeSpec, int size);
 
 DECDLL void* ClrNew(
                     TypeSpec* methodSpec
-                    , MethodArg* args, int numArg
+                    , ObjWrapper* args, int numArg
                     );
 
 DECDLL void* ClrCallMethod(
                          TypeSpec* methodSpec
                          , void* obj, int isStatic
-                         , MethodArg* args, int numArg
+                         , ObjWrapper* args, int numArg
                          );
 
 DECDLL int ClrIs(TypeSpec* typeSpec, void* obj);

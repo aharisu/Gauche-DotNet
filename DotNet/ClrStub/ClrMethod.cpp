@@ -186,13 +186,13 @@ MethodInfo^ ClrMethod::MakeGenericMethod(MethodInfo^ mi, array<ArgType>^ argType
             {
                 switch(argTypes[i].kind)
                 {
-                case METHOD_ARG_CLROBJECT:
+                case OBJWRAP_CLROBJECT:
                     paramTypes[i - startIndex] = argTypes[i].type;
                     break;
-                case METHOD_ARG_INT:
+                case OBJWRAP_INT:
                     paramTypes[i - startIndex] = GoshFixnum::typeid;
                     break;
-                case METHOD_ARG_STRING:
+                case OBJWRAP_STRING:
                     paramTypes[i - startIndex] = GoshString::typeid;
                     break;
                 //TODO more primitive type
@@ -293,11 +293,11 @@ MethodBase^ ClrMethod::CreateCandidate(MethodBase^ info, array<ArgType>^ argType
     }
 }
 
-static Object^ ToArgumentObject(Type^ type, MethodArg* arg)
+static Object^ ToArgumentObject(Type^ type, ObjWrapper* arg)
 {
     switch(arg->kind)
     {
-    case METHOD_ARG_INT:
+    case OBJWRAP_INT:
         if(type->IsAssignableFrom(GoshFixnum::typeid))
         {
             return gcnew GoshFixnum((int)arg->value);
@@ -306,7 +306,7 @@ static Object^ ToArgumentObject(Type^ type, MethodArg* arg)
         {
             return Convert::ChangeType((int)arg->value, type);
         }
-    case METHOD_ARG_STRING:
+    case OBJWRAP_STRING:
         if(type->IsAssignableFrom(GoshString::typeid))
         {
             return gcnew GoshString((IntPtr)arg->ptr);
@@ -315,21 +315,21 @@ static Object^ ToArgumentObject(Type^ type, MethodArg* arg)
         {
             return Marshal::PtrToStringAnsi(IntPtr(arg->value));
         }
-    case METHOD_ARG_CLROBJECT:
+    case OBJWRAP_CLROBJECT:
     default:
         return GCHandle::FromIntPtr(IntPtr(arg->ptr)).Target;
     }
 }
 
-static Object^ ToArgumentObject(MethodArg* arg)
+static Object^ ToArgumentObject(ObjWrapper* arg)
 {
     switch(arg->kind)
     {
-    case METHOD_ARG_INT:
+    case OBJWRAP_INT:
         return (int)arg->value;
-    case METHOD_ARG_STRING:
+    case OBJWRAP_STRING:
         return Marshal::PtrToStringAnsi(IntPtr(arg->value));
-    case METHOD_ARG_CLROBJECT:
+    case OBJWRAP_CLROBJECT:
     default:
         return GCHandle::FromIntPtr(IntPtr(arg->ptr)).Target;
     }
@@ -385,7 +385,7 @@ bool ClrMethod::CreateArgTypes(StringBuilder^ builder, array<ArgType>^% argTypes
         {
             TypeSpecToString(&(_methodSpec->paramSpec[i]), builder);
             argTypes[i + startIndex].type = ClrMethod::GetType(builder->ToString());
-            argTypes[i + startIndex].kind = METHOD_ARG_CLROBJECT;
+            argTypes[i + startIndex].kind = OBJWRAP_CLROBJECT;
             argTypes[i + startIndex].attr = _methodSpec->paramSpec[i].attr;
             builder->Length = 0;
         }
@@ -398,19 +398,19 @@ bool ClrMethod::CreateArgTypes(StringBuilder^ builder, array<ArgType>^% argTypes
         {
             switch(_args[i].kind)
             {
-            case METHOD_ARG_CLROBJECT:
+            case OBJWRAP_CLROBJECT:
                 argTypes[i + startIndex].type = GCHandle::FromIntPtr(IntPtr(_args[i].ptr)).Target->GetType();
-                argTypes[i + startIndex].kind = METHOD_ARG_CLROBJECT;
+                argTypes[i + startIndex].kind = OBJWRAP_CLROBJECT;
                 argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
                 break;
-            case METHOD_ARG_INT:
+            case OBJWRAP_INT:
                 argTypes[i + startIndex].type = Int32::typeid;
-                argTypes[i + startIndex].kind = METHOD_ARG_INT;
+                argTypes[i + startIndex].kind = OBJWRAP_INT;
                 argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
                 break;
-            case METHOD_ARG_STRING:
+            case OBJWRAP_STRING:
                 argTypes[i + startIndex].type = String::typeid;
-                argTypes[i + startIndex].kind = METHOD_ARG_STRING;
+                argTypes[i + startIndex].kind = OBJWRAP_STRING;
                 argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
                 break;
             }
@@ -659,7 +659,7 @@ void* ClrMethod::CallMethod()
     }
     if(!_isStatic)
     {
-        argTypes[0].kind = METHOD_ARG_CLROBJECT;
+        argTypes[0].kind = OBJWRAP_CLROBJECT;
         argTypes[0].type = targetType;
         argTypes[0].attr = TYPESPEC_ATTR_NORMAL;
     }

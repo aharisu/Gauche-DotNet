@@ -128,17 +128,17 @@ public:
             switch(t->kind)
             {
             //TODO GoshFixnumを受け取るケースを考える
-            case METHOD_ARG_INT:
+            case OBJWRAP_INT:
                 //Gauche上のfixnumで引数が指定されている場合は、
                 //メソッドのパラメータが数値であれば何でもマッチするように判定させる
                 return CompilerHelpers::CanConvertFrom(Byte::typeid, Type);
-            case METHOD_ARG_STRING:
+            case OBJWRAP_STRING:
                 if(Type->IsAssignableFrom(String::typeid))
                 {
                     return true;
                 }
                 return Type->IsAssignableFrom(GaucheDotNet::GoshString::typeid);
-            case METHOD_ARG_CLROBJECT:
+            case OBJWRAP_CLROBJECT:
             default:
                 return CompilerHelpers::CanConvertFrom(t->type, Type);
             }
@@ -204,7 +204,7 @@ private:
         switch(argType->attr)
         {
             //TODO GoshFixnumを受け取るケースを考える
-        case METHOD_ARG_INT:
+        case OBJWRAP_INT:
             {
                 int diff1 = DistanceBetweenInt32(t1);
                 int diff2 = DistanceBetweenInt32(t2);
@@ -234,7 +234,7 @@ private:
                     return diff1 < diff2 ? 1 : -1;
                 }
             }
-        case METHOD_ARG_STRING:
+        case OBJWRAP_STRING:
             {
                 if(t1->IsAssignableFrom(String::typeid))
                 {
@@ -273,7 +273,7 @@ private:
                     }
                 }
             }
-        case METHOD_ARG_CLROBJECT:
+        case OBJWRAP_CLROBJECT:
         default:
             {
                 int diff1 = CompilerHelpers::DistanceBetweenType(argType->type, t1);

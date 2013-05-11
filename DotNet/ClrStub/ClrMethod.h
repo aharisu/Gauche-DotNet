@@ -47,7 +47,7 @@ ref class ClrMethod sealed
 private:
     ClrMethod(TypeSpec* methodSpec
         , void* obj, bool isStatic
-        , MethodArg* args, int numArg)
+        , ObjWrapper* args, int numArg)
         :_methodSpec(methodSpec)
         ,_obj(obj)
         ,_isStatic(isStatic)
@@ -67,7 +67,7 @@ public:
     static Type^ GetType(String^ name);
     static Type^ TypeSpecToType(TypeSpec* spec);
 
-    static void* CallNew(TypeSpec* methodSpec, MethodArg* args, int numArg)
+    static void* CallNew(TypeSpec* methodSpec, ObjWrapper* args, int numArg)
     {
         ClrMethod method(methodSpec, 0, true,  args, numArg);
         try
@@ -81,7 +81,7 @@ public:
         }
     }
 
-    static void* CallMethod(TypeSpec* methodSpec, void* obj, bool isStatic, MethodArg* args, int numArg)
+    static void* CallMethod(TypeSpec* methodSpec, void* obj, bool isStatic, ObjWrapper* args, int numArg)
     {
         ClrMethod method(methodSpec, obj, isStatic,  args, numArg);
         try
@@ -99,7 +99,7 @@ private:
     initonly TypeSpec* _methodSpec;
     initonly void* _obj;
     initonly bool _isStatic;
-    MethodArg* _args;
+    ObjWrapper* _args;
     initonly int _numArg;
 };
 
