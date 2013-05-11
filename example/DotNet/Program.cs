@@ -119,6 +119,20 @@ namespace Example
 
             //get Count property
             EvalStringInUser("(clr-prop-get l 'Count)");
+            // get element at index
+            EvalStringInUser("(clr-prop-get l 0)");
+
+            //create Dictionary object
+            EvalStringInUser("(define dict (clr-new '(Dictionary string int)))");
+            //add three key/value
+            EvalStringInUser("(clr-prop-set! dict \"Zero\" 0)");
+            EvalStringInUser("(clr-prop-set! dict \"One\" 1)");
+            EvalStringInUser("(clr-prop-set! dict \"Two\" 2)");
+
+            //get Count property
+            EvalStringInUser("(clr-prop-get dict 'Count)");
+            // get element at key
+            EvalStringInUser("(clr-prop-get dict \"Two\")");
 
             #endregion
 

@@ -54,12 +54,12 @@ DECDLL int ClrToInt(void* obj, int* ret);
 DECDLL int ClrToGoshString(void* clrObj, void** ret);
 DECDLL int StringToClr(const char* str, void** ret);
 
-DECDLL int ClrPropSetClrObj(void* obj, const char* name,  void* clrObj);
-DECDLL int ClrPropSetScmObj(void* obj, const char* name,  void* scmObj);
-DECDLL int ClrPropSetInt(void* obj, const char* name,  int value);
-DECDLL int ClrPropSetString(void* obj, const char* name,  const char* value);
+DECDLL int ClrPropSetClrObj(void* obj, const char* name, ObjWrapper* indexer, int numIndexer, void* clrObj);
+DECDLL int ClrPropSetScmObj(void* obj, const char* name, ObjWrapper* indexer, int numIndexer, void* scmObj);
+DECDLL int ClrPropSetInt(void* obj, const char* name, ObjWrapper* indexer, int numIndexer, int value);
+DECDLL int ClrPropSetString(void* obj, const char* name, ObjWrapper* indexer, int numIndexer, const char* value);
 
-DECDLL void* ClrPropGet(ObjWrapper* obj, const char* name);
+DECDLL void* ClrPropGet(ObjWrapper* obj, const char* name, ObjWrapper* indexer, int numIndexer);
 
 DECDLL int ClrFieldSetClrObj(void* obj, const char* name,  void* clrObj);
 DECDLL int ClrFieldSetScmObj(void* obj, const char* name,  void* scmObj);

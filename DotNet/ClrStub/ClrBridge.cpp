@@ -129,55 +129,98 @@ DECDLL int StringToClr(const char* str, void** ret)
     return 1;
 }
 
-DECDLL int ClrPropSetClrObj(void* obj, const char* name,  void* clrObj)
+DECDLL int ClrPropSetClrObj(void* obj, const char* name
+                            , ObjWrapper* indexer, int numIndexer
+                            , void* clrObj)
 {
     GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
     Object^ hObj = gchObj.Target;
 
-    PropertyInfo^ propInfo = hObj->GetType()->GetProperty(
-        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name))));
-    MethodInfo^ setter = propInfo->GetSetMethod();
+    String^ propName = (name == 0) ?
+        propName = "Item" : //default indexer name;
+        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
+
+    PropertyInfo^ propInfo = hObj->GetType()->GetProperty(propName);
 
     GCHandle gchVal = GCHandle::FromIntPtr(IntPtr(clrObj));
     Object^ hVal = gchVal.Target;
 
+    array<Object^>^ index = nullptr;
+    if(numIndexer != 0)
+    {
+        index = gcnew array<Object^>(numIndexer);
+        for(int i = 0;i < numIndexer;++i)
+        {
+            index[i] = ClrMethod::ToObject(&(indexer[i]));
+        }
+    }
+
     //TODO catch error
-    setter->Invoke(hObj, gcnew array<Object^>{hVal});
+    propInfo->SetValue(hObj, hVal, index);
 
     return 1;
 }
 
-DECDLL int ClrPropSetScmObj(void* obj, const char* name,  void* scmObj)
+DECDLL int ClrPropSetScmObj(void* obj, const char* name
+                            , ObjWrapper* indexer, int numIndexer
+                            , void* scmObj)
 {
     GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
     Object^ hObj = gchObj.Target;
 
-    PropertyInfo^ propInfo = hObj->GetType()->GetProperty(
-        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name))));
-    MethodInfo^ setter = propInfo->GetSetMethod();
+    String^ propName = (name == 0) ?
+        propName = "Item" : //default indexer name;
+        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
+
+    PropertyInfo^ propInfo = hObj->GetType()->GetProperty(propName);
 
     //ScmObj to .Net object(GoshObj instance)
     Object^ hVal = gcnew GoshClrObject(IntPtr(scmObj));
 
+    array<Object^>^ index = nullptr;
+    if(numIndexer != 0)
+    {
+        index = gcnew array<Object^>(numIndexer);
+        for(int i = 0;i < numIndexer;++i)
+        {
+            index[i] = ClrMethod::ToObject(&(indexer[i]));
+        }
+    }
+
     //TODO catch error
-    setter->Invoke(hObj, gcnew array<Object^>{hVal});
+    propInfo->SetValue(hObj, hVal, index);
 
     return 1;
 }
 
-DECDLL int ClrPropSetInt(void* obj, const char* name,  int value)
+DECDLL int ClrPropSetInt(void* obj, const char* name
+                         , ObjWrapper* indexer, int numIndexer
+                         , int value)
 {
     GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
     Object^ hObj = gchObj.Target;
 
-    PropertyInfo^ propInfo = hObj->GetType()->GetProperty(
-        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name))));
-    MethodInfo^ setter = propInfo->GetSetMethod();
+    String^ propName = (name == 0) ?
+        propName = "Item" : //default indexer name;
+        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
+
+    PropertyInfo^ propInfo = hObj->GetType()->GetProperty(propName);
 
     try 
     {
         Object^ objNum = Convert::ChangeType((Int32)value, propInfo->PropertyType);
-        setter->Invoke(hObj, gcnew array<Object^>{objNum});
+
+        array<Object^>^ index = nullptr;
+        if(numIndexer != 0)
+        {
+            index = gcnew array<Object^>(numIndexer);
+            for(int i = 0;i < numIndexer;++i)
+            {
+                index[i] = ClrMethod::ToObject(&(indexer[i]));
+            }
+        }
+
+        propInfo->SetValue(hObj, objNum, index);
         return 1;
     }
     catch(InvalidCastException^)
@@ -186,36 +229,63 @@ DECDLL int ClrPropSetInt(void* obj, const char* name,  int value)
     }
 }
 
-DECDLL int ClrPropSetString(void* obj, const char* name,  const char* value)
+DECDLL int ClrPropSetString(void* obj, const char* name
+                            , ObjWrapper* indexer, int numIndexer
+                            , const char* value)
 {
     GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
     Object^ hObj = gchObj.Target;
 
-    PropertyInfo^ propInfo = hObj->GetType()->GetProperty(
-        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name))));
+    String^ propName = (name == 0) ?
+        propName = "Item" : //default indexer name;
+        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
+
+    PropertyInfo^ propInfo = hObj->GetType()->GetProperty(propName);
     //string型を設定できるプロパティか?
     if(!propInfo->PropertyType->IsAssignableFrom(String::typeid))
     {
         return 0;
     }
 
-    MethodInfo^ setter = propInfo->GetSetMethod();
-    setter->Invoke(hObj, gcnew array<Object^>{
-        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(value)))
-    });
+    array<Object^>^ index = nullptr;
+    if(numIndexer != 0)
+    {
+        index = gcnew array<Object^>(numIndexer);
+        for(int i = 0;i < numIndexer;++i)
+        {
+            index[i] = ClrMethod::ToObject(&(indexer[i]));
+        }
+    }
+
+    propInfo->SetValue(hObj
+        , Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(value)))
+        , index);
     return 1;
 }
 
-DECDLL void* ClrPropGet(ObjWrapper* obj, const char* name)
+DECDLL void* ClrPropGet(ObjWrapper* obj, const char* name
+                        , ObjWrapper* indexer, int numIndexer)
 {
     Object^ hObj = ClrMethod::ToObject(obj);
 
-    PropertyInfo^ propInfo = hObj->GetType()->GetProperty(
-        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name))));
+    String^ propName = (name == 0) ?
+        propName = "Item" : //default indexer name;
+        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
+
+    PropertyInfo^ propInfo = hObj->GetType()->GetProperty(propName);
     MethodInfo^ getter = propInfo->GetGetMethod();
 
-    Object^ ret = getter->Invoke(hObj, nullptr);
+    array<Object^>^ index = nullptr;
+    if(numIndexer != 0)
+    {
+        index = gcnew array<Object^>(numIndexer);
+        for(int i = 0;i < numIndexer;++i)
+        {
+            index[i] = ClrMethod::ToObject(&(indexer[i]));
+        }
+    }
 
+    Object^ ret = getter->Invoke(hObj, index);
     return (void*)(IntPtr) GCHandle::Alloc(ret);
 }
 
