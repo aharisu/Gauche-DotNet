@@ -221,6 +221,8 @@ static ScmString alias_decimal = SCM_STRING_CONST_INITIALIZER(\"decimal\", 7, 7)
 static ScmString correct_decimal = SCM_STRING_CONST_INITIALIZER(\"Decimal\", 7, 7);
 static ScmString alias_string = SCM_STRING_CONST_INITIALIZER(\"string\", 6, 6);
 static ScmString correct_string = SCM_STRING_CONST_INITIALIZER(\"String\", 6, 6);
+static ScmString alias_object = SCM_STRING_CONST_INITIALIZER(\"object\", 6, 6);
+static ScmString correct_object = SCM_STRING_CONST_INITIALIZER(\"Object\", 6, 6);
 "
 (define-cfn resolve-aliasname (name::ScmString*) :: ScmString* :static
   (when (Scm_CharLowercaseP (Scm_StringRef name 0 0))
@@ -252,7 +254,9 @@ static ScmString correct_string = SCM_STRING_CONST_INITIALIZER(\"String\", 6, 6)
       [(Scm_StringEqual name (& alias_float))
        (return (& correct_float))]
       [(Scm_StringEqual name (& alias_decimal))
-       (return (& correct_decimal))]))
+       (return (& correct_decimal))]
+      [(Scm_StringEqual name (& alias_object))
+       (return (& correct_object))]))
   (return name))
 
 (define-cfn build-generic-type (type::ScmString* genericSpec::TypeSpec* numGenericSpec::int) :: ScmString* :static
