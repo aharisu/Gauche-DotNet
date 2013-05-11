@@ -77,7 +77,8 @@ public:
         }
         catch (Exception^ e)
         {
-            ClrStubConstant::RaiseClrError(e->Message, e);
+            ClrStubConstant::RaiseClrError(e);
+            //does not reach
             return 0;
         }
     }
@@ -91,7 +92,8 @@ public:
         } 
         catch (Exception^ e)
         {
-            ClrStubConstant::RaiseClrError(e->Message, e);
+            ClrStubConstant::RaiseClrError(e);
+            //does not reach
             return 0;
         }
     }

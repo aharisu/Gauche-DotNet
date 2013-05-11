@@ -71,6 +71,14 @@ public:
         return creator;
     }
 
+    static void RaiseClrError(Exception^ clrException)
+    {
+        GoshInvoke::Scm_Raise(
+            GoshInvoke::Scm_MakeClrError(
+                GoshInvoke::Scm_MakeString(clrException->Message, -1, -1, StringFlags::Copying)
+                , GoshInvoke::Scm_MakeClrObject((IntPtr)GCHandle::Alloc(clrException))));
+    }
+
     static void RaiseClrError(String^ msg, Exception^ clrException)
     {
         GoshInvoke::Scm_Raise(

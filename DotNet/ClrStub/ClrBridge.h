@@ -45,26 +45,25 @@ extern "C" {
 #endif
 
 DECDLL void ReleaseClrObject(void* obj);
-
 DECDLL void* ToClrObj(void* scmObj);
-DECDLL int FixnumToClr(signed long int num, void** ret);
 
-DECDLL int ClrToInt(void* obj, int* ret);
+DECDLL void* FixnumToClr(signed long int num);
+DECDLL int ClrToInt(void* obj);
 
-DECDLL int ClrToGoshString(void* clrObj, void** ret);
-DECDLL int StringToClr(const char* str, void** ret);
+DECDLL void* StringToClr(const char* str);
+DECDLL void* ClrToGoshString(void* clrObj);
 
-DECDLL int ClrPropSetClrObj(void* obj, const char* name, ObjWrapper* indexer, int numIndexer, void* clrObj);
-DECDLL int ClrPropSetScmObj(void* obj, const char* name, ObjWrapper* indexer, int numIndexer, void* scmObj);
-DECDLL int ClrPropSetInt(void* obj, const char* name, ObjWrapper* indexer, int numIndexer, int value);
-DECDLL int ClrPropSetString(void* obj, const char* name, ObjWrapper* indexer, int numIndexer, const char* value);
+DECDLL void ClrPropSetClrObj(void* obj, const char* name, ObjWrapper* indexer, int numIndexer, void* clrObj);
+DECDLL void ClrPropSetScmObj(void* obj, const char* name, ObjWrapper* indexer, int numIndexer, void* scmObj);
+DECDLL void ClrPropSetInt(void* obj, const char* name, ObjWrapper* indexer, int numIndexer, int value);
+DECDLL void ClrPropSetString(void* obj, const char* name, ObjWrapper* indexer, int numIndexer, const char* value);
 
 DECDLL void* ClrPropGet(ObjWrapper* obj, const char* name, ObjWrapper* indexer, int numIndexer);
 
-DECDLL int ClrFieldSetClrObj(void* obj, const char* name,  void* clrObj);
-DECDLL int ClrFieldSetScmObj(void* obj, const char* name,  void* scmObj);
-DECDLL int ClrFieldSetInt(void* obj, const char* name,  int value);
-DECDLL int ClrFieldSetString(void* obj, const char* name,  const char* value);
+DECDLL void ClrFieldSetClrObj(void* obj, const char* name,  void* clrObj);
+DECDLL void ClrFieldSetScmObj(void* obj, const char* name,  void* scmObj);
+DECDLL void ClrFieldSetInt(void* obj, const char* name,  int value);
+DECDLL void ClrFieldSetString(void* obj, const char* name,  const char* value);
 
 DECDLL void* ClrFieldGet(void* obj, const char* name);
 

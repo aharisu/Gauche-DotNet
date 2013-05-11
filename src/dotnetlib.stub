@@ -88,37 +88,25 @@
     [(is-type? obj <fixnum>)
      (return obj)]
     [(is-type? obj <clr-object>)
-     (let* ([ret :: int])
-       (if (ClrToInt (unboxing obj <clr-object>) (& ret))
-         (result ret)
-         (raise-error clr->int "type miss")))]
+     (result (ClrToInt (unboxing obj <clr-object>)))]
     [else (Scm_Error "obj required <clr-object>, but got %S" obj)]))
 
 (define-cproc int->clr (obj::<top>) ::<clr-object>
-  (let* ([ret :: void*])
-    (cond
-      [(is-type? obj <fixnum>)
-       (if (FixnumToClr (unboxing obj <fixnum>) (& ret))
-         (result ret)
-         (raise-error int->clr "type miss"))]
-      [else (raise-error clr<-int "type miss")])))
+  (cond
+    [(is-type? obj <fixnum>)
+     (result (FixnumToClr (unboxing obj <fixnum>)))]
+    [else (Scm_Error "obj required <int>, but got %S" obj)]))
 
 (define-cproc clr->string (obj::<top>) :: <top>
   (cond
     [(is-type? obj <string>)
      (return obj)]
     [(is-type? obj <clr-object>)
-     (let* ([ret :: ScmObj])
-       (if (ClrToGoshString (unboxing obj <clr-object>) (cast void** (& ret)))
-         (result ret)
-         (raise-error clr->string "type miss")))]
+     (result (ClrToGoshString (unboxing obj <clr-object>)))]
     [else (Scm_Error "obj required <clr-object>, but got %S" obj)]))
 
 (define-cproc string->clr (obj::<string>) ::<clr-object>
-  (let* ([ret :: void*])
-    (if (StringToClr (SCM_STRING_START obj) (& ret))
-      (result ret)
-      (raise-error int->clr "type miss"))))
+  (result (StringToClr (SCM_STRING_START obj))))
 
 (define-cfn prop-name/indexer (target::ScmObj
                                 ret-name::(const char**)
@@ -167,42 +155,36 @@
          [tmp-indexer::(.array ObjWrapper (INDEXER_TMP_ARY_SIZE))]
          [num-indexer::int])
     (prop-name/indexer target (& name) (& indexer) (& num-indexer) tmp-indexer INDEXER_TMP_ARY_SIZE)
-    (let* ([ret::int])
       (cond
         [(is-type? val <int>)
-         (set! ret (ClrPropSetInt obj name indexer num-indexer (unboxing val <int> )))]
+         (ClrPropSetInt obj name indexer num-indexer (unboxing val <int> ))]
        [(is-type? val <string>)
-        (set! ret (ClrPropSetString obj name indexer num-indexer 
-                                    (SCM_STRING_START (unboxing val <string>))))]
+        (ClrPropSetString obj name indexer num-indexer 
+                          (SCM_STRING_START (unboxing val <string>)))]
        ;;TODO more primitive type
        [(is-type? val <clr-object>)
-        (set! ret (ClrPropSetClrObj obj name indexer num-indexer 
-                   (unboxing val <clr-object>)))]
+        (ClrPropSetClrObj obj name indexer num-indexer 
+                          (unboxing val <clr-object>))]
        [else
-         (set! ret (ClrPropSetScmObj obj name indexer num-indexer val))])
-     (unless ret
-       (raise-error clr-set! "type missmatch")))))
+         (ClrPropSetScmObj obj name indexer num-indexer val)])))
 
 (define-cproc clr-field-get (obj::<clr-object> name::<symbol>) :: <clr-object>
   (result (ClrFieldGet obj (SCM_STRING_START (@ name->name)))))
 
 (define-cproc clr-field-set! (obj::<clr-object> name::<symbol> val::<top>) :: <void>
-  (let* ([ret::int])
-    (cond
-      [(is-type? val <int>)
-       (set! ret (ClrFieldSetInt obj (SCM_STRING_START (-> name name))
-                                 (unboxing val <int>)))]
-      [(is-type? val <string>)
-       (set! ret (ClrFieldSetString obj (SCM_STRING_START (-> name name))
-                                    (SCM_STRING_START (unboxing val <string>))))]
-      ;;TODO more primitive type
-      [(is-type? val <clr-object>)
-       (set! ret (ClrFieldSetClrObj obj (SCM_STRING_START (-> name name))
-                                    (unboxing val <clr-object>)))]
-      [else
-        (set! ret (ClrFieldSetScmObj obj (SCM_STRING_START (-> name name)) val))])
-    (unless ret
-      (raise-error clr-set! "type missmatch"))))
+  (cond
+    [(is-type? val <int>)
+     (ClrFieldSetInt obj (SCM_STRING_START (-> name name))
+                     (unboxing val <int>))]
+    [(is-type? val <string>)
+     (ClrFieldSetString obj (SCM_STRING_START (-> name name))
+                        (SCM_STRING_START (unboxing val <string>)))]
+    ;;TODO more primitive type
+    [(is-type? val <clr-object>)
+     (ClrFieldSetClrObj obj (SCM_STRING_START (-> name name))
+                        (unboxing val <clr-object>))]
+    [else
+      (ClrFieldSetScmObj obj (SCM_STRING_START (-> name name)) val)]))
 
 (define-cproc clr-event-add! (obj::<clr-object> name::<symbol> event::<top>) :: <void>
   (cond

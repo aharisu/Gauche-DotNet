@@ -61,86 +61,95 @@ DECDLL void* ToClrObj(void* scmObj)
     return (void*)(IntPtr) GCHandle::Alloc(hClrObj);
 }
 
-DECDLL int ClrToInt(void* obj, int* ret)
+static void ObjectNullCheck(Object^ obj)
+{
+    if(obj == nullptr)
+    {
+        ClrStubConstant::RaiseClrError(gcnew ArgumentNullException("obj can not be a null"));
+        //does not reach
+    }
+}
+
+DECDLL int ClrToInt(void* obj)
 {
     GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
     Object^ target = gchObj.Target;
-    if(target == nullptr)
-    {
-        return 0;
-    }
+    ObjectNullCheck(target);
 
     if(target->GetType() == GoshFixnum::typeid)
     {
-        *ret = ((GoshFixnum^)target)->Num;
-        return 1;
+        return ((GoshFixnum^)target)->Num;
     }
     else
     {
         try 
         {
             Object^ objNum = Convert::ChangeType(target, Int32::typeid);
-            *ret = *((Int32^)objNum);
-            return 1;
+            return (Int32)objNum;
         }
-        catch(InvalidCastException^)
+        catch(InvalidCastException^ e)
         {
+            ClrStubConstant::RaiseClrError(e);
+            //does not reach
             return 0;
         }
     }
 }
 
-DECDLL int FixnumToClr(signed long int num, void** ret)
+DECDLL void* FixnumToClr(signed long int num)
 {
-    *ret = (void*)(IntPtr)GCHandle::Alloc(num);
-
-    return 1;
+    return (void*)(IntPtr)GCHandle::Alloc(num);
 }
 
-DECDLL int ClrToGoshString(void* clrObj, void** ret)
+DECDLL void* ClrToGoshString(void* clrObj)
 {
     GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(clrObj));
     Object^ target = gchObj.Target;
-    if(target == nullptr)
-    {
-        return 0;
-    }
+    ObjectNullCheck(target);
 
     if(target->GetType() == GoshString::typeid)
     {
-        *ret = (void*)((GoshString^)target)->Ptr;
+        return (void*)((GoshString^)target)->Ptr;
     }
     else
     {
-        *ret = (void*)GoshInvoke::Scm_MakeString(
+        return (void*)GoshInvoke::Scm_MakeString(
             target->ToString()
             , -1, -1, 
             StringFlags::Copying);
     }
-
-    return 1;
 }
 
-DECDLL int StringToClr(const char* str, void** ret)
+DECDLL void* StringToClr(const char* str)
 {
     Object^ obj = gcnew String(str);
-    *ret = (void*)(IntPtr) GCHandle::Alloc(obj);
-
-    return 1;
+    return (void*)(IntPtr) GCHandle::Alloc(obj);
 }
 
-DECDLL int ClrPropSetClrObj(void* obj, const char* name
+static void InfoNullCheck(MemberInfo^ info, Object^ obj, String^ kind, String^ name)
+{
+    if(info == nullptr)
+    {
+        ClrStubConstant::RaiseClrError(gcnew ArgumentException(
+            String::Format("{0} class doesn't have such {1}: {2}", obj->GetType()->FullName, kind, name)));
+        //does not reach
+    }
+}
+
+DECDLL void ClrPropSetClrObj(void* obj, const char* name
                             , ObjWrapper* indexer, int numIndexer
                             , void* clrObj)
 {
     GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
     Object^ hObj = gchObj.Target;
+    ObjectNullCheck(hObj);
 
     String^ propName = (name == 0) ?
         propName = "Item" : //default indexer name;
         Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
 
     PropertyInfo^ propInfo = hObj->GetType()->GetProperty(propName);
+    InfoNullCheck(propInfo, hObj, "property", propName);
 
     GCHandle gchVal = GCHandle::FromIntPtr(IntPtr(clrObj));
     Object^ hVal = gchVal.Target;
@@ -155,24 +164,30 @@ DECDLL int ClrPropSetClrObj(void* obj, const char* name
         }
     }
 
-    //TODO catch error
-    propInfo->SetValue(hObj, hVal, index);
-
-    return 1;
+    try
+    {
+        propInfo->SetValue(hObj, hVal, index);
+    }
+    catch(Exception^ e)
+    {
+        ClrStubConstant::RaiseClrError(e);
+    }
 }
 
-DECDLL int ClrPropSetScmObj(void* obj, const char* name
+DECDLL void ClrPropSetScmObj(void* obj, const char* name
                             , ObjWrapper* indexer, int numIndexer
                             , void* scmObj)
 {
     GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
     Object^ hObj = gchObj.Target;
+    ObjectNullCheck(hObj);
 
     String^ propName = (name == 0) ?
         propName = "Item" : //default indexer name;
         Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
 
     PropertyInfo^ propInfo = hObj->GetType()->GetProperty(propName);
+    InfoNullCheck(propInfo, hObj, "property", propName);
 
     //ScmObj to .Net object(GoshObj instance)
     Object^ hVal = gcnew GoshClrObject(IntPtr(scmObj));
@@ -187,24 +202,30 @@ DECDLL int ClrPropSetScmObj(void* obj, const char* name
         }
     }
 
-    //TODO catch error
-    propInfo->SetValue(hObj, hVal, index);
-
-    return 1;
+    try
+    {
+        propInfo->SetValue(hObj, hVal, index);
+    }
+    catch(Exception^ e)
+    {
+        ClrStubConstant::RaiseClrError(e);
+    }
 }
 
-DECDLL int ClrPropSetInt(void* obj, const char* name
+DECDLL void ClrPropSetInt(void* obj, const char* name
                          , ObjWrapper* indexer, int numIndexer
                          , int value)
 {
     GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
     Object^ hObj = gchObj.Target;
+    ObjectNullCheck(hObj);
 
     String^ propName = (name == 0) ?
         propName = "Item" : //default indexer name;
         Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
 
     PropertyInfo^ propInfo = hObj->GetType()->GetProperty(propName);
+    InfoNullCheck(propInfo, hObj, "property", propName);
 
     try 
     {
@@ -221,30 +242,33 @@ DECDLL int ClrPropSetInt(void* obj, const char* name
         }
 
         propInfo->SetValue(hObj, objNum, index);
-        return 1;
     }
-    catch(InvalidCastException^)
+    catch(Exception^ e)
     {
-        return 0;
+        ClrStubConstant::RaiseClrError(e);
     }
 }
 
-DECDLL int ClrPropSetString(void* obj, const char* name
+DECDLL void ClrPropSetString(void* obj, const char* name
                             , ObjWrapper* indexer, int numIndexer
                             , const char* value)
 {
     GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
     Object^ hObj = gchObj.Target;
+    ObjectNullCheck(hObj);
 
     String^ propName = (name == 0) ?
         propName = "Item" : //default indexer name;
         Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
 
     PropertyInfo^ propInfo = hObj->GetType()->GetProperty(propName);
+    InfoNullCheck(propInfo, hObj, "property", propName);
+
     //string型を設定できるプロパティか?
     if(!propInfo->PropertyType->IsAssignableFrom(String::typeid))
     {
-        return 0;
+        ClrStubConstant::RaiseClrError(gcnew ArgumentException(
+            String::Format("{0} property can not assign of String object", propName)));
     }
 
     array<Object^>^ index = nullptr;
@@ -257,23 +281,30 @@ DECDLL int ClrPropSetString(void* obj, const char* name
         }
     }
 
-    propInfo->SetValue(hObj
-        , Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(value)))
-        , index);
-    return 1;
+    try
+    {
+        propInfo->SetValue(hObj
+            , Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(value)))
+            , index);
+    }
+    catch(Exception^ e)
+    {
+        ClrStubConstant::RaiseClrError(e);
+    }
 }
 
 DECDLL void* ClrPropGet(ObjWrapper* obj, const char* name
                         , ObjWrapper* indexer, int numIndexer)
 {
     Object^ hObj = ClrMethod::ToObject(obj);
+    ObjectNullCheck(hObj);
 
     String^ propName = (name == 0) ?
         propName = "Item" : //default indexer name;
         Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
 
     PropertyInfo^ propInfo = hObj->GetType()->GetProperty(propName);
-    MethodInfo^ getter = propInfo->GetGetMethod();
+    InfoNullCheck(propInfo, hObj, "property", propName);
 
     array<Object^>^ index = nullptr;
     if(numIndexer != 0)
@@ -285,96 +316,137 @@ DECDLL void* ClrPropGet(ObjWrapper* obj, const char* name
         }
     }
 
-    Object^ ret = getter->Invoke(hObj, index);
-    return (void*)(IntPtr) GCHandle::Alloc(ret);
+    try
+    {
+        Object^ ret = propInfo->GetValue(hObj, index);
+        return (void*)(IntPtr) GCHandle::Alloc(ret);
+    }
+    catch(Exception^ e)
+    {
+        ClrStubConstant::RaiseClrError(e);
+        //does not reach
+        return 0;
+    }
 }
 
 #pragma region field setter / getter {
 
-DECDLL int ClrFieldSetClrObj(void* obj, const char* name,  void* clrObj)
+DECDLL void ClrFieldSetClrObj(void* obj, const char* name,  void* clrObj)
 {
     GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
     Object^ hObj = gchObj.Target;
+    ObjectNullCheck(hObj);
 
-    //TODO catch error
-    FieldInfo^ fieldInfo = hObj->GetType()->GetField(
-        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name))));
+    String^ fieldName = Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
+    FieldInfo^ fieldInfo = hObj->GetType()->GetField(fieldName);
+    InfoNullCheck(fieldInfo, hObj, "field", fieldName);
 
     GCHandle gchVal = GCHandle::FromIntPtr(IntPtr(clrObj));
     Object^ hVal = gchVal.Target;
 
-    fieldInfo->SetValue(hObj, hVal);
-
-    return 1;
+    try
+    {
+        fieldInfo->SetValue(hObj, hVal);
+    }
+    catch(Exception^ e)
+    {
+        ClrStubConstant::RaiseClrError(e);
+    }
 }
 
-DECDLL int ClrFieldSetScmObj(void* obj, const char* name,  void* scmObj)
+DECDLL void ClrFieldSetScmObj(void* obj, const char* name,  void* scmObj)
 {
     GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
     Object^ hObj = gchObj.Target;
+    ObjectNullCheck(hObj);
 
-    FieldInfo^ fieldInfo = hObj->GetType()->GetField(
-        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name))));
+    String^ fieldName = Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
+    FieldInfo^ fieldInfo = hObj->GetType()->GetField(fieldName);
+    InfoNullCheck(fieldInfo, hObj, "field", fieldName);
 
     //ScmObj to .Net object(GoshObj instance)
     Object^ hVal = gcnew GoshClrObject(IntPtr(scmObj));
 
-    fieldInfo->SetValue(hObj, hVal);
-
-    return 1;
+    try
+    {
+        fieldInfo->SetValue(hObj, hVal);
+    }
+    catch(Exception^ e)
+    {
+        ClrStubConstant::RaiseClrError(e);
+    }
 }
 
-DECDLL int ClrFieldSetInt(void* obj, const char* name,  int value)
+DECDLL void ClrFieldSetInt(void* obj, const char* name,  int value)
 {
     GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
     Object^ hObj = gchObj.Target;
+    ObjectNullCheck(hObj);
 
-    FieldInfo^ fieldInfo = hObj->GetType()->GetField(
-        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name))));
+    String^ fieldName = Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
+    FieldInfo^ fieldInfo = hObj->GetType()->GetField(fieldName);
+    InfoNullCheck(fieldInfo, hObj, "field", fieldName);
 
     try 
     {
         Object^ objNum = Convert::ChangeType((Int32)value, fieldInfo->FieldType);
         fieldInfo->SetValue(hObj, objNum);
-
-        return 1;
     }
-    catch(InvalidCastException^)
+    catch(Exception^ e)
     {
-        return 0;
+        ClrStubConstant::RaiseClrError(e);
     }
 }
 
-DECDLL int ClrFieldSetString(void* obj, const char* name,  const char* value)
+DECDLL void ClrFieldSetString(void* obj, const char* name,  const char* value)
 {
     GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
     Object^ hObj = gchObj.Target;
+    ObjectNullCheck(hObj);
 
-    FieldInfo^ fieldInfo = hObj->GetType()->GetField(
-        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name))));
+    String^ fieldName = Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
+    FieldInfo^ fieldInfo = hObj->GetType()->GetField(fieldName);
+    InfoNullCheck(fieldInfo, hObj, "field", fieldName);
 
     //string型を設定できるフィールドか?
     if(!fieldInfo->FieldType->IsAssignableFrom(String::typeid))
     {
-        return 0;
+        ClrStubConstant::RaiseClrError(gcnew ArgumentException(
+            String::Format("{0} field can not assign of String object", fieldName)));
     }
 
-    fieldInfo->SetValue(hObj, 
-        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(value))));
-    return 1;
+    try
+    {
+        fieldInfo->SetValue(hObj, 
+            Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(value))));
+    }
+    catch(Exception^ e)
+    {
+        ClrStubConstant::RaiseClrError(e);
+    }
 }
 
 DECDLL void* ClrFieldGet(void* obj, const char* name)
 {
     GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
     Object^ hObj = gchObj.Target;
+    ObjectNullCheck(hObj);
 
-    FieldInfo^ fieldInfo = hObj->GetType()->GetField(
-        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name))));
+    String^ fieldName = Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
+    FieldInfo^ fieldInfo = hObj->GetType()->GetField(fieldName);
+    InfoNullCheck(fieldInfo, hObj, "field", fieldName);
 
-    Object^ ret = fieldInfo->GetValue(hObj);
-
-    return (void*)(IntPtr) GCHandle::Alloc(ret);
+    try
+    {
+        Object^ ret = fieldInfo->GetValue(hObj);
+        return (void*)(IntPtr) GCHandle::Alloc(ret);
+    }
+    catch(Exception^ e)
+    {
+        ClrStubConstant::RaiseClrError(e);
+        //does not reach
+        return 0;
+    }
 }
 
 #pragma endregion }
@@ -385,9 +457,11 @@ static void ClrEventAddClrProc(void* obj, const char* name, GoshProc^ proc, IntP
 {
     GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
     Object^ hObj = gchObj.Target;
+    ObjectNullCheck(hObj);
 
-    EventInfo^ eventInfo = hObj->GetType()->GetEvent(
-        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name))));
+    String^ eventName = Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
+    EventInfo^ eventInfo = hObj->GetType()->GetEvent(eventName);
+    InfoNullCheck(eventInfo, hObj, "event", eventName);
 
     MethodInfo^ invokeInfo = eventInfo->EventHandlerType->GetMethod("Invoke");
     if(proc->Required != invokeInfo->GetParameters()->Length)
@@ -398,12 +472,18 @@ static void ClrEventAddClrProc(void* obj, const char* name, GoshProc^ proc, IntP
             + "  requires " + invokeInfo->GetParameters()->Length
             + ", but got " + proc->Required + " arity funcion."
             );
-        ClrStubConstant::RaiseClrError(e->Message, e);
-        return;
+        ClrStubConstant::RaiseClrError(e);
     }
 
-    Delegate^ d = GetWrappedDelegate(eventInfo->EventHandlerType, proc, key);
-    eventInfo->AddEventHandler(hObj, d);
+    try
+    {
+        Delegate^ d = GetWrappedDelegate(eventInfo->EventHandlerType, proc, key);
+        eventInfo->AddEventHandler(hObj, d);
+    }
+    catch(Exception^ e)
+    {
+        ClrStubConstant::RaiseClrError(e);
+    }
 }
 
 DECDLL void ClrEventAddGoshProc(void* obj, const char* name, void* goshProc)
@@ -416,21 +496,14 @@ DECDLL void ClrEventAddGoshProc(void* obj, const char* name, void* goshProc)
 DECDLL void ClrEventAddClrObj(void* obj, const char* name, void* clrObj)
 {
     Object^ hClrObj = GCHandle::FromIntPtr(IntPtr(clrObj)).Target;
-    if(hClrObj == nullptr)
-    {
-        Exception^ e = gcnew ArgumentException("clr object is null");
-        ClrStubConstant::RaiseClrError(e->Message, e);
-        return;
-    }
+    ObjectNullCheck(hClrObj);
     
     //GoshProcにキャストできる型でなければ終了
     if(!(GoshProc::typeid)->IsAssignableFrom(hClrObj->GetType()))
     {
         Exception^ e = gcnew ArgumentException("requires GoshProc object. but got " + hClrObj->GetType()->FullName);
-        ClrStubConstant::RaiseClrError(e->Message, e);
-        return;
+        ClrStubConstant::RaiseClrError(e);
     }
-    
 
     ClrEventAddClrProc(obj, name, (GoshProc^)hClrObj, (IntPtr)clrObj);
 }
@@ -452,11 +525,20 @@ DECDLL void ClrEventRemove(void* obj, const char* name, void* proc)
 
     GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
     Object^ hObj = gchObj.Target;
+    ObjectNullCheck(hObj);
 
-    EventInfo^ eventInfo = hObj->GetType()->GetEvent(
-        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name))));
+    String^ eventName = Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
+    EventInfo^ eventInfo = hObj->GetType()->GetEvent(eventName);
+    InfoNullCheck(eventInfo, hObj, "event", eventName);
 
-    eventInfo->RemoveEventHandler(hObj, d);
+    try
+    {
+        eventInfo->RemoveEventHandler(hObj, d);
+    }
+    catch(Exception^ e)
+    {
+        ClrStubConstant::RaiseClrError(e);
+    }
 }
 
 #pragma endregion }
