@@ -333,15 +333,21 @@ static ScmString correct_object = SCM_STRING_CONST_INITIALIZER(\"Object\", 6, 6)
       (snprintf num-buf 10 "%d" numGenericSpec)
       (Scm_DStringPutz (& builder) num-buf -1)
       (SCM_DSTRING_PUTB (& builder) #\[)
+      ;;first generic type
+      (SCM_DSTRING_PUTB (& builder) #\[)
       (Scm_DStringPutz (& builder) 
                        (ref (aref genericSpec 0) name)
                        -1)
+      (SCM_DSTRING_PUTB (& builder) #\])
+      ;;after the second
       (let* ([i::int 1]) 
         (for [() (< i numGenericSpec) (pre++ i)]
           (SCM_DSTRING_PUTB (& builder) #\,)
+          (SCM_DSTRING_PUTB (& builder) #\[)
           (Scm_DStringPutz (& builder) 
                            (ref (aref genericSpec i) name)
-                           -1)))
+                           -1) 
+          (SCM_DSTRING_PUTB (& builder) #\])))
       (SCM_DSTRING_PUTB (& builder) #\])
       (return (cast ScmString* (Scm_DStringGet (& builder) 0))))
     (return type)))
@@ -375,11 +381,13 @@ static ScmString correct_object = SCM_STRING_CONST_INITIALIZER(\"Object\", 6, 6)
             [else (raise-error clr-type "invalid type spec")]))
         (set!-append-ary-spec type dimension)))
     ;;resolve clr type
-    (when (ClrValidTypeName (SCM_STRING_START type))
-      (return (SCM_STRING type)))
-    (let* ([full-type::ScmObj (Scm_StringAppend2 (& namespace_System) (SCM_STRING type))])
-      (when (ClrValidTypeName (SCM_STRING_START (SCM_STRING full-type)))
-        (return (SCM_STRING full-type))))
+    (let* ([valid::void* (ClrValidTypeName (SCM_STRING_START type))])
+      (when valid 
+        (return (SCM_STRING valid))))
+    (let* ([full-type::ScmObj (Scm_StringAppend2 (& namespace_System) (SCM_STRING type))]
+           [valid::void* (ClrValidTypeName (SCM_STRING_START (SCM_STRING full-type)))])
+      (when valid
+        (return (SCM_STRING valid))))
     (let* ([ns-list::ScmObj (Scm_GlobalVariableRef
                               (Scm_CurrentModule)
                               (SCM_SYMBOL (Scm_Intern (& namespace_list)))
@@ -389,9 +397,10 @@ static ScmString correct_object = SCM_STRING_CONST_INITIALIZER(\"Object\", 6, 6)
       (dolist [ns (SCM_BOX_VALUE ns-list)]
         (let* ([fullType::ScmObj (Scm_StringAppend2
                                    (SCM_STRING (Scm_StringAppendC (-> (unboxing ns <symbol>) name) "." 1 1))
-                                   (SCM_STRING type))])
-          (when (ClrValidTypeName (SCM_STRING_START (SCM_STRING fullType)))
-            (return (SCM_STRING fullType)))))
+                                   (SCM_STRING type))]
+               [valid::void* (ClrValidTypeName (SCM_STRING_START (SCM_STRING fullType)))])
+          (when valid
+            (return (SCM_STRING valid)))))
       (raise-error clr-resolve-type "unknown type"))))
 
 (define-cfn is-type-delimiter (arg::ScmObj) :: int :static

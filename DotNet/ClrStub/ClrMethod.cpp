@@ -58,11 +58,21 @@ Object^ ClrMethod::ToObject(ObjWrapper* obj)
     }
 }
 
-Type^ ClrMethod::GetType(String^ name)
+Type^ ClrMethod::GetType(String^ name, bool valid)
 {
+    Type^ t;
+    if(!valid)
+    {
+        t = Type::GetType(name);
+        if(t != nullptr)
+        {
+            return t;
+        }
+    }
+
     for each(Assembly^ a in AppDomain::CurrentDomain->GetAssemblies())
     {
-        Type^t = a->GetType(name);
+        t = a->GetType(name);
         if(t != nullptr)
         {
             return t;
@@ -82,7 +92,7 @@ Type^ ClrMethod::TypeSpecToType(TypeSpec* spec)
 {
     StringBuilder builder;
     TypeSpecToString(spec, %builder);
-    return GetType(builder.ToString());
+    return GetType(builder.ToString(), false);
 }
 
 static array<Type^>^ ConvertToTypeArray(TypeSpec* typeSpec, int numTypeSpec)
@@ -92,7 +102,7 @@ static array<Type^>^ ConvertToTypeArray(TypeSpec* typeSpec, int numTypeSpec)
     for(int i = 0;i < numTypeSpec;++i)
     {
         TypeSpecToString(&(typeSpec[i]), %builder);
-        typeAry[i] = ClrMethod::GetType(builder.ToString());
+        typeAry[i] = ClrMethod::GetType(builder.ToString(), false);
         builder.Length = 0;
     }
 
@@ -400,7 +410,7 @@ bool ClrMethod::CreateArgTypes(StringBuilder^ builder, array<ArgType>^% argTypes
         for(int i = 0;i < _methodSpec->numParamSpec;++i)
         {
             TypeSpecToString(&(_methodSpec->paramSpec[i]), builder);
-            argTypes[i + startIndex].type = ClrMethod::GetType(builder->ToString());
+            argTypes[i + startIndex].type = ClrMethod::GetType(builder->ToString(), false);
             argTypes[i + startIndex].kind = OBJWRAP_CLROBJECT;
             argTypes[i + startIndex].attr = _methodSpec->paramSpec[i].attr;
             builder->Length = 0;
@@ -439,7 +449,7 @@ void* ClrMethod::CallNew()
 {
     StringBuilder builder;
     TypeSpecToString((TypeSpec*)_methodSpec, %builder);
-    Type^ targetType = ClrMethod::GetType(builder.ToString());
+    Type^ targetType = ClrMethod::GetType(builder.ToString(), false);
     if(targetType == nullptr)
     {
         throw gcnew ArgumentException("unknown type");
@@ -511,7 +521,7 @@ void* ClrMethod::CallMethod()
     {
         TypeSpec* spec = (TypeSpec*)_obj;
         TypeSpecToString(spec, %builder);
-        targetType = ClrMethod::GetType(builder.ToString());
+        targetType = ClrMethod::GetType(builder.ToString(), false);
         if(targetType == nullptr)
         {
             throw gcnew ArgumentException("unknown type");

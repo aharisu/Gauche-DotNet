@@ -73,7 +73,7 @@ DECDLL void ClrEventRemove(void* obj, const char* name, void* proc);
 
 DECDLL int ClrReferenceAssembly(const char* assemblyName);
 
-DECDLL int ClrValidTypeName(const char* fullTypeName);
+DECDLL void* ClrValidTypeName(const char* fullTypeName);
 
 DECDLL void* ClrNewArray(TypeSpec* typeSpec, int size);
 

@@ -65,7 +65,7 @@ private:
 
 public:
     static Object^ ToObject(ObjWrapper* obj);
-    static Type^ GetType(String^ name);
+    static Type^ GetType(String^ name, bool valid);
     static Type^ TypeSpecToType(TypeSpec* spec);
 
     static void* CallNew(TypeSpec* methodSpec, ObjWrapper* args, int numArg)

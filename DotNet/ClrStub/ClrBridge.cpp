@@ -573,11 +573,21 @@ DECDLL int ClrReferenceAssembly(const char* assemblyName)
     return assembly == nullptr ?  0 : 1;
 }
 
-DECDLL int ClrValidTypeName(const char* fullTypeName)
+DECDLL void* ClrValidTypeName(const char* fullTypeName)
 {
     String^ name = gcnew String(fullTypeName);
 
-    return ClrMethod::GetType(name) == nullptr ? 0 : 1;
+    Type^ ret = ClrMethod::GetType(name, true);
+    if(ret == nullptr)
+    {
+        return 0;
+    }
+    else
+    {
+        return (void*)GaucheDotNet::Native::GoshInvoke::Scm_MakeString(
+            ret->AssemblyQualifiedName
+            , -1, -1, GaucheDotNet::StringFlags::Copying);
+    }
 }
 
 DECDLL void* ClrNewArray(TypeSpec* typeSpec, int size)
