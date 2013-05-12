@@ -61,6 +61,29 @@ DECDLL void* ToClrObj(void* scmObj)
     return (void*)(IntPtr) GCHandle::Alloc(hClrObj);
 }
 
+DECDLL void* ClrPrint(void* clrObj)
+{
+    GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(clrObj));
+    Object^ target = gchObj.Target;
+
+    String^ str;
+    if(target == nullptr)
+    {
+        str = "null";
+    }
+    else
+    {
+        str = target->ToString();
+    }
+    Type^ t = target->GetType();
+    if(String::typeid == target->GetType())
+    {
+        str = "\"" + str + "\"";
+    }
+
+    return (void*)GoshInvoke::Scm_MakeString(str, -1, -1, StringFlags::Copying);
+}
+
 static void ObjectNullCheck(Object^ obj)
 {
     if(obj == nullptr)

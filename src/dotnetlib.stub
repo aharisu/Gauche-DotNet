@@ -49,6 +49,13 @@
       ,(symbol->string func-name) ,msg)]
   )
 
+(define-cfn clr-object-print (obj::ScmObj port::ScmPort*) :: void
+  (cond
+    [(is-type? obj <clr-object>)
+     (Scm_Printf port "#{<clr-object> obj:%A}" (ClrPrint (unboxing obj <clr-object>)))]
+    [else
+      (Scm_Printf port "#{<clr-object>}")]))
+
 ;;-----------------
 ;;ClrObject(Gauche .Net Object)
 ;;
@@ -58,6 +65,7 @@
   ()
   ( ;;slot
    )
+  (printer (clr-object-print obj port))
   )
 
 (define-cfn to-objwrapper (obj::ScmObj allowGoshObj::int raise-error::int) :: ObjWrapper :static

@@ -46,6 +46,7 @@ extern "C" {
 
 DECDLL void ReleaseClrObject(void* obj);
 DECDLL void* ToClrObj(void* scmObj);
+DECDLL void* ClrPrint(void* clrObj);
 
 DECDLL void* FixnumToClr(signed long int num);
 DECDLL int ClrToInt(void* obj);
