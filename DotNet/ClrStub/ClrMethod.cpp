@@ -1,4 +1,4 @@
-/*
+ï»¿/*
  * ClrMethod.cpp
  *
  * MIT License
@@ -184,7 +184,7 @@ MethodInfo^ ClrMethod::MakeGenericMethod(MethodInfo^ mi, array<ArgType>^ argType
     array<Type^>^ genericArgs = mi->GetGenericArguments();
     if (_methodSpec->numGenericSpec >= 0)
     {
-        //ƒWƒFƒlƒŠƒbƒNŒ^‚Ìw’è‚ª‚ ‚éê‡‚Íw’è‚³‚ê‚½Œ^‚Åƒƒ\ƒbƒh‚ğì¬‚·‚é
+        //ã‚¸ã‚§ãƒãƒªãƒƒã‚¯å‹ã®æŒ‡å®šãŒã‚ã‚‹å ´åˆã¯æŒ‡å®šã•ã‚ŒãŸå‹ã§ãƒ¡ã‚½ãƒƒãƒ‰ã‚’ä½œæˆã™ã‚‹
 
         if (genericArgs->Length != _methodSpec->numGenericSpec)
         {
@@ -195,7 +195,7 @@ MethodInfo^ ClrMethod::MakeGenericMethod(MethodInfo^ mi, array<ArgType>^ argType
     }
     else
     {
-        //ƒWƒFƒlƒŠƒbƒNŒ^w’è‚ª‚È‚¢ê‡‚ÍÀÛ‚Ìˆø”‚©‚çŒ^‚ğƒWƒFƒlƒŠƒbƒNŒ^‚ğ”»•Ê‚·‚é
+        //ã‚¸ã‚§ãƒãƒªãƒƒã‚¯å‹æŒ‡å®šãŒãªã„å ´åˆã¯å®Ÿéš›ã®å¼•æ•°ã‹ã‚‰å‹ã‚’ã‚¸ã‚§ãƒãƒªãƒƒã‚¯å‹ã‚’åˆ¤åˆ¥ã™ã‚‹
         array<ParameterInfo^>^ piAry = mi->GetParameters();
 
         array<Type^>^ paramTypes = nullptr;
@@ -269,7 +269,7 @@ MethodInfo^ ClrMethod::MakeGenericMethod(MethodInfo^ mi, array<ArgType>^ argType
                         candidate = GetHigherLevel(candidate, t);
                         if (candidate == nullptr)
                         {
-                            //throw new InvalidOperationException("ƒWƒFƒlƒŠƒbƒNŒ^‚ğ‚Âˆø”‚Ì®‡«‚ªæ‚ê‚Ä‚¢‚Ü‚¹‚ñB");
+                            //throw new InvalidOperationException("ã‚¸ã‚§ãƒãƒªãƒƒã‚¯å‹ã‚’æŒã¤å¼•æ•°ã®æ•´åˆæ€§ãŒå–ã‚Œã¦ã„ã¾ã›ã‚“ã€‚");
                             return nullptr;
                         }
                     }
@@ -278,7 +278,7 @@ MethodInfo^ ClrMethod::MakeGenericMethod(MethodInfo^ mi, array<ArgType>^ argType
 
             if (candidate == nullptr)
             {
-                //throw new InvalidOperationException("ƒWƒFƒlƒŠƒbƒNŒ^‚ğ“Á’è‚Å‚«‚Ü‚¹‚ñ‚Å‚µ‚½B");
+                //throw new InvalidOperationException("ã‚¸ã‚§ãƒãƒªãƒƒã‚¯å‹ã‚’ç‰¹å®šã§ãã¾ã›ã‚“ã§ã—ãŸã€‚");
                 return nullptr;
             }
             genericType[y] = candidate;
@@ -288,7 +288,7 @@ MethodInfo^ ClrMethod::MakeGenericMethod(MethodInfo^ mi, array<ArgType>^ argType
         {
             if(genericType[i] == nullptr)
             {
-                //throw new InvalidOperationException("ƒWƒFƒlƒŠƒbƒNŒ^‚ğ“Á’è‚Å‚«‚Ü‚¹‚ñ‚Å‚µ‚½B");
+                //throw new InvalidOperationException("ã‚¸ã‚§ãƒãƒªãƒƒã‚¯å‹ã‚’ç‰¹å®šã§ãã¾ã›ã‚“ã§ã—ãŸã€‚");
                 return nullptr;
             }
         }
@@ -478,7 +478,7 @@ void* ClrMethod::CallNew()
     }
     builder.Length = 0;
 
-    //ƒƒ\ƒbƒh–¼‚Æˆê‚Éƒpƒ‰ƒ[ƒ^Œ^w’è‚ª‚ ‚éê‡‚Ítrue
+    //ãƒ¡ã‚½ãƒƒãƒ‰åã¨ä¸€ç·’ã«ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿å‹æŒ‡å®šãŒã‚ã‚‹å ´åˆã¯true
     array<ArgType>^ argTypes;
     bool isSpecifyParamType = CreateArgTypes(%builder, argTypes);
 
@@ -526,12 +526,12 @@ void* ClrMethod::CallMethod()
     Type^ targetType;
     Object^ instance;
 
-    //Àsƒƒ\ƒbƒhŒŸõ‚Ég—p‚·‚éƒpƒ‰ƒ[ƒ^‚ÌŒ^”z—ñ
+    //å®Ÿè¡Œãƒ¡ã‚½ãƒƒãƒ‰æ¤œç´¢ã«ä½¿ç”¨ã™ã‚‹ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®å‹é…åˆ—
     array<ArgType>^ argTypes = nullptr;
-    //ƒƒ\ƒbƒh–¼‚Æˆê‚Éƒpƒ‰ƒ[ƒ^Œ^w’è‚ª‚ ‚éê‡‚Ítrue
+    //ãƒ¡ã‚½ãƒƒãƒ‰åã¨ä¸€ç·’ã«ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿å‹æŒ‡å®šãŒã‚ã‚‹å ´åˆã¯true
     bool isSpecifyParamType = _methodSpec->numParamSpec >= 0;
-    //–¾¦“I‚Èƒpƒ‰ƒ[ƒ^Œ^w’è‚ª‚ ‚éê‡‚¾‚¯A
-    //ƒvƒŠƒ~ƒeƒBƒuŒ^“¯m‚Ì‰‰Z‚Åg—p‚·‚é‚½‚ß‚±‚Ìƒ^ƒCƒ~ƒ“ƒO‚Åì¬‚·‚éB
+    //æ˜ç¤ºçš„ãªãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿å‹æŒ‡å®šãŒã‚ã‚‹å ´åˆã ã‘ã€
+    //ãƒ—ãƒªãƒŸãƒ†ã‚£ãƒ–å‹åŒå£«ã®æ¼”ç®—ã§ä½¿ç”¨ã™ã‚‹ãŸã‚ã“ã®ã‚¿ã‚¤ãƒŸãƒ³ã‚°ã§ä½œæˆã™ã‚‹ã€‚
     if(isSpecifyParamType)
     {
         CreateArgTypes(%builder, argTypes);
@@ -556,7 +556,7 @@ void* ClrMethod::CallMethod()
         instance = ToObject((ObjWrapper*)_obj);
         targetType = instance->GetType();
 
-#pragma region ƒvƒŠƒ~ƒeƒBƒuŒ^“¯m‚Ì‰‰Zq‚ğÀs‚·‚é {
+#pragma region ãƒ—ãƒªãƒŸãƒ†ã‚£ãƒ–å‹åŒå£«ã®æ¼”ç®—å­ã‚’å®Ÿè¡Œã™ã‚‹ {
         if(_numArg < 2 && method->Length <= 2)
         {
             Object^ secondArg = (_numArg == 1) ?  ToArgumentObject(&_args[0]) : nullptr;
@@ -698,8 +698,8 @@ void* ClrMethod::CallMethod()
 #pragma endregion }
     }
 
-    //–¾¦“I‚Èƒpƒ‰ƒ[ƒ^Œ^w’è‚ª‚È‚¢ê‡‚Í‚±‚Ìƒ^ƒCƒ~ƒ“ƒO‚Å
-    //ƒƒ\ƒbƒhŒŸõ—pˆø”Œ^”z—ñ‚ğì¬‚·‚é
+    //æ˜ç¤ºçš„ãªãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿å‹æŒ‡å®šãŒãªã„å ´åˆã¯ã“ã®ã‚¿ã‚¤ãƒŸãƒ³ã‚°ã§
+    //ãƒ¡ã‚½ãƒƒãƒ‰æ¤œç´¢ç”¨å¼•æ•°å‹é…åˆ—ã‚’ä½œæˆã™ã‚‹
     if(!isSpecifyParamType)
     {
         CreateArgTypes(%builder, argTypes);
@@ -711,7 +711,7 @@ void* ClrMethod::CallMethod()
         argTypes[0].attr = TYPESPEC_ATTR_NORMAL;
     }
 
-    //Àsƒƒ\ƒbƒh‚ÌŒó•âƒŠƒXƒg‚ğì¬‚·‚é
+    //å®Ÿè¡Œãƒ¡ã‚½ãƒƒãƒ‰ã®å€™è£œãƒªã‚¹ãƒˆã‚’ä½œæˆã™ã‚‹
     List<MethodBase^> candidates;
     for each(MethodBase^ info in targetType->GetMember(method, MemberTypes::Method 
         , BindingFlags::Public | ((_isStatic | isOperator) ? BindingFlags::Static : BindingFlags::Instance)
@@ -729,7 +729,7 @@ void* ClrMethod::CallMethod()
         throw gcnew ArgumentException("Applicable method can not be found");
     }
 
-    //ƒpƒ‰ƒ[ƒ^Œ^”z—ñ‚©‚ç“K—p‰Â”\‚Èƒƒ\ƒbƒh‚ğæ“¾‚·‚é
+    //ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿å‹é…åˆ—ã‹ã‚‰é©ç”¨å¯èƒ½ãªãƒ¡ã‚½ãƒƒãƒ‰ã‚’å–å¾—ã™ã‚‹
     MethodBinder mb(method, %candidates 
         , isOperator ? BinderType::BinaryOperator : BinderType::Normal);
     MethodCandidate^ mc = mb.MakeBindingTarget(
@@ -743,10 +743,10 @@ void* ClrMethod::CallMethod()
         throw gcnew ArgumentException("Applicable method can not be found");
     }
 
-    //ƒƒ\ƒbƒhÀs
+    //ãƒ¡ã‚½ãƒƒãƒ‰å®Ÿè¡Œ
     array<Object^>^ arguments = ConstractArguments(mc);
     Object^ result = mc->Target->Method->Invoke(_isStatic ? nullptr : instance, arguments);
-    //TODO –ß‚è’l‚ªvoid‚Ìƒƒ\ƒbƒh‚Æ–{“–‚Énull‚ª•Ô‚Á‚Ä‚«‚½‚Æ‚«‚Ìê‡‚í‚¯
+    //TODO æˆ»ã‚Šå€¤ãŒvoidã®ãƒ¡ã‚½ãƒƒãƒ‰ã¨æœ¬å½“ã«nullãŒè¿”ã£ã¦ããŸã¨ãã®å ´åˆã‚ã‘
     if(result == nullptr)
     {
         return 0;

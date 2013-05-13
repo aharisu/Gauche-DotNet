@@ -1,4 +1,4 @@
-/* ****************************************************************************
+ï»¿/* ****************************************************************************
  *
  * Copyright (c) Microsoft Corporation. 
  *
@@ -127,10 +127,10 @@ public:
         {
             switch(t->kind)
             {
-            //TODO GoshFixnum‚ğó‚¯æ‚éƒP[ƒX‚ğl‚¦‚é
+            //TODO GoshFixnumã‚’å—ã‘å–ã‚‹ã‚±ãƒ¼ã‚¹ã‚’è€ƒãˆã‚‹
             case OBJWRAP_INT:
-                //Gaucheã‚Ìfixnum‚Åˆø”‚ªw’è‚³‚ê‚Ä‚¢‚éê‡‚ÍA
-                //ƒƒ\ƒbƒh‚Ìƒpƒ‰ƒ[ƒ^‚ª”’l‚Å‚ ‚ê‚Î‰½‚Å‚àƒ}ƒbƒ`‚·‚é‚æ‚¤‚É”»’è‚³‚¹‚é
+                //Gaucheä¸Šã®fixnumã§å¼•æ•°ãŒæŒ‡å®šã•ã‚Œã¦ã„ã‚‹å ´åˆã¯ã€
+                //ãƒ¡ã‚½ãƒƒãƒ‰ã®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ãŒæ•°å€¤ã§ã‚ã‚Œã°ä½•ã§ã‚‚ãƒãƒƒãƒã™ã‚‹ã‚ˆã†ã«åˆ¤å®šã•ã›ã‚‹
                 return CompilerHelpers::CanConvertFrom(Byte::typeid, Type);
             case OBJWRAP_STRING:
                 if(Type->IsAssignableFrom(String::typeid))
@@ -155,9 +155,9 @@ public:
 private:
 
     ///<summary>
-    ///Œ^‚ÆInt32‚Æ‚Ì‹——£‚ğ‘ª‚éB
-    ///Byte‚âInt16‚È‚Ç–{—ˆ‚ÍˆÃ–Ù“I‚ÈƒLƒƒƒXƒg•s‰Â‚ÈŒ^‚Æ‚Ì‹——£‚à‚Í‚©‚èA
-    ///‚»‚ê‚ç‚Ìê‡‹——£‚Íƒ}ƒCƒiƒX‚É‚È‚éB
+    ///å‹ã¨Int32ã¨ã®è·é›¢ã‚’æ¸¬ã‚‹ã€‚
+    ///Byteã‚„Int16ãªã©æœ¬æ¥ã¯æš—é»™çš„ãªã‚­ãƒ£ã‚¹ãƒˆä¸å¯ãªå‹ã¨ã®è·é›¢ã‚‚ã¯ã‹ã‚Šã€
+    ///ãã‚Œã‚‰ã®å ´åˆè·é›¢ã¯ãƒã‚¤ãƒŠã‚¹ã«ãªã‚‹ã€‚
     ///</summary>
     static int DistanceBetweenInt32(System::Type^ t)
     {
@@ -172,7 +172,7 @@ private:
     }
 
     ///<summary>
-    ///ƒNƒ‰ƒXŒ^“¯m‚Ì‹——£‚ğ‘ª‚é
+    ///ã‚¯ãƒ©ã‚¹å‹åŒå£«ã®è·é›¢ã‚’æ¸¬ã‚‹
     ///</summary>
     static int DistanceBetweenClass(System::Type^ fromType, System::Type^ toType) 
     {
@@ -197,7 +197,7 @@ private:
         }
     }
 
-    //‚±‚Ìƒƒ\ƒbƒh‚ÍHasConversionFrom‚Åp1‚Æp2‚Æ‚à‚Étrue‚É‚È‚é‚±‚Æ‚ª‘O’ñB
+    //ã“ã®ãƒ¡ã‚½ãƒƒãƒ‰ã¯HasConversionFromã§p1ã¨p2ã¨ã‚‚ã«trueã«ãªã‚‹ã“ã¨ãŒå‰æã€‚
     static Nullable<int> CompareTo(ParameterWrapper^ p1, ParameterWrapper^ p2, ArgType^ argType)
     {
         System::Type^ t1 = p1->Type;
@@ -209,7 +209,7 @@ private:
 
         switch(argType->attr)
         {
-            //TODO GoshFixnum‚ğó‚¯æ‚éƒP[ƒX‚ğl‚¦‚é
+            //TODO GoshFixnumã‚’å—ã‘å–ã‚‹ã‚±ãƒ¼ã‚¹ã‚’è€ƒãˆã‚‹
         case OBJWRAP_INT:
             {
                 int diff1 = DistanceBetweenInt32(t1);
@@ -221,22 +221,22 @@ private:
                 else if(diff1 < 0)
                 {
                     if(diff2 < 0) 
-                    {//—¼•û‚Æ‚à‹——£‚ªƒ}ƒCƒiƒX‚Ìê‡(Int32‚æ‚è‚à‹·‚¢”ÍˆÍ‚ÌŒ^‚Ìê‡)
-                        //â‘Î’l‚Ì¬‚³‚¢‚Ù‚¤‚ª—Dæ(‚æ‚è”ÍˆÍ‚ÌL‚¢Œ^)
+                    {//ä¸¡æ–¹ã¨ã‚‚è·é›¢ãŒãƒã‚¤ãƒŠã‚¹ã®å ´åˆ(Int32ã‚ˆã‚Šã‚‚ç‹­ã„ç¯„å›²ã®å‹ã®å ´åˆ)
+                        //çµ¶å¯¾å€¤ã®å°ã•ã„ã»ã†ãŒå„ªå…ˆ(ã‚ˆã‚Šç¯„å›²ã®åºƒã„å‹)
                         return Math::Abs(diff1) < Math::Abs(diff2) ? 1 : -1;
                     }
                     else
-                    {//diff1‚Íƒ}ƒCƒiƒX‚Å‚Ådiff2‚Í0ˆÈã‚Ìê‡Adiff2‚ª—Dæ
+                    {//diff1ã¯ãƒã‚¤ãƒŠã‚¹ã§ã§diff2ã¯0ä»¥ä¸Šã®å ´åˆã€diff2ãŒå„ªå…ˆ
                         return -1;
                     }
                 }
                 else if(diff2 < 0)
-                { //diff1‚Í0ˆÈã‚Ådiff2‚Íƒ}ƒCƒiƒX‚Ìê‡Adiff1‚ª—Dæ
+                { //diff1ã¯0ä»¥ä¸Šã§diff2ã¯ãƒã‚¤ãƒŠã‚¹ã®å ´åˆã€diff1ãŒå„ªå…ˆ
                     return 1;
                 }
                 else
-                {//—¼•û‚Æ‚à‹——£‚ªƒvƒ‰ƒX‚Ìê‡
-                    //‹——£‚ª‹ß‚¢‚Ù‚¤‚ª—Dæ
+                {//ä¸¡æ–¹ã¨ã‚‚è·é›¢ãŒãƒ—ãƒ©ã‚¹ã®å ´åˆ
+                    //è·é›¢ãŒè¿‘ã„ã»ã†ãŒå„ªå…ˆ
                     return diff1 < diff2 ? 1 : -1;
                 }
             }
@@ -246,8 +246,8 @@ private:
                 {
                     if(t2->IsAssignableFrom(String::typeid))
                     {
-                        //t1‚Æt2‚Æ‚à‚Éclr‚ÌStringƒIƒuƒWƒFƒNƒg‚Ìˆø”‚É‚È‚é
-                        //ƒpƒ‰ƒ[ƒ^‚ÌŒ^‚ÆStringƒNƒ‰ƒX‚Æ‚Ì‹——£‚ğ‘ª‚Á‚Ä‚æ‚è‹ß‚¢‚Ù‚¤‚ğ—Dæ‚É‚·‚é
+                        //t1ã¨t2ã¨ã‚‚ã«clrã®Stringã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®å¼•æ•°ã«ãªã‚‹
+                        //ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®å‹ã¨Stringã‚¯ãƒ©ã‚¹ã¨ã®è·é›¢ã‚’æ¸¬ã£ã¦ã‚ˆã‚Šè¿‘ã„ã»ã†ã‚’å„ªå…ˆã«ã™ã‚‹
                         int diff1 = DistanceBetweenClass(argType->type, t1);
                         int diff2 = DistanceBetweenClass(argType->type, t2);
                         return diff1 == diff2 ? Nullable<int>() : //nullptr
@@ -255,8 +255,8 @@ private:
                     }
                     else
                     {
-                        //t1‚Íclr‚ÌStringƒIƒuƒWƒFƒNƒgAt2‚ÍGauche‚ÌStringƒIƒuƒWƒFƒNƒg‚É‚È‚é
-                        //GaucheƒIƒuƒWƒFƒNƒg‚Ì‚Ù‚¤‚ª—Dæ‚È‚Ì‚Åt2‚ª—Dæ
+                        //t1ã¯clrã®Stringã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã€t2ã¯Gaucheã®Stringã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã«ãªã‚‹
+                        //Gaucheã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ã»ã†ãŒå„ªå…ˆãªã®ã§t2ãŒå„ªå…ˆ
                         return -1;
                     }
                 }
@@ -264,14 +264,14 @@ private:
                 {
                     if(t2->IsAssignableFrom(String::typeid))
                     {
-                        //t1‚ÍGauche‚ÌStringƒIƒuƒWƒFƒNƒgAt2‚Íclr‚ÌStringƒIƒuƒWƒFƒNƒg
-                        //GaucheƒIƒuƒWƒFƒNƒg‚Ì‚Ù‚¤‚ª—Dæ‚È‚Ì‚Åt1‚ª—Dæ
+                        //t1ã¯Gaucheã®Stringã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã€t2ã¯clrã®Stringã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
+                        //Gaucheã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ã»ã†ãŒå„ªå…ˆãªã®ã§t1ãŒå„ªå…ˆ
                         return 1;
                     }
                     else
                     {
-                        //t1‚Æt2‚Æ‚à‚ÉGauche‚ÌStringƒIƒuƒWƒFƒNƒg‚É‚È‚é
-                        //ƒpƒ‰ƒ[ƒ^‚ÌŒ^‚ÆStringƒNƒ‰ƒX‚Æ‚Ì‹——£‚ğ‘ª‚Á‚Ä‚æ‚è‹ß‚¢‚Ù‚¤‚ğ—Dæ‚É‚·‚é
+                        //t1ã¨t2ã¨ã‚‚ã«Gaucheã®Stringã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã«ãªã‚‹
+                        //ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®å‹ã¨Stringã‚¯ãƒ©ã‚¹ã¨ã®è·é›¢ã‚’æ¸¬ã£ã¦ã‚ˆã‚Šè¿‘ã„ã»ã†ã‚’å„ªå…ˆã«ã™ã‚‹
                         int diff1 = DistanceBetweenClass(argType->type, t1);
                         int diff2 = DistanceBetweenClass(argType->type, t2);
                         return diff1 == diff2 ? Nullable<int>() : //nullptr
@@ -285,12 +285,12 @@ private:
                 {
                     if(Delegate::typeid->IsAssignableFrom(t2))
                     {
-                        //Â—Â¼Â•Ã»Â‚Æ‚Ã ÂƒfÂƒÂŠÂƒQÂ[ÂƒgÂ‚Ìê‡Â‚Í“Â¯Â‚Â¶Â‹Â—Â—Â£Â‚Æ”Â»Â’è‚·Â‚Ã©
+                        //ä¸¡æ–¹ã¨ã‚‚ãƒ‡ãƒªã‚²ãƒ¼ãƒˆã®å ´åˆã¯åŒã˜è·é›¢ã¨åˆ¤å®šã™ã‚‹
                         return Nullable<int>();
                     }
                     else
                     {
-                        //t1Â‚ÃDelegateÂAt2Â‚ÃGaucheÂ‚ÌƒIÂƒuÂƒWÂƒFÂƒNÂƒgÂ‚È‚Ì‚Ã…t2Â‚ÂªÂ—DÂÃ¦
+                        //t1ã¯Delegateã€t2ã¯Gaucheã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãªã®ã§t2ãŒå„ªå…ˆ
                         return -1;
                     }
                 }
@@ -298,13 +298,13 @@ private:
                 {
                     if(Delegate::typeid->IsAssignableFrom(t2))
                     {
-                        //t1Â‚ÃGaucheÂƒIÂƒuÂƒWÂƒFÂƒNÂƒgÂAt2Â‚ÂªDelegateÂ‚È‚Ì‚Ã…t1Â‚ÂªÂ—DÂÃ¦
+                        //t1ã¯Gaucheã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã€t2ãŒDelegateãªã®ã§t1ãŒå„ªå…ˆ
                         return 1;
                     }
                     else
                     {
-                        //t1Â‚Ã†t2Â‚Æ‚Ã Â‚Ã‰GaucheÂ‚ÌƒIÂƒuÂƒWÂƒFÂƒNÂƒg
-                        //ÂƒpÂƒÂ‰ÂƒÂÂ[Âƒ^Â‚ÌŒ^Â‚ÆŠeÂˆÃ¸ÂÂ”Â‚ÌŒ^Â‚Æ‚Ì‹Â—Â—Â£Â‚Ã°Â‘ÂªÂ‚BÄ‚Ã¦Â‚Ã¨Â‹ß‚Â¢Â‚Ù‚Â¤Â‚Ã°Â—DÂÃ¦Â‚É‚Â·Â‚Ã©
+                        //t1ã¨t2ã¨ã‚‚ã«Gaucheã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
+                        //ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®å‹ã¨å„å¼•æ•°ã®å‹ã¨ã®è·é›¢ã‚’æ¸¬ã£ã¦ã‚ˆã‚Šè¿‘ã„ã»ã†ã‚’å„ªå…ˆã«ã™ã‚‹
                         int diff1 = DistanceBetweenClass(argType->type, t1);
                         int diff2 = DistanceBetweenClass(argType->type, t2);
                         return diff1 == diff2 ? Nullable<int>() : //nullptr
