@@ -67,6 +67,9 @@ namespace GaucheDotNet
         StayInModule = 1 << 0,
         Const = 1 << 1,
         Inlinable = 1 << 2,
+#if !GAUCHE_9_3_3
+        SCM_BINDING_EXTERNAL = (1 << 3)
+#endif
     }
 
     public enum FindModuleFlag : int

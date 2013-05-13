@@ -31,6 +31,7 @@ Makefile
 
 [Db]ebug/
 [Rr]elease/
+[Rr]elease_9_3_3/
 x64/
 x86/
 [Bb]in/

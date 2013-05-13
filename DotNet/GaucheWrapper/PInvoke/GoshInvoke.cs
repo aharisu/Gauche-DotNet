@@ -563,6 +563,15 @@ namespace GaucheDotNet.Native
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern void Scm_SelectModule(IntPtr module);
 
+#if !GAUCHE_9_3_3
+
+        /// <param name="module">ScmModule*</param>
+        /// <returns>ScmObj</returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_ModuleExports(IntPtr module);
+
+#endif
+
         /// <param name="name">ScmSymbol*</param>
         /// <returns>ScmObj</returns>
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]

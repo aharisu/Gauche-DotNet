@@ -110,19 +110,25 @@ namespace GaucheDotNet.Native
         public int flags;
     }
 
-    //TODO 最新のGaucheでは構造が変わっている
     [StructLayout(LayoutKind.Sequential)]
     public struct ScmModule
     {
         public IntPtr tag;
         public IntPtr name;
         public IntPtr imported;
+#if GAUCHE_9_3_3
         public IntPtr exported;
+#endif
         public Int32 exportAll;
         public IntPtr parents;
         public IntPtr mpl;
         public IntPtr depended;
-        public IntPtr table; //TODO ScmHashTable
+#if GAUCHE_9_3_3
+        public IntPtr table; 
+#else
+        public IntPtr internalTable;
+        public IntPtr externalTable;
+#endif
         public IntPtr origin;
         public IntPtr prefix;
     }
@@ -144,7 +150,9 @@ namespace GaucheDotNet.Native
         public IntPtr name;
         public ScmModule* module;
         public IntPtr value;
+#if GAUCHE_9_3_3
         public byte exported;
+#endif
         public byte hidden;
         [MarshalAs(UnmanagedType.FunctionPtr)]
         public GlocGetter getter;

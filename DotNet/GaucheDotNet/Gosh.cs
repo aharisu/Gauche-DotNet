@@ -445,6 +445,15 @@ namespace GaucheDotNet
             GoshInvoke.Scm_SelectModule(module.Ptr);
         }
 
+#if !GAUCHE_9_3_3
+
+        public static GoshObj ModuleExports(GoshModule module)
+        {
+            return new GoshRefObj(GoshInvoke.Scm_ModuleExports(module.Ptr));
+        }
+
+#endif
+
         public static GoshObj ModuleNameToPath(GoshSymbol name)
         {
             return new GoshRefObj(GoshInvoke.Scm_ModuleNameToPath(name.Ptr));
