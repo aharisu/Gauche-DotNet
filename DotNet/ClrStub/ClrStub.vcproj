@@ -321,6 +321,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ClrDelegate.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ClrMethod.cpp"
 				>
 			</File>

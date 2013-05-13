@@ -138,6 +138,12 @@ public:
                     return true;
                 }
                 return Type->IsAssignableFrom(GaucheDotNet::GoshString::typeid);
+            case OBJWRAP_PROC:
+                if(Delegate::typeid->IsAssignableFrom(Type))
+                {
+                    return true;
+                }
+                return Type->IsAssignableFrom(GaucheDotNet::GoshProc::typeid);
             case OBJWRAP_CLROBJECT:
             default:
                 return CompilerHelpers::CanConvertFrom(t->type, Type);
@@ -266,6 +272,39 @@ private:
                     {
                         //t1��t2�Ƃ���Gauche��String�I�u�W�F�N�g�ɂȂ�
                         //�p�����[�^�̌^��String�N���X�Ƃ̋����𑪂��Ă��߂��ق���D��ɂ���
+                        int diff1 = DistanceBetweenClass(argType->type, t1);
+                        int diff2 = DistanceBetweenClass(argType->type, t2);
+                        return diff1 == diff2 ? Nullable<int>() : //nullptr
+                            diff1 < diff2 ? 1 : -1;
+                    }
+                }
+            }
+        case OBJWRAP_PROC:
+            {
+                if(Delegate::typeid->IsAssignableFrom(t1))
+                {
+                    if(Delegate::typeid->IsAssignableFrom(t2))
+                    {
+                        //¼ûƂàfQ[g̏ꍇ͓¯¶£Ɣ»肷é
+                        return Nullable<int>();
+                    }
+                    else
+                    {
+                        //t1ÍDelegateAt2ÍGauche̃IuWFNgȂ̂Åt2ªDæ
+                        return -1;
+                    }
+                }
+                else
+                {
+                    if(Delegate::typeid->IsAssignableFrom(t2))
+                    {
+                        //t1ÍGaucheIuWFNgAt2ªDelegateȂ̂Åt1ªDæ
+                        return 1;
+                    }
+                    else
+                    {
+                        //t1Æt2ƂàÉGauche̃IuWFNg
+                        //p[^̌^Ɗeø̌^Ƃ̋£ðªBĂæè߂¢ق¤ðDæɂ·é
                         int diff1 = DistanceBetweenClass(argType->type, t1);
                         int diff2 = DistanceBetweenClass(argType->type, t2);
                         return diff1 == diff2 ? Nullable<int>() : //nullptr

@@ -34,6 +34,7 @@
 
 #include "Microsoft.Scripting/MethodBinder.h"
 #include "PrimitiveOpCall.h"
+#include "ClrDelegate.h"
 
 using namespace System;
 using namespace System::Text;
@@ -50,6 +51,8 @@ Object^ ClrMethod::ToObject(ObjWrapper* obj)
         return (int)obj->value;
     case OBJWRAP_STRING:
         return Marshal::PtrToStringAnsi((IntPtr)obj->value);
+    case OBJWRAP_PROC:
+        return gcnew Procedure::GoshProcedure((IntPtr)obj->ptr);
     default: //OBJWRAP_CLROBJECT:
         {
             GCHandle gchObj = GCHandle::FromIntPtr((IntPtr)obj->ptr);
@@ -221,6 +224,9 @@ MethodInfo^ ClrMethod::MakeGenericMethod(MethodInfo^ mi, array<ArgType>^ argType
                 case OBJWRAP_STRING:
                     paramTypes[i - startIndex] = GoshString::typeid;
                     break;
+                case OBJWRAP_PROC:
+                    paramTypes[i - startIndex] = GoshProc::typeid;
+                    break;
                 //TODO more primitive type
                 }
             }
@@ -341,6 +347,15 @@ static Object^ ToArgumentObject(Type^ type, ObjWrapper* arg)
         {
             return Marshal::PtrToStringAnsi(IntPtr(arg->value));
         }
+    case OBJWRAP_PROC:
+        {
+            Object^ ret = gcnew Procedure::GoshProcedure((IntPtr)arg->value);
+            if(Delegate::typeid->IsAssignableFrom(type))
+            {
+                ret = GetWrappedDelegate(type, (GoshProc^)ret, IntPtr::Zero);
+            }
+            return ret;
+        }
     case OBJWRAP_CLROBJECT:
     default:
         return GCHandle::FromIntPtr(IntPtr(arg->ptr)).Target;
@@ -355,6 +370,8 @@ static Object^ ToArgumentObject(ObjWrapper* arg)
         return (int)arg->value;
     case OBJWRAP_STRING:
         return Marshal::PtrToStringAnsi(IntPtr(arg->value));
+    case OBJWRAP_PROC:
+        return gcnew Procedure::GoshProcedure((IntPtr)arg->ptr);
     case OBJWRAP_CLROBJECT:
     default:
         return GCHandle::FromIntPtr(IntPtr(arg->ptr)).Target;
@@ -437,6 +454,11 @@ bool ClrMethod::CreateArgTypes(StringBuilder^ builder, array<ArgType>^% argTypes
             case OBJWRAP_STRING:
                 argTypes[i + startIndex].type = String::typeid;
                 argTypes[i + startIndex].kind = OBJWRAP_STRING;
+                argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
+                break;
+            case OBJWRAP_PROC:
+                argTypes[i + startIndex].type = Delegate::typeid;
+                argTypes[i + startIndex].kind = OBJWRAP_PROC;
                 argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
                 break;
             }

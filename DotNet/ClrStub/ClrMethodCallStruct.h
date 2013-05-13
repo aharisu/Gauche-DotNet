@@ -58,7 +58,9 @@ typedef struct TypeSpecRec
 typedef enum {
     OBJWRAP_CLROBJECT,
     OBJWRAP_INT,
-    OBJWRAP_STRING
+    OBJWRAP_STRING,
+
+    OBJWRAP_PROC,
 }ObjKind;
 
 typedef struct ObjWrapperRec
