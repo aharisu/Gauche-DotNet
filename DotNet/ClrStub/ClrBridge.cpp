@@ -93,6 +93,38 @@ static void ObjectNullCheck(Object^ obj)
     }
 }
 
+DECDLL void* BooleanToClr(int boolean)
+{
+    return (void*)(IntPtr)GCHandle::Alloc((boolean == 1) ? true : false);
+}
+
+DECDLL int ClrToBoolean(void* obj)
+{
+    GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
+    Object^ target = gchObj.Target;
+    ObjectNullCheck(target);
+
+    if(target->GetType() == GoshBool::typeid)
+    {
+        return (target == GoshBool::True) ? 1 : 0;
+    }
+    else
+    {
+        try 
+        {
+            Boolean boolean = (Boolean)Convert::ChangeType(target, Boolean::typeid);
+            return boolean ? 1 : 0;
+        }
+        catch(InvalidCastException^ e)
+        {
+            ClrStubConstant::RaiseClrError(e);
+            //does not reach
+            return 0;
+        }
+    }
+}
+
+
 DECDLL int ClrToInt(void* obj)
 {
     GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));

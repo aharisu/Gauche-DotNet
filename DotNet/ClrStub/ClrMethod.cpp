@@ -47,6 +47,8 @@ Object^ ClrMethod::ToObject(ObjWrapper* obj)
 {
     switch(obj->kind)
     {
+    case OBJWRAP_BOOL:
+        return ((int)obj->value) != 0 ? true : false;
     case OBJWRAP_INT:
         return (int)obj->value;
     case OBJWRAP_STRING:
@@ -218,6 +220,9 @@ MethodInfo^ ClrMethod::MakeGenericMethod(MethodInfo^ mi, array<ArgType>^ argType
                 case OBJWRAP_CLROBJECT:
                     paramTypes[i - startIndex] = argTypes[i].type;
                     break;
+                case OBJWRAP_BOOL:
+                    paramTypes[i - startIndex] = GoshBool::typeid;
+                    break;
                 case OBJWRAP_INT:
                     paramTypes[i - startIndex] = GoshFixnum::typeid;
                     break;
@@ -329,6 +334,15 @@ static Object^ ToArgumentObject(Type^ type, ObjWrapper* arg)
 {
     switch(arg->kind)
     {
+    case OBJWRAP_BOOL:
+        if(type->IsAssignableFrom(GoshBool::typeid))
+        {
+            return ((int)arg->value) != 0 ? GoshBool::True : GoshBool::False;
+        }
+        else
+        {
+            return ((int)arg->value) != 0 ? true : false;
+        }
     case OBJWRAP_INT:
         if(type->IsAssignableFrom(GoshFixnum::typeid))
         {
@@ -366,6 +380,8 @@ static Object^ ToArgumentObject(ObjWrapper* arg)
 {
     switch(arg->kind)
     {
+    case OBJWRAP_BOOL:
+        return ((int)arg->value) != 0 ? true : false;
     case OBJWRAP_INT:
         return (int)arg->value;
     case OBJWRAP_STRING:
@@ -446,6 +462,10 @@ bool ClrMethod::CreateArgTypes(StringBuilder^ builder, array<ArgType>^% argTypes
                 argTypes[i + startIndex].kind = OBJWRAP_CLROBJECT;
                 argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
                 break;
+            case OBJWRAP_BOOL:
+                argTypes[i + startIndex].type = Boolean::typeid;
+                argTypes[i + startIndex].kind = OBJWRAP_BOOL;
+                argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
             case OBJWRAP_INT:
                 argTypes[i + startIndex].type = Int32::typeid;
                 argTypes[i + startIndex].kind = OBJWRAP_INT;

@@ -82,6 +82,10 @@
        (set! (@ o.ptr) (cast _pvoid_t obj)) 
        (set! (@ o.value) (cast _pvoid_t (SCM_STRING_START (unboxing obj <string>))))
        (set! (@ o.kind) OBJWRAP_STRING)]
+      [(is-type? obj <boolean>)
+       (set! (@ o.ptr) (cast _pvoid_t obj)) 
+       (set! (@ o.value) (cast _pvoid_t (unboxing obj <boolean>)))
+       (set! (@ o.kind) OBJWRAP_BOOL)]
       ;TODO more primitive type
       [(and for-method-arg (is-type? obj <procedure>))
         (set! (@ o.ptr) (cast _pvoid_t obj))
@@ -94,6 +98,20 @@
         (Scm_Error "obj required <clr-object>, but got %S" obj)]
       [else (set! (@ o.ptr) 0)])
     (return o)))
+
+(define-cproc clr->bool (obj::<top>) :: <boolean>
+  (cond
+    [(is-type? obj <boolean>)
+     (return obj)]
+    [(is-type? obj <clr-object>)
+     (result (ClrToBoolean (unboxing obj <clr-object>)))]
+    [else (Scm_Error "obj required <clr-object>, but got %S" obj)]))
+
+(define-cproc bool->clr (obj::<top>) :: <clr-object>
+  (cond
+    [(is-type? obj <boolean>)
+     (result (BooleanToClr (unboxing obj <boolean>)))]
+    [else (Scm_Error "obj required <boolean>, but got %S" obj)]))
 
 (define-cproc clr->int (obj::<top>) :: <int>
   (cond

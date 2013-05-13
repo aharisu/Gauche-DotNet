@@ -127,6 +127,12 @@ public:
         {
             switch(t->kind)
             {
+            case OBJWRAP_BOOL:
+                if(Type->IsAssignableFrom(Boolean::typeid))
+                {
+                    return true;
+                }
+                return Type->IsAssignableFrom(GaucheDotNet::GoshBool::typeid);
             //TODO GoshFixnumを受け取るケースを考える
             case OBJWRAP_INT:
                 //Gauche上のfixnumで引数が指定されている場合は、
@@ -197,6 +203,46 @@ private:
         }
     }
 
+    static Nullable<int> TypeCompareClrOrGosh(Type^ argType, Type^ t1, Type^ t2, Type^ targetType)
+    {
+        if(t1->IsAssignableFrom(targetType))
+        {
+            if(t2->IsAssignableFrom(targetType))
+            {
+                //t1とt2ともにclrのオブジェクトの引数になる
+                //パラメータの型とクラスとの距離を測ってより近いほうを優先にする
+                int diff1 = DistanceBetweenClass(argType, t1);
+                int diff2 = DistanceBetweenClass(argType, t2);
+                return diff1 == diff2 ? Nullable<int>() : //nullptr
+                    diff1 < diff2 ? 1 : -1;
+            }
+            else
+            {
+                //t1はclrのオブジェクト、t2はGaucheのオブジェクトになる
+                //Gaucheオブジェクトのほうが優先なのでt2が優先
+                return -1;
+            }
+        }
+        else
+        {
+            if(t2->IsAssignableFrom(targetType))
+            {
+                //t1はGaucheのオブジェクト、t2はclrのオブジェクト
+                //Gaucheオブジェクトのほうが優先なのでt1が優先
+                return 1;
+            }
+            else
+            {
+                //t1とt2ともにGaucheのオブジェクトになる
+                //パラメータの型とクラスとの距離を測ってより近いほうを優先にする
+                int diff1 = DistanceBetweenClass(argType, t1);
+                int diff2 = DistanceBetweenClass(argType, t2);
+                return diff1 == diff2 ? Nullable<int>() : //nullptr
+                    diff1 < diff2 ? 1 : -1;
+            }
+        }
+    }
+
     //このメソッドはHasConversionFromでp1とp2ともにtrueになることが前提。
     static Nullable<int> CompareTo(ParameterWrapper^ p1, ParameterWrapper^ p2, ArgType^ argType)
     {
@@ -209,6 +255,8 @@ private:
 
         switch(argType->attr)
         {
+        case OBJWRAP_BOOL:
+            return TypeCompareClrOrGosh(argType->type, t1, t2, Boolean::typeid);
             //TODO GoshFixnumを受け取るケースを考える
         case OBJWRAP_INT:
             {
@@ -241,44 +289,7 @@ private:
                 }
             }
         case OBJWRAP_STRING:
-            {
-                if(t1->IsAssignableFrom(String::typeid))
-                {
-                    if(t2->IsAssignableFrom(String::typeid))
-                    {
-                        //t1とt2ともにclrのStringオブジェクトの引数になる
-                        //パラメータの型とStringクラスとの距離を測ってより近いほうを優先にする
-                        int diff1 = DistanceBetweenClass(argType->type, t1);
-                        int diff2 = DistanceBetweenClass(argType->type, t2);
-                        return diff1 == diff2 ? Nullable<int>() : //nullptr
-                            diff1 < diff2 ? 1 : -1;
-                    }
-                    else
-                    {
-                        //t1はclrのStringオブジェクト、t2はGaucheのStringオブジェクトになる
-                        //Gaucheオブジェクトのほうが優先なのでt2が優先
-                        return -1;
-                    }
-                }
-                else
-                {
-                    if(t2->IsAssignableFrom(String::typeid))
-                    {
-                        //t1はGaucheのStringオブジェクト、t2はclrのStringオブジェクト
-                        //Gaucheオブジェクトのほうが優先なのでt1が優先
-                        return 1;
-                    }
-                    else
-                    {
-                        //t1とt2ともにGaucheのStringオブジェクトになる
-                        //パラメータの型とStringクラスとの距離を測ってより近いほうを優先にする
-                        int diff1 = DistanceBetweenClass(argType->type, t1);
-                        int diff2 = DistanceBetweenClass(argType->type, t2);
-                        return diff1 == diff2 ? Nullable<int>() : //nullptr
-                            diff1 < diff2 ? 1 : -1;
-                    }
-                }
-            }
+            return TypeCompareClrOrGosh(argType->type, t1, t2, String::typeid);
         case OBJWRAP_PROC:
             {
                 if(Delegate::typeid->IsAssignableFrom(t1))
