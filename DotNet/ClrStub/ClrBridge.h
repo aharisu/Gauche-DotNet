@@ -94,6 +94,8 @@ DECDLL void* ClrCallMethod(
 
 DECDLL int ClrIs(TypeSpec* typeSpec, void* obj);
 
+DECDLL void* GetEnumObject(TypeSpec* enumTypeSpec, const char* enumObj);
+
 #ifdef __cplusplus
 }
 #endif

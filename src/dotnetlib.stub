@@ -604,3 +604,8 @@ static ScmString param_attr_params = SCM_STRING_CONST_INITIALIZER(\"params\", 6,
       (result (ClrIs (& typeSpec) (unboxing exp <clr-object>)))
       (result FALSE))))
 
+(define-cproc clr-enum (type::<top> enum-value::<symbol>) :: <clr-object>
+  (let* ([typeSpec::TypeSpec (parse-type-spec type FALSE)])
+    (result (GetEnumObject (& typeSpec) 
+                           (SCM_STRING_START (-> enum-value name))))))
+

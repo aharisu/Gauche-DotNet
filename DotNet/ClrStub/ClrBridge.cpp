@@ -684,6 +684,24 @@ DECDLL int ClrIs(TypeSpec* typeSpec, void* obj)
     return t->IsAssignableFrom(o->GetType()) == true ? 1 : 0;
 }
 
+DECDLL void* GetEnumObject(TypeSpec* enumTypeSpec, const char* enumObj)
+{
+    Type^ t = ClrMethod::TypeSpecToType(enumTypeSpec);
+    String^ value = Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(enumObj)));
+
+    try
+    {
+        Object^ ret = Enum::Parse(t, value, false);
+        return (void*)(IntPtr)GCHandle::Alloc(ret);
+    }
+    catch(Exception^ e)
+    {
+        ClrStubConstant::RaiseClrError(e);
+        //does not reach
+        return 0;
+    }
+}
+
 #ifdef __cplusplus
 }
 #endif
