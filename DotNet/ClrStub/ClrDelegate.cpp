@@ -68,8 +68,7 @@ static void EmitLoadArg(ILGenerator^ ilGen, int index)
     }
 }
 
-static DelegateCreator^ CreateDelegateCreator(Type^ type, GoshProc^ proc
-                                              , bool isRegisterDelegateTable)
+static DelegateCreator^ DefineDelegateCreator(Type^ type, GoshProc^ proc)
 {
     //以下の様なクラスとメソッドをランタイムに定義します
     //public class {DelegateTypeName}{Guid}
@@ -81,8 +80,7 @@ static DelegateCreator^ CreateDelegateCreator(Type^ type, GoshProc^ proc
     //        return proc.Apply({DelegateParameter}...);
     //    }
     //
-    //   //isRegisterDelegateTableがtrueのときは以下も定義されます
-    //   public IntPtr key;
+    //    public IntPtr key;
     //
     //  ~{DelegateTypeName}{Guid}()
     //   {
@@ -96,8 +94,14 @@ static DelegateCreator^ CreateDelegateCreator(Type^ type, GoshProc^ proc
     //    {GenType} obj = new {GenType}();
     //    obj.proc = proc;
     //
-    //   //isRegisterDelegateTableがtrueのときは以下の代入式も定義されます
-    //   obj.key = key;
+    //  if(key == IntPtr.Zero)
+    //  {
+    //     GC.SuppressFinalize(obj);
+    //  }
+    //  else
+    //  {
+    //     obj.key = key;
+    //  }
     //
     //    return (Delegate)({DelegateType})obj.DelegateEventHandler;
     //}
@@ -177,43 +181,39 @@ static DelegateCreator^ CreateDelegateCreator(Type^ type, GoshProc^ proc
     }
     ilGen->Emit(OpCodes::Ret);
 
-    //DelegateTableに登録するなら
-    if(isRegisterDelegateTable)
-    {
-        //GCされるタイミングでDelegateTableから削除するためのFinalize定義
+    //GCされるタイミングでDelegateTableから削除するためのFinalize定義
 
-        //DelegateMapのキーになるオブジェクト
-        FieldBuilder^ keyFieldBuilder = typeBuilder->DefineField("key", IntPtr::typeid
-            , FieldAttributes::Public
-            );
+    //DelegateMapのキーになるオブジェクト
+    FieldBuilder^ keyFieldBuilder = typeBuilder->DefineField("key", IntPtr::typeid
+        , FieldAttributes::Public
+        );
 
-        //Finalize定義
-        MethodBuilder^ finlizeBuilder = typeBuilder->DefineMethod("Finalize"
-            , MethodAttributes::Family | MethodAttributes::Virtual | MethodAttributes::HideBySig
-            , CallingConventions::Standard
-            , void::typeid
-            , Type::EmptyTypes
-            );
-        ilGen = finlizeBuilder->GetILGenerator();
+    //Finalize定義
+    MethodBuilder^ finlizeBuilder = typeBuilder->DefineMethod("Finalize"
+        , MethodAttributes::Family | MethodAttributes::Virtual | MethodAttributes::HideBySig
+        , CallingConventions::Standard
+        , void::typeid
+        , Type::EmptyTypes
+        );
+    ilGen = finlizeBuilder->GetILGenerator();
 
-        //try
-        //{
-        ilGen->BeginExceptionBlock();
-        //ClrStubConstant::UnregisterDelegate(this.key)を実行
-        ilGen->Emit(OpCodes::Ldarg_0);
-        ilGen->Emit(OpCodes::Ldfld, keyFieldBuilder);
-        ilGen->Emit(OpCodes::Call, ClrStubConstant::UnregisterDelegateMethodInfo);
-        ilGen->Emit(OpCodes::Pop);
-        // }
-        //finally
-        // {
-        ilGen->BeginFinallyBlock();
-        ilGen->Emit(OpCodes::Ldarg_0);
-        ilGen->Emit(OpCodes::Call, ClrStubConstant::ObjectFinalizeMethodInfo);
-       ilGen->EndExceptionBlock();
-        // }
-        ilGen->Emit(OpCodes::Ret);
-    }
+    //try
+    //{
+    ilGen->BeginExceptionBlock();
+    //ClrStubConstant::UnregisterDelegate(this.key)を実行
+    ilGen->Emit(OpCodes::Ldarg_0);
+    ilGen->Emit(OpCodes::Ldfld, keyFieldBuilder);
+    ilGen->Emit(OpCodes::Call, ClrStubConstant::UnregisterDelegateMethodInfo);
+    ilGen->Emit(OpCodes::Pop);
+    // }
+    //finally
+    // {
+    ilGen->BeginFinallyBlock();
+    ilGen->Emit(OpCodes::Ldarg_0);
+    ilGen->Emit(OpCodes::Call, ClrStubConstant::ObjectFinalizeMethodInfo);
+   ilGen->EndExceptionBlock();
+    // }
+    ilGen->Emit(OpCodes::Ret);
 
 
     //これまでに定義したクラスを作成
@@ -228,6 +228,8 @@ static DelegateCreator^ CreateDelegateCreator(Type^ type, GoshProc^ proc
     ilGen = createMethod.GetILGenerator();
     //定義したクラスを格納するローカル変数定義
     ilGen->DeclareLocal(eventHandlerType);
+    Label elseLabel =  ilGen->DefineLabel();
+    Label endifLabel =  ilGen->DefineLabel();
 
     //定義したクラスのインスタンスを作成
     ilGen->Emit(OpCodes::Newobj, eventHandlerType->GetConstructor(Type::EmptyTypes));
@@ -237,13 +239,25 @@ static DelegateCreator^ CreateDelegateCreator(Type^ type, GoshProc^ proc
     ilGen->Emit(OpCodes::Ldarg_0);
     ilGen->Emit(OpCodes::Stfld, eventHandlerType->GetField("proc"));
 
-    //DelegateTableに登録するなら
-    if(isRegisterDelegateTable)
-    {
-        ilGen->Emit(OpCodes::Ldloc_0);
-        ilGen->Emit(OpCodes::Ldarg_1);
-        ilGen->Emit(OpCodes::Stfld, eventHandlerType->GetField("key"));
-    }
+    //keyが指定されていない場合オブジェクトのFinalizeを実行する必要がないので
+    //あらかじめSuppressFinalizeで実行を抑制する
+    // if(key == IntPtr.Zero)
+    ilGen->Emit(OpCodes::Ldarg_1);
+    ilGen->Emit(OpCodes::Ldsfld, IntPtr::typeid->GetField("Zero", BindingFlags::Static | BindingFlags::Public));
+    ilGen->Emit(OpCodes::Call, IntPtr::typeid->GetMethod("op_Equality", gcnew array<Type^>(2) { IntPtr::typeid, IntPtr::typeid} ));
+    ilGen->Emit(OpCodes::Brfalse_S, elseLabel);
+    // { then clause
+    ilGen->Emit(OpCodes::Ldloc_0);
+    ilGen->Emit(OpCodes::Call, GC::typeid->GetMethod("SuppressFinalize", BindingFlags::Static | BindingFlags::Public));
+    ilGen->Emit(OpCodes::Br_S, endifLabel);
+    // } else {
+    //keyが指定されている場合はFinlizerを実行するため、オブジェクトにkey情報を保存する
+    ilGen->MarkLabel(elseLabel);
+    ilGen->Emit(OpCodes::Ldloc_0);
+    ilGen->Emit(OpCodes::Ldarg_1);
+    ilGen->Emit(OpCodes::Stfld, eventHandlerType->GetField("key"));
+    // }
+    ilGen->MarkLabel(endifLabel);
 
     //定義したクラスと、処理委譲用メソッドから戻り値のデリゲート作成
     ilGen->Emit(OpCodes::Ldloc_0);
@@ -261,8 +275,7 @@ Delegate^ GetWrappedDelegate(Type^ type, GoshProc^ proc, IntPtr delegateTableKey
     DelegateCreator^ creator = ClrStubConstant::GetDelegateCreator(type);
     if(creator == nullptr)
     {
-        creator = CreateDelegateCreator(type, proc
-            , delegateTableKey != IntPtr::Zero);
+        creator = DefineDelegateCreator(type, proc);
         ClrStubConstant::AddDelegateCreator(type, creator);
     }
 
