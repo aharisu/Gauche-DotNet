@@ -61,29 +61,6 @@ DECDLL void* ToClrObj(void* scmObj)
     return (void*)(IntPtr) GCHandle::Alloc(hClrObj);
 }
 
-DECDLL void* ClrPrint(void* clrObj)
-{
-    GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(clrObj));
-    Object^ target = gchObj.Target;
-
-    String^ str;
-    if(target == nullptr)
-    {
-        str = "null";
-    }
-    else
-    {
-        str = target->ToString();
-    }
-    Type^ t = target->GetType();
-    if(String::typeid == target->GetType())
-    {
-        str = "\"" + str + "\"";
-    }
-
-    return (void*)GoshInvoke::Scm_MakeString(str, -1, -1, StringFlags::Copying);
-}
-
 static void ObjectNullCheck(Object^ obj)
 {
     if(obj == nullptr)
@@ -700,6 +677,91 @@ DECDLL void* GetEnumObject(TypeSpec* enumTypeSpec, const char* enumObj)
         //does not reach
         return 0;
     }
+}
+
+// Util
+
+DECDLL void* ClrPrint(void* clrObj)
+{
+    GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(clrObj));
+    Object^ target = gchObj.Target;
+
+    String^ str;
+    //nullの場合は何も表示しない
+    if(target == nullptr)
+    {
+        str = "";
+    }
+    else
+    {
+        Type^ t = target->GetType();
+        //targetがStringの場合だけ、"で囲む
+        if(String::typeid == target->GetType())
+        {
+            str = "\"" + target->ToString() + "\"";
+        }
+        else
+        {
+            //targetが実行するToStringがObjectが実装したものなら何も表示しない
+            MethodInfo^ info = t->GetMethod("ToString", Type::EmptyTypes);
+            if(info->DeclaringType == Object::typeid)
+            {
+                str = "";
+            }
+            else
+            {
+                //サブクラスがoverrideしている場合だけToStringを情報として取得する
+                str = target->ToString();
+            }
+        }
+    }
+
+    return (void*)GoshInvoke::Scm_MakeString(str, -1, -1, StringFlags::Copying);
+}
+
+DECDLL void* ClrGetTypeName(void* obj)
+{
+    GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
+    Object^ o = gchObj.Target;
+
+    String^ str;
+    if(o == nullptr)
+    {
+        str = "Null";
+    }
+    else 
+    {
+        Type^ t = o->GetType();
+        if(t->IsGenericType)
+        {
+            StringBuilder builder;
+            //ジェネリック型の名前から`より前(List`1のListの部分)だけ取得
+            builder.Append(t->Name->Split('`')[0]);
+
+            builder.Append("<");
+            bool isFirst = true;
+            //ジェネリック型の引数を型名称に含める
+            for each(Type^ genericType in t->GetGenericArguments())
+            {
+                if(!isFirst)
+                {
+                    builder.Append(",");
+                }
+                isFirst = false;
+
+                builder.Append(genericType->Name);
+            }
+            builder.Append(">");
+
+            str = builder.ToString();
+        }
+        else
+        {
+            str = t->Name;
+        }
+    }
+
+    return (void*)GoshInvoke::Scm_MakeString(str, -1, -1, StringFlags::Copying);
 }
 
 #ifdef __cplusplus

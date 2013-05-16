@@ -46,7 +46,6 @@ extern "C" {
 
 DECDLL void ReleaseClrObject(void* obj);
 DECDLL void* ToClrObj(void* scmObj);
-DECDLL void* ClrPrint(void* clrObj);
 
 DECDLL void* BooleanToClr(int boolean);
 DECDLL int ClrToBoolean(void* obj);
@@ -95,6 +94,11 @@ DECDLL void* ClrCallMethod(
 DECDLL int ClrIs(TypeSpec* typeSpec, void* obj);
 
 DECDLL void* GetEnumObject(TypeSpec* enumTypeSpec, const char* enumObj);
+
+// Util
+
+DECDLL void* ClrPrint(void* clrObj);
+DECDLL void* ClrGetTypeName(void* obj);
 
 #ifdef __cplusplus
 }
