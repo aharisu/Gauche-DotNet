@@ -132,7 +132,7 @@
     </Compile>
     <Compile Include="Gauche\Object\Procedure\Proc.cs" />
     <Compile Include="Gauche\Object\Procedure\Util.cs" />
-    <Compile Include="Gauche\WrapNativeStruct.cs" />
+    <Compile Include="PInvoke\WrapNativeStruct.cs" />
     <Compile Include="PInvoke\GoshInvoke.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

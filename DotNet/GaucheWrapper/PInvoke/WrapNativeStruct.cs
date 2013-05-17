@@ -171,16 +171,6 @@ namespace GaucheDotNet.Native
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public unsafe struct ScmGdnObject
-    {
-        public IntPtr tag;
-        /// <summary>
-        /// GCHandle pointer
-        /// </summary>
-        public IntPtr data;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
     public unsafe struct ScmProcedure
     {
         public ScmInstance hdr;
