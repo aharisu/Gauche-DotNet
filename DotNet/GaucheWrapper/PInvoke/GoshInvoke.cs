@@ -620,6 +620,33 @@ namespace GaucheDotNet.Native
 
         #endregion }
 
+        #region keyword.h {
+
+        /// <param name="name">ScmString*</param>
+        /// <returns>ScmObject</returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeKeyword(IntPtr name);
+
+        /// <param name="key">ScmObj</param>
+        /// <param name="list">ScmObj</param>
+        /// <param name="fallback">ScmObj</param>
+        /// <returns>ScmObject</returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_GetKeyword(IntPtr key, IntPtr list, IntPtr fallback);
+
+        /// <param name="key">ScmObj</param>
+        /// <param name="list">ScmObj</param>
+        /// <returns>ScmObject</returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_DeleteKeyword(IntPtr key, IntPtr list);
+
+        /// <param name="key">ScmObj</param>
+        /// <param name="list">ScmObj</param>
+        /// <returns>ScmObject</returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_DeleteKeywordX(IntPtr key, IntPtr list);
+
+        #endregion }
 
         #region proc.h {
 

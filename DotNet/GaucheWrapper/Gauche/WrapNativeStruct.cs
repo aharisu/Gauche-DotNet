@@ -161,6 +161,16 @@ namespace GaucheDotNet.Native
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    public struct ScmKeyword
+    {
+        public IntPtr tag;
+        /// <summary>
+        /// ScmString*
+        /// </summary>
+        public IntPtr name;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     public unsafe struct ScmGdnObject
     {
         public IntPtr tag;

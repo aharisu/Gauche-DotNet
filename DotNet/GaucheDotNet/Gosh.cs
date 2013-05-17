@@ -525,6 +525,30 @@ namespace GaucheDotNet
 
         #endregion }
 
+        #region keyword.h {
+
+        public static GoshKeyword MakeKeyword(GoshString name)
+        {
+            return new GoshKeyword(GoshInvoke.Scm_MakeKeyword(name.Ptr));
+        }
+
+        public static GoshObj GetKeyword(GoshObj key, GoshObj list, GoshObj fallback)
+        {
+            return new GoshRefObj(GoshInvoke.Scm_GetKeyword( key.Ptr, list.Ptr, fallback.Ptr));
+        }
+
+        public static GoshObj DeleteKeyword(GoshObj key, GoshObj list)
+        {
+            return new GoshRefObj(GoshInvoke.Scm_DeleteKeyword(key.Ptr, list.Ptr));
+        }
+
+        public static GoshObj DeleteKeywordX(GoshObj key, GoshObj list)
+        {
+            return new GoshRefObj(GoshInvoke.Scm_DeleteKeywordX(key.Ptr, list.Ptr));
+        }
+
+        #endregion }
+
         #region proc.h {
 
         #endregion }
