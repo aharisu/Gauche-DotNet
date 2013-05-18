@@ -36,6 +36,12 @@ public:
         UnregisterDelegateMethodInfo = (ClrStubConstant::typeid)->GetMethod("UnregisterDelegate"
             , BindingFlags::Public | BindingFlags::Static
             );
+
+        _memberKindType = IntPtr::Zero;
+        _memberKindEvent = IntPtr::Zero;
+        _memberKindField = IntPtr::Zero;
+        _memberKindProperty = IntPtr::Zero;
+        _memberKindMethod = IntPtr::Zero;
     }
 
     static ModuleBuilder^ GetModuleBuilder()
@@ -106,6 +112,80 @@ public:
         }
     }
 
+#pragma region MemberKind getter {
+
+    static property IntPtr MemberKindType
+    {
+        IntPtr get()
+        {
+            if(_memberKindType == IntPtr::Zero)
+            {
+                _memberKindType = GoshInvoke::Scm_MakeKeyword(
+                    GoshInvoke::Scm_MakeString("type", -1, -1, StringFlags::Copying));
+            }
+
+            return _memberKindType;
+        }
+    }
+
+    static property IntPtr MemberKindEvent
+    {
+        IntPtr get()
+        {
+            if(_memberKindEvent == IntPtr::Zero)
+            {
+                _memberKindEvent = GoshInvoke::Scm_MakeKeyword(
+                    GoshInvoke::Scm_MakeString("event", -1, -1, StringFlags::Copying));
+            }
+
+            return _memberKindEvent;
+        }
+    }
+
+    static property IntPtr MemberKindField
+    {
+        IntPtr get()
+        {
+            if(_memberKindField == IntPtr::Zero)
+            {
+                _memberKindField = GoshInvoke::Scm_MakeKeyword(
+                    GoshInvoke::Scm_MakeString("field", -1, -1, StringFlags::Copying));
+            }
+
+            return _memberKindField;
+        }
+    }
+
+    static property IntPtr MemberKindProperty
+    {
+        IntPtr get()
+        {
+            if(_memberKindProperty == IntPtr::Zero)
+            {
+                _memberKindProperty = GoshInvoke::Scm_MakeKeyword(
+                    GoshInvoke::Scm_MakeString("property", -1, -1, StringFlags::Copying));
+            }
+
+            return _memberKindProperty;
+        }
+    }
+
+    static property IntPtr MemberKindMethod
+    {
+        IntPtr get()
+        {
+            if(_memberKindMethod == IntPtr::Zero)
+            {
+                _memberKindMethod = GoshInvoke::Scm_MakeKeyword(
+                    GoshInvoke::Scm_MakeString("method", -1, -1, StringFlags::Copying));
+            }
+
+            return _memberKindMethod;
+        }
+    }
+
+#pragma endregion }
+
 public: //static field
     static initonly array<Type^>^ DelegateConstructorArgs;
 
@@ -119,4 +199,10 @@ private:
 
     static Dictionary<Type^, DelegateCreator^> _typeToEventHandlerMap;
     static Dictionary<IntPtr, GCHandle> _delegateTable;
+
+    static IntPtr _memberKindType;
+    static IntPtr _memberKindEvent;
+    static IntPtr _memberKindField;
+    static IntPtr _memberKindProperty;
+    static IntPtr _memberKindMethod;
 };

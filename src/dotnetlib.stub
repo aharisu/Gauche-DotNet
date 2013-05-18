@@ -611,3 +611,21 @@ static ScmString param_attr_params = SCM_STRING_CONST_INITIALIZER(\"params\", 6,
     (result (GetEnumObject (& typeSpec) 
                            (SCM_STRING_START (-> enum-value name))))))
 
+(define-cproc clr-member (obj::<top> :optional name) :: <top>
+  (let* ([n::(const char*)])
+    (cond
+      [(SCM_UNBOUNDP name)
+       (set! n NULL)]
+      [(is-type? name <symbol>)
+       (set! n (SCM_STRING_START (-> (unboxing name <symbol>) name)))]
+      [else 
+        (Scm_Error "clr-member: name required <symbol>, but got %S" name)])
+    (cond
+      [(is-type? obj <clr-object>)
+       (result (ClrMember (unboxing obj <clr-object>) TRUE n))]
+      [(is-type? obj <symbol>)
+       (let* ([type-spec::TypeSpec (parse-type-spec obj FALSE)])
+         (result (ClrMember (& type-spec) TRUE n)))]
+      [else 
+        (Scm_Error "clr-member: obj required <clr-object> or <symbol>, but got %S" obj)])))
+

@@ -100,6 +100,8 @@ DECDLL void* GetEnumObject(TypeSpec* enumTypeSpec, const char* enumObj);
 DECDLL void* ClrPrint(void* clrObj);
 DECDLL void* ClrGetTypeName(void* obj);
 
+DECDLL void* ClrMember(void* obj, int isStatic, const char* name);
+
 #ifdef __cplusplus
 }
 #endif

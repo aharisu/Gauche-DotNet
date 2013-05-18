@@ -36,6 +36,8 @@
 #include "ClrStubConstant.h"
 #include "ClrDelegate.h"
 
+#include "Microsoft.Scripting/CompilerHelpers.h"
+
 using namespace System;
 using namespace System::Text;
 using namespace System::Reflection;
@@ -719,6 +721,37 @@ DECDLL void* ClrPrint(void* clrObj)
     return (void*)GoshInvoke::Scm_MakeString(str, -1, -1, StringFlags::Copying);
 }
 
+static String^ GetTypeName(Type^ t)
+{
+    if(t->IsGenericType)
+    {
+        StringBuilder builder;
+        //ジェネリック型の名前から`より前(List`1のListの部分)だけ取得
+        builder.Append(t->Name->Split('`')[0]);
+
+        builder.Append("<");
+        bool isFirst = true;
+        //ジェネリック型の引数を型名称に含める
+        for each(Type^ genericType in t->GetGenericArguments())
+        {
+            if(!isFirst)
+            {
+                builder.Append(",");
+            }
+            isFirst = false;
+
+            builder.Append(genericType->Name);
+        }
+        builder.Append(">");
+
+        return builder.ToString();
+    }
+    else
+    {
+        return t->Name;
+    }
+}
+
 DECDLL void* ClrGetTypeName(void* obj)
 {
     GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
@@ -731,37 +764,141 @@ DECDLL void* ClrGetTypeName(void* obj)
     }
     else 
     {
-        Type^ t = o->GetType();
-        if(t->IsGenericType)
-        {
-            StringBuilder builder;
-            //ジェネリック型の名前から`より前(List`1のListの部分)だけ取得
-            builder.Append(t->Name->Split('`')[0]);
-
-            builder.Append("<");
-            bool isFirst = true;
-            //ジェネリック型の引数を型名称に含める
-            for each(Type^ genericType in t->GetGenericArguments())
-            {
-                if(!isFirst)
-                {
-                    builder.Append(",");
-                }
-                isFirst = false;
-
-                builder.Append(genericType->Name);
-            }
-            builder.Append(">");
-
-            str = builder.ToString();
-        }
-        else
-        {
-            str = t->Name;
-        }
+        str = GetTypeName(o->GetType());
     }
 
     return (void*)GoshInvoke::Scm_MakeString(str, -1, -1, StringFlags::Copying);
+}
+
+DECDLL void* ClrMember(void* obj, int isStatic, const char* name)
+{
+    Type^ targetType = nullptr;
+    if(isStatic)
+    {
+        targetType = ClrMethod::TypeSpecToType((TypeSpec*)obj);
+    }
+    else
+    {
+        GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
+        Object^ o = gchObj.Target;
+
+        if(o == nullptr)
+        {
+            return (void*)GaucheDotNet::GoshNIL::NIL->Ptr; 
+        }
+
+        targetType = o->GetType();
+    }
+
+    IntPtr ret = GaucheDotNet::GoshNIL::NIL->Ptr;
+    String^ n;
+    if(name == (const char*)0)
+    {
+        n = "*";
+    }
+    else
+    {
+        n = Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name))) + "*";
+    }
+
+    for each(MemberInfo^ info in targetType->GetMember(n,
+        BindingFlags::Public | (isStatic ? BindingFlags::Static : BindingFlags::Instance)
+        ))
+    {
+        Type^ t = info->GetType();
+
+        if(ConstructorInfo::typeid->IsAssignableFrom(t))
+        {
+            continue;
+        }
+        else if(MethodInfo::typeid->IsAssignableFrom(t))
+        {
+            MethodInfo^ method = (MethodInfo^)info;
+            if(method->IsSpecialName)
+            {
+                continue;
+            }
+
+            StringBuilder builder;
+#pragma region constract method name {
+            //add return type
+            builder.Append(GetTypeName(method->ReturnType));
+            builder.Append(" ");
+
+            //add method name
+            builder.Append(info->Name);
+            builder.Append("(");
+
+            //add parameter type
+            bool isFirst = true;
+            for each(ParameterInfo^ param in method->GetParameters())
+            {
+                if(!isFirst)
+                {
+                    builder.Append(", ");
+                }
+                isFirst = false;
+
+                if(CompilerHelpers::IsOutParameter(param))
+                {
+                    builder.Append("out ");
+                    String^ paramTypeName = GetTypeName(param->ParameterType);
+                    builder.Append(paramTypeName->Substring(0, paramTypeName->Length - 1));
+                }
+                else if(param->ParameterType->IsByRef)
+                {
+                    builder.Append("ref ");
+                    String^ paramTypeName = GetTypeName(param->ParameterType);
+                    builder.Append(paramTypeName->Substring(0, paramTypeName->Length - 1));
+                }
+                else if(CompilerHelpers::IsParamArray(param))
+                {
+                    builder.Append("params ");
+                    builder.Append(GetTypeName(param->ParameterType));
+                }
+                else
+                {
+                    builder.Append(GetTypeName(param->ParameterType));
+                }
+
+                builder.Append(" ");
+                builder.Append(param->Name);
+            }
+            builder.Append(")");
+#pragma endregion }
+
+            ret = GoshInvoke::Scm_Cons(
+                GoshInvoke::Scm_Cons(ClrStubConstant::MemberKindMethod
+                    , GoshInvoke::Scm_MakeString(builder.ToString(), -1, -1, StringFlags::Copying))
+                , ret);
+        }
+        else
+        {
+            IntPtr kind;
+            if(PropertyInfo::typeid->IsAssignableFrom(t))
+            {
+                kind = ClrStubConstant::MemberKindProperty;
+            }
+            else if(FieldInfo::typeid->IsAssignableFrom(t))
+            {
+                kind = ClrStubConstant::MemberKindField;
+            }
+            else if(EventInfo::typeid->IsAssignableFrom(t))
+            {
+                kind = ClrStubConstant::MemberKindEvent;
+            }
+            else
+            {
+                kind = ClrStubConstant::MemberKindType;
+            }
+
+            ret = GoshInvoke::Scm_Cons(
+                GoshInvoke::Scm_Cons(kind,GoshInvoke::Scm_MakeString(info->Name, -1, -1, StringFlags::Copying))
+                , ret);
+        }
+    }
+
+    return (void*)ret;
 }
 
 #ifdef __cplusplus
