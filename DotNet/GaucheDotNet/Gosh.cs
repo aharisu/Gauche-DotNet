@@ -567,6 +567,35 @@ namespace GaucheDotNet
 
         #endregion }
 
+        #region paths.h {
+
+        public static String GetLibraryDirectory()
+        {
+            return GoshInvoke.Scm_GetLibraryDirectory();
+        }
+
+        public static String GetArchitectureDirectory()
+        {
+            return GoshInvoke.Scm_GetArchitectureDirectory();
+        }
+
+        public static String GetSiteLibraryDirectory()
+        {
+            return GoshInvoke.Scm_GetSiteLibraryDirectory();
+        }
+
+        public static String GetSiteArchitectureDirectory()
+        {
+            return GoshInvoke.Scm_GetSiteArchitectureDirectory();
+        }
+
+        public static String GetRuntimeDirectory()
+        {
+            return GoshInvoke.Scm_GetRuntimeDirectory();
+        }
+
+        #endregion }
+
         #region gc {
 
         public static void GC()

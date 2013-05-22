@@ -701,6 +701,88 @@ namespace GaucheDotNet.Native
 
         #endregion
 
+        #region paths.h {
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void Scm_GetPathErrorFn(IntPtr errs);
+        private const int GETDIRECTORY_BUFFER_LENGTH = 512;
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        private static extern void Scm_GetLibraryDirectory(StringBuilder buf, int buflen,
+            [MarshalAs(UnmanagedType.FunctionPtr)][In] Scm_GetPathErrorFn errfn);
+
+        public static String Scm_GetLibraryDirectory()
+        {
+            StringBuilder buf = new StringBuilder(GETDIRECTORY_BUFFER_LENGTH);
+            GoshInvoke.Scm_GetLibraryDirectory(buf, buf.Capacity, 
+                (errs) =>
+                    {
+                        throw new Exception("Scm_GetLibraryDirectory Error.");
+                    });
+            return buf.ToString();
+        }
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        private static extern void Scm_GetArchitectureDirectory(StringBuilder buf, int buflen,
+            [MarshalAs(UnmanagedType.FunctionPtr)][In] Scm_GetPathErrorFn errfn);
+
+        public static String Scm_GetArchitectureDirectory()
+        {
+            StringBuilder buf = new StringBuilder(GETDIRECTORY_BUFFER_LENGTH);
+            GoshInvoke.Scm_GetArchitectureDirectory(buf, buf.Capacity, 
+                (errs) =>
+                    {
+                        throw new Exception("Scm_GetArchitectureDirectory Error.");
+                    });
+            return buf.ToString();
+        }
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        private static extern void Scm_GetSiteLibraryDirectory(StringBuilder buf, int buflen,
+            [MarshalAs(UnmanagedType.FunctionPtr)][In] Scm_GetPathErrorFn errfn);
+
+        public static String Scm_GetSiteLibraryDirectory()
+        {
+            StringBuilder buf = new StringBuilder(GETDIRECTORY_BUFFER_LENGTH);
+            GoshInvoke.Scm_GetSiteLibraryDirectory(buf, buf.Capacity, 
+                (errs) =>
+                    {
+                        throw new Exception("Scm_GetSiteLibraryDirectory Error.");
+                    });
+            return buf.ToString();
+        }
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        private static extern void Scm_GetSiteArchitectureDirectory(StringBuilder buf, int buflen,
+            [MarshalAs(UnmanagedType.FunctionPtr)][In] Scm_GetPathErrorFn errfn);
+
+        public static String Scm_GetSiteArchitectureDirectory()
+        {
+            StringBuilder buf = new StringBuilder(GETDIRECTORY_BUFFER_LENGTH);
+            GoshInvoke.Scm_GetSiteArchitectureDirectory(buf, buf.Capacity, 
+                (errs) =>
+                    {
+                        throw new Exception("Scm_GetSiteArchitectureDirectory Error.");
+                    });
+            return buf.ToString();
+        }
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        private static extern void Scm_GetRuntimeDirectory(StringBuilder buf, int buflen,
+            [MarshalAs(UnmanagedType.FunctionPtr)][In] Scm_GetPathErrorFn errfn);
+
+        public static String Scm_GetRuntimeDirectory()
+        {
+            StringBuilder buf = new StringBuilder(GETDIRECTORY_BUFFER_LENGTH);
+            GoshInvoke.Scm_GetRuntimeDirectory(buf, buf.Capacity, 
+                (errs) =>
+                    {
+                        throw new Exception("Scm_GetRuntimeDirectory Error.");
+                    });
+            return buf.ToString();
+        }
+
+        #endregion }
 
         #region gauche_dotnet {
 
