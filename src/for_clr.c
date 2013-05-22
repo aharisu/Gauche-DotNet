@@ -33,6 +33,20 @@
 #include<gauche.h>
 #include <fcntl.h>		/* for _O_BINMODE on windows. */
 
+#include"dotnet_type.gen.h"
+
+SCM_EXTERN ClrObject Scm_ClrConditionInnerException(ScmObj obj)
+{
+  if(SCM_ISA(obj, SCM_CLASS_CLR_ERROR))
+  {
+    return ((ScmClrObject*)((ScmClrError*)obj)->clrException)->data;
+  }
+  else
+  {
+    return NULL;
+  }
+}
+
 SCM_EXTERN int Scm_ExtendedPairP(ScmObj obj)
 {
   return SCM_EXTENDED_PAIR_P(obj);

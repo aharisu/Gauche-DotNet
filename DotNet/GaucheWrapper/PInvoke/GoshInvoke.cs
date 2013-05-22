@@ -797,6 +797,11 @@ namespace GaucheDotNet.Native
         [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern int Scm_IsKnownType(IntPtr ptr);
 
+        /// <param name="obj">ScmObj</param>
+        /// <returns>GCHandle ptr</returns>
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_ClrConditionInnerException(IntPtr obj);
+
         #endregion }
 
     }

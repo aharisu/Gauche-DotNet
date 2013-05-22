@@ -580,6 +580,19 @@ namespace GaucheDotNet
             return new GoshRefObj(GoshInvoke.Scm_ConditionTypeName(Cast.ToIntPtr(condition)));
         }
 
+        public static Exception ClrConditionInnerException(object condition)
+        {
+            IntPtr obj = GoshInvoke.Scm_ClrConditionInnerException(Cast.ToIntPtr(condition));
+            if(obj == IntPtr.Zero)
+            {
+                return null;
+            }
+            else
+            {
+                return GCHandle.FromIntPtr(obj).Target as Exception;
+            }
+        }
+
         #endregion }
 
         #region paths.h {
