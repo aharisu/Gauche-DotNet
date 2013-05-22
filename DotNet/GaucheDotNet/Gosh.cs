@@ -48,8 +48,23 @@ namespace GaucheDotNet
 
         #region gauche_dotnet {
 
+        [DllImport("Kernel32.dll")]
+        static extern bool SetEnvironmentVariable(string name, string val);
+
+
         public static void Initialize()
         {
+            //Gaucheの拡張ライブラリのあるディレクトリのパスを取得
+            string sitelibdir = Gosh.GetSiteArchitectureDirectory();
+            //現在のプロセスのPATH環境変数に拡張ライブラリのディレクトリパスを追加
+            String path = System.Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Process);
+            if (path != "")
+            {
+                path += ";";
+            }
+            SetEnvironmentVariable("PATH", path + sitelibdir);
+
+            //拡張ライブラリ内にあるGaucheの初期化関数を実行
             GoshInvoke.GaucheDotNetInitialize();
         }
 
