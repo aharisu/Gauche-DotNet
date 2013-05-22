@@ -66,6 +66,11 @@ namespace GaucheDotNet
             }
         }
 
+        public override string ToString()
+        {
+            return ConditionTypeName + ": " + Message;
+        }
+
     }
 }
 

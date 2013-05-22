@@ -112,6 +112,7 @@
     </Compile>
     <Compile Include="Gauche\Cast.cs" />
     <Compile Include="Gauche\Enum.cs" />
+    <Compile Include="Gauche\GoshException.cs" />
     <Compile Include="Gauche\Object\Constant.cs" />
     <Compile Include="Gauche\Object\GoshClrObject.cs" />
     <Compile Include="Gauche\Object\GoshCondition.cs" />

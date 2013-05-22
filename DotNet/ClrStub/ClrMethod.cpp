@@ -494,7 +494,7 @@ void* ClrMethod::CallNew()
     Type^ targetType = ClrMethod::GetType(builder.ToString(), false);
     if(targetType == nullptr)
     {
-        throw gcnew ArgumentException("unknown type");
+        throw gcnew GoshException("unknown type");
     }
     builder.Length = 0;
 
@@ -525,14 +525,14 @@ void* ClrMethod::CallNew()
 
     if(candidates.Count == 0)
     {
-        throw gcnew ArgumentException("Callable constructor can not be found");
+        throw gcnew GoshException("Callable constructor can not be found");
     }
 
     MethodBinder mb(".ctor", %candidates, BinderType::Constractor);
     MethodCandidate^ mc = mb.MakeBindingTarget(CallType::None, _numArg, argTypes, isSpecifyParamType);
     if(mc == nullptr)
     {
-        throw gcnew ArgumentException("Callable constructor can not be found");
+        throw gcnew GoshException("Callable constructor can not be found");
     }
 
     array<Object^>^ arguments = ConstractArguments(mc);
@@ -566,7 +566,7 @@ void* ClrMethod::CallMethod()
         targetType = ClrMethod::GetType(builder.ToString(), false);
         if(targetType == nullptr)
         {
-            throw gcnew ArgumentException("unknown type");
+            throw gcnew GoshException("unknown type");
         }
 
         builder.Length = 0;
@@ -750,7 +750,7 @@ void* ClrMethod::CallMethod()
                     if(result == nullptr)
                     {
                         //無効な演算子
-                        throw gcnew ArgumentException("invalid operation");
+                        throw gcnew GoshException("invalid operation");
                     }
                 }
                 else if(method == "||")
@@ -763,7 +763,7 @@ void* ClrMethod::CallMethod()
                     if(result == nullptr)
                     {
                         //無効な演算子
-                        throw gcnew ArgumentException("invalid operation");
+                        throw gcnew GoshException("invalid operation");
                     }
                 }
                 else if(method == "!=")
@@ -900,7 +900,7 @@ void* ClrMethod::CallMethod()
 
     if(candidates.Count == 0)
     {
-        throw gcnew ArgumentException("Applicable method can not be found");
+        throw gcnew GoshException("Applicable method can not be found");
     }
 
     //パラメータ型配列から適用可能なメソッドを取得する
@@ -914,7 +914,7 @@ void* ClrMethod::CallMethod()
         );
     if(mc == nullptr)
     {
-        throw gcnew ArgumentException("Applicable method can not be found");
+        throw gcnew GoshException("Applicable method can not be found");
     }
 
     //メソッド実行

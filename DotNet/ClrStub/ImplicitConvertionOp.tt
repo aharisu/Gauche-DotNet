@@ -284,7 +284,7 @@ static Object^ Primitive<#=opName#>(array<ArgType>^ typeSpec, Object^ instance, 
     }
 
     //無効な演算子
-    throw gcnew ArgumentException("invalid operation");
+    throw gcnew GoshException("invalid operation");
 }
 
 <#

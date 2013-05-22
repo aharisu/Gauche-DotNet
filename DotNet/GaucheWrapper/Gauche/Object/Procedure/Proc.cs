@@ -54,9 +54,7 @@ namespace GaucheDotNet.Procedure
             GoshEvalPacket packet = new GoshEvalPacket();
             if (GoshInvoke.Scm_Apply(_ptr, pair, packet.Ptr) < 0)
             {
-                //TODO
-                //throw packet.Exception;
-                throw new Exception(packet.Exception.ConditionTypeName + ":" + packet.Exception.Message);
+                throw new GoshException(packet.Exception.ToString());
             }
 
             //TODO Values

@@ -62,7 +62,7 @@ static void PreprocessPrimitiveOp(array<ArgType>^ typeSpec, Object^% instance, O
         typeSpec->Length != ((secondArg == nullptr) ? 2 : 3))
     {
         //メソッドの型指定子と引数の数が合っていません
-        throw gcnew ArgumentException("not match type specifier and number of arguments");
+        throw gcnew GoshException("not match type specifier and number of arguments");
     }
 
     if(secondArg == nullptr)
@@ -70,7 +70,7 @@ static void PreprocessPrimitiveOp(array<ArgType>^ typeSpec, Object^% instance, O
         if(!allowUnaryOp)
         {
             //単項演算は定義されていません
-            throw gcnew ArgumentException("Unary operation is not defined");
+            throw gcnew GoshException("Unary operation is not defined");
         }
 
         if(typeSpec != nullptr)
@@ -79,7 +79,7 @@ static void PreprocessPrimitiveOp(array<ArgType>^ typeSpec, Object^% instance, O
             if(instance == nullptr)
             {
                 //型指定子と実際のオブジェクトの型が異なります。
-                throw gcnew ArgumentException("not match type specifier and type of instance object");
+                throw gcnew GoshException("not match type specifier and type of instance object");
             }
         }
     }
@@ -88,7 +88,7 @@ static void PreprocessPrimitiveOp(array<ArgType>^ typeSpec, Object^% instance, O
         if(!allowBinaryOp)
         {
             //2項演算は定義されていません
-            throw gcnew ArgumentException("Binary operation is not defined");
+            throw gcnew GoshException("Binary operation is not defined");
         }
 
         if(typeSpec != nullptr)
@@ -97,13 +97,13 @@ static void PreprocessPrimitiveOp(array<ArgType>^ typeSpec, Object^% instance, O
             if(instance == nullptr)
             {
                 //型指定子と実際のオブジェクトの型が異なります。
-                throw gcnew ArgumentException("not match type specifier and type of instance object");
+                throw gcnew GoshException("not match type specifier and type of instance object");
             }
             secondArg = PrimitiveTypeImplicitConversion(secondArg, typeSpec[2].type);
             if(secondArg == nullptr)
             {
                 //型指定子と実際のオブジェクトの型が異なります。
-                throw gcnew ArgumentException("not match type specifier and type of argument object");
+                throw gcnew GoshException("not match type specifier and type of argument object");
             }
         }
     }
@@ -141,7 +141,7 @@ static Object^ PrimitiveAdd(array<ArgType>^ typeSpec, Object^ instance, Object^ 
         }
     }
     //無効な演算子
-    throw gcnew ArgumentException("invalid operation");
+    throw gcnew GoshException("invalid operation");
 }
 
 static Object^ PrimitiveSub(array<ArgType>^ typeSpec, Object^ instance, Object^ secondArg)
@@ -182,7 +182,7 @@ static Object^ PrimitiveSub(array<ArgType>^ typeSpec, Object^ instance, Object^ 
     }
 
     //無効な演算子
-    throw gcnew ArgumentException("invalid operation");
+    throw gcnew GoshException("invalid operation");
 }
 
 static Object^ PrimitiveNot(array<ArgType>^ typeSpec, Object^ instance, Object^ secondArg)
@@ -195,7 +195,7 @@ static Object^ PrimitiveNot(array<ArgType>^ typeSpec, Object^ instance, Object^ 
     }
 
     //無効な演算子
-    throw gcnew ArgumentException("invalid operation");
+    throw gcnew GoshException("invalid operation");
 }
 
 static Object^ PrimitiveOnesComplement(array<ArgType>^ typeSpec, Object^ instance, Object^ secondArg)
@@ -219,7 +219,7 @@ static Object^ PrimitiveOnesComplement(array<ArgType>^ typeSpec, Object^ instanc
     }
 
     //無効な演算子
-    throw gcnew ArgumentException("invalid operation");
+    throw gcnew GoshException("invalid operation");
 }
 
 
@@ -241,7 +241,7 @@ static Object^ PrimitiveLogAnd(array<ArgType>^ typeSpec, Object^ instance, Objec
     }
 
     //無効な演算子
-    throw gcnew ArgumentException("invalid operation");
+    throw gcnew GoshException("invalid operation");
 }
 
 static Object^ PrimitiveLogOr(array<ArgType>^ typeSpec, Object^ instance, Object^ secondArg)
@@ -262,6 +262,6 @@ static Object^ PrimitiveLogOr(array<ArgType>^ typeSpec, Object^ instance, Object
     }
 
     //無効な演算子
-    throw gcnew ArgumentException("invalid operation");
+    throw gcnew GoshException("invalid operation");
 }
 
