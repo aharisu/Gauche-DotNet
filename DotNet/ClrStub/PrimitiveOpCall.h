@@ -1,4 +1,4 @@
-/*
+ï»¿/*
  * PrimitiveOpCall.h
  *
  * MIT License
@@ -33,7 +33,6 @@
 
 #include "ClrMethodCallStruct.h"
 #include "Microsoft.Scripting/CompilerHelpers.h"
-#include "ImplicitConvertionOp.h"
 
 using namespace System;
 using namespace System::Reflection;
@@ -62,7 +61,7 @@ static void PreprocessPrimitiveOp(array<ArgType>^ typeSpec, Object^% instance, O
     if(typeSpec != nullptr && 
         typeSpec->Length != ((secondArg == nullptr) ? 2 : 3))
     {
-        //ƒƒ\ƒbƒh‚ÌŒ^w’èq‚Æˆø”‚Ì”‚ª‡‚Á‚Ä‚¢‚Ü‚¹‚ñ
+        //ãƒ¡ã‚½ãƒƒãƒ‰ã®å‹æŒ‡å®šå­ã¨å¼•æ•°ã®æ•°ãŒåˆã£ã¦ã„ã¾ã›ã‚“
         throw gcnew ArgumentException("not match type specifier and number of arguments");
     }
 
@@ -70,7 +69,7 @@ static void PreprocessPrimitiveOp(array<ArgType>^ typeSpec, Object^% instance, O
     {
         if(!allowUnaryOp)
         {
-            //’P€‰‰Z‚Í’è‹`‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ
+            //å˜é …æ¼”ç®—ã¯å®šç¾©ã•ã‚Œã¦ã„ã¾ã›ã‚“
             throw gcnew ArgumentException("Unary operation is not defined");
         }
 
@@ -79,7 +78,7 @@ static void PreprocessPrimitiveOp(array<ArgType>^ typeSpec, Object^% instance, O
             instance = PrimitiveTypeImplicitConversion(instance, typeSpec[1].type);
             if(instance == nullptr)
             {
-                //Œ^w’èq‚ÆÀÛ‚ÌƒIƒuƒWƒFƒNƒg‚ÌŒ^‚ªˆÙ‚È‚è‚Ü‚·B
+                //å‹æŒ‡å®šå­ã¨å®Ÿéš›ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®å‹ãŒç•°ãªã‚Šã¾ã™ã€‚
                 throw gcnew ArgumentException("not match type specifier and type of instance object");
             }
         }
@@ -88,7 +87,7 @@ static void PreprocessPrimitiveOp(array<ArgType>^ typeSpec, Object^% instance, O
     {
         if(!allowBinaryOp)
         {
-            //2€‰‰Z‚Í’è‹`‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ
+            //2é …æ¼”ç®—ã¯å®šç¾©ã•ã‚Œã¦ã„ã¾ã›ã‚“
             throw gcnew ArgumentException("Binary operation is not defined");
         }
 
@@ -97,18 +96,19 @@ static void PreprocessPrimitiveOp(array<ArgType>^ typeSpec, Object^% instance, O
             instance = PrimitiveTypeImplicitConversion(instance, typeSpec[1].type);
             if(instance == nullptr)
             {
-                //Œ^w’èq‚ÆÀÛ‚ÌƒIƒuƒWƒFƒNƒg‚ÌŒ^‚ªˆÙ‚È‚è‚Ü‚·B
+                //å‹æŒ‡å®šå­ã¨å®Ÿéš›ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®å‹ãŒç•°ãªã‚Šã¾ã™ã€‚
                 throw gcnew ArgumentException("not match type specifier and type of instance object");
             }
             secondArg = PrimitiveTypeImplicitConversion(secondArg, typeSpec[2].type);
             if(secondArg == nullptr)
             {
-                //Œ^w’èq‚ÆÀÛ‚ÌƒIƒuƒWƒFƒNƒg‚ÌŒ^‚ªˆÙ‚È‚è‚Ü‚·B
+                //å‹æŒ‡å®šå­ã¨å®Ÿéš›ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®å‹ãŒç•°ãªã‚Šã¾ã™ã€‚
                 throw gcnew ArgumentException("not match type specifier and type of argument object");
             }
         }
     }
 }
+#include "ImplicitConvertionOp.h"
 
 static Object^ PrimitiveAdd(array<ArgType>^ typeSpec, Object^ instance, Object^ secondArg)
 {
@@ -140,7 +140,7 @@ static Object^ PrimitiveAdd(array<ArgType>^ typeSpec, Object^ instance, Object^ 
             return ret;
         }
     }
-    //–³Œø‚È‰‰Zq
+    //ç„¡åŠ¹ãªæ¼”ç®—å­
     throw gcnew ArgumentException("invalid operation");
 }
 
@@ -181,7 +181,7 @@ static Object^ PrimitiveSub(array<ArgType>^ typeSpec, Object^ instance, Object^ 
         }
     }
 
-    //–³Œø‚È‰‰Zq
+    //ç„¡åŠ¹ãªæ¼”ç®—å­
     throw gcnew ArgumentException("invalid operation");
 }
 
@@ -194,6 +194,74 @@ static Object^ PrimitiveNot(array<ArgType>^ typeSpec, Object^ instance, Object^ 
         return !(Boolean)instance;
     }
 
-    //–³Œø‚È‰‰Zq
+    //ç„¡åŠ¹ãªæ¼”ç®—å­
     throw gcnew ArgumentException("invalid operation");
 }
+
+static Object^ PrimitiveOnesComplement(array<ArgType>^ typeSpec, Object^ instance, Object^ secondArg)
+{
+    PreprocessPrimitiveOp(typeSpec, instance, secondArg, true, false);
+
+    switch(Type::GetTypeCode(instance->GetType()))
+    {
+    case TypeCode::Byte:
+        return ~(Byte)instance;
+    case TypeCode::SByte:
+        return ~(SByte)instance;
+    case TypeCode::Int16:
+        return ~(Int16)instance;
+    case TypeCode::UInt16:
+        return ~(UInt16)instance;
+    case TypeCode::Int32:
+        return ~(Int32)instance;
+    case TypeCode::Int64:
+        return ~(Int64)instance;
+    }
+
+    //ç„¡åŠ¹ãªæ¼”ç®—å­
+    throw gcnew ArgumentException("invalid operation");
+}
+
+
+static Object^ PrimitiveLogAnd(array<ArgType>^ typeSpec, Object^ instance, Object^ secondArg)
+{
+    PreprocessPrimitiveOp(typeSpec, instance, secondArg, false, true);
+
+    if(instance->GetType() == Boolean::typeid && secondArg->GetType() == Boolean::typeid)
+    {
+        return (Boolean)instance && (Boolean)secondArg;
+    }
+    else
+    {
+        Object^ ret = ImplicitConversionLogAnd(instance, secondArg);
+        if(ret != nullptr)
+        {
+            return ret;
+        }
+    }
+
+    //ç„¡åŠ¹ãªæ¼”ç®—å­
+    throw gcnew ArgumentException("invalid operation");
+}
+
+static Object^ PrimitiveLogOr(array<ArgType>^ typeSpec, Object^ instance, Object^ secondArg)
+{
+    PreprocessPrimitiveOp(typeSpec, instance, secondArg, false, true);
+
+    if(instance->GetType() == Boolean::typeid && secondArg->GetType() == Boolean::typeid)
+    {
+        return (Boolean)instance || (Boolean)secondArg;
+    }
+    else
+    {
+        Object^ ret = ImplicitConversionLogOr(instance, secondArg);
+        if(ret != nullptr)
+        {
+            return ret;
+        }
+    }
+
+    //ç„¡åŠ¹ãªæ¼”ç®—å­
+    throw gcnew ArgumentException("invalid operation");
+}
+

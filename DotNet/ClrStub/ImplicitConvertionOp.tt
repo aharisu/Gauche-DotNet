@@ -35,20 +35,22 @@
 string[][] Operands = new string[][] {
     new string[] {"+", "Add"},
     new string[] {"-", "Sub"},
-    new string[] {"*", "Mul"},
-    new string[] {"/", "Div"},
-    new string[] {"%", "Remainder", "Single", "Double", "Decimal"},
-    new string[] {"&", "LogAnd", "Single", "Double", "Decimal"},
-    new string[] {"|", "LogOr" , "Single", "Double", "Decimal"},
-    new string[] {"^", "LogXOr", "Single", "Double", "Decimal"},
-    new string[] {"<<", "LeftShift", "UInt32", "Int64", "UInt64", "Single", "Double", "Decimal"},
-    new string[] {">>", "RightShift", "UInt32", "Int64", "UInt64", "Single", "Double", "Decimal"},
-    new string[] {"==", "Ep"},
-    new string[] {"!=", "NotEq"},
-    new string[] {">", "Gt"},
-    new string[] {">=", "GtEp"},
-    new string[] {"<", "Lt"},
-    new string[] {"<=", "LtEp"},
+    new string[] {"*", "Mul", "BIN"},
+    new string[] {"/", "Div", "BIN"},
+    new string[] {"%", "Remainder", "BIN", "Single", "Double", "Decimal"},
+    new string[] {"&", "BitwiseAnd", "BIN", "Single", "Double", "Decimal"},
+    new string[] {"|", "BitwiseOr" , "BIN", "Single", "Double", "Decimal"},
+    new string[] {"^", "ExclusiveOr", "BIN", "Single", "Double", "Decimal"},
+    new string[] {"&&", "LogAnd", "Single", "Double", "Decimal"},
+    new string[] {"||", "LogOr" , "Single", "Double", "Decimal"},
+    new string[] {"<<", "LeftShift", "BIN", "UInt32", "Int64", "UInt64", "Single", "Double", "Decimal"},
+    new string[] {">>", "RightShift", "BIN", "UInt32", "Int64", "UInt64", "Single", "Double", "Decimal"},
+    new string[] {"==", "Eq", "BIN"},
+    new string[] {"!=", "NotEq", "BIN"},
+    new string[] {">", "Gt", "BIN"},
+    new string[] {">=", "GtEq", "BIN"},
+    new string[] {"<", "Lt", "BIN"},
+    new string[] {"<=", "LtEq", "BIN"},
 };
 #>
 //Auto generation code. Do not edit.
@@ -67,6 +69,16 @@ using namespace System::Reflection;
         string opName = operand[1];
         string[] ignore = new string[operand.Length - 2];
         Array.Copy(operand, 2, ignore, 0, ignore.Length);
+        
+        bool defineOpMethod = false;
+        if(ignore.Length != 0 && ignore[0] == "BIN")
+        {
+            string[] tmp = new string[ignore.Length - 1];
+            Array.Copy(ignore, 1, tmp, 0, tmp.Length);
+            ignore = tmp;
+            
+            defineOpMethod = true;
+        }
 #>
 
 static Object^ ImplicitConversion<#=opName#>(Object^ obj1, Object^ obj2)
@@ -256,6 +268,28 @@ static Object^ ImplicitConversion<#=opName#>(Object^ obj1, Object^ obj2)
     return nullptr;
 }
 
+<#
+        if(defineOpMethod)
+        {
+#>
+
+static Object^ Primitive<#=opName#>(array<ArgType>^ typeSpec, Object^ instance, Object^ secondArg)
+{
+    PreprocessPrimitiveOp(typeSpec, instance, secondArg, false, true);
+
+    Object^ ret = ImplicitConversion<#=opName#>(instance, secondArg);
+    if(ret != nullptr)
+    {
+        return ret;
+    }
+
+    //無効な演算子
+    throw gcnew ArgumentException("invalid operation");
+}
+
+<#
+        }
+#>
 <#
     }
 #>

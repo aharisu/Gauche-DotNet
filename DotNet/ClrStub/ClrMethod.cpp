@@ -57,7 +57,7 @@ Object^ ClrMethod::ToObject(ObjWrapper* obj)
         return gcnew Procedure::GoshProcedure((IntPtr)obj->ptr);
     default: //OBJWRAP_CLROBJECT:
         {
-            GCHandle gchObj = GCHandle::FromIntPtr((IntPtr)obj->ptr);
+            GCHandle gchObj = GCHandle::FromIntPtr((IntPtr)obj->value);
             return gchObj.Target;
         }
     }
@@ -372,7 +372,7 @@ static Object^ ToArgumentObject(Type^ type, ObjWrapper* arg)
         }
     case OBJWRAP_CLROBJECT:
     default:
-        return GCHandle::FromIntPtr(IntPtr(arg->ptr)).Target;
+        return GCHandle::FromIntPtr(IntPtr(arg->value)).Target;
     }
 }
 
@@ -390,7 +390,7 @@ static Object^ ToArgumentObject(ObjWrapper* arg)
         return gcnew Procedure::GoshProcedure((IntPtr)arg->ptr);
     case OBJWRAP_CLROBJECT:
     default:
-        return GCHandle::FromIntPtr(IntPtr(arg->ptr)).Target;
+        return GCHandle::FromIntPtr(IntPtr(arg->value)).Target;
     }
 }
 
@@ -458,7 +458,7 @@ bool ClrMethod::CreateArgTypes(StringBuilder^ builder, array<ArgType>^% argTypes
             switch(_args[i].kind)
             {
             case OBJWRAP_CLROBJECT:
-                argTypes[i + startIndex].type = GCHandle::FromIntPtr(IntPtr(_args[i].ptr)).Target->GetType();
+                argTypes[i + startIndex].type = GCHandle::FromIntPtr(IntPtr(_args[i].value)).Target->GetType();
                 argTypes[i + startIndex].kind = OBJWRAP_CLROBJECT;
                 argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
                 break;
@@ -577,137 +577,291 @@ void* ClrMethod::CallMethod()
         targetType = instance->GetType();
 
 #pragma region プリミティブ型同士の演算子を実行する {
-        if(_numArg < 2 && method->Length <= 2)
+        if(_numArg < 2 && method->Length <= 3)
         {
             Object^ secondArg = (_numArg == 1) ?  ToArgumentObject(&_args[0]) : nullptr;
 
             Object^ result = nullptr;
-            if(method == "+")
+            if(method->Length == 1)
             {
-                if(targetType->IsPrimitive
-                    && (_numArg == 0 || secondArg->GetType()->IsPrimitive))
+                switch(method[0])
                 {
-                    result = PrimitiveAdd(argTypes, instance, secondArg);
+                case '+':
+                    if(targetType->IsPrimitive
+                        && (_numArg == 0 || secondArg->GetType()->IsPrimitive))
+                    {
+                        result = PrimitiveAdd(argTypes, instance, secondArg);
+                    }
+                    else if(targetType == String::typeid && _numArg == 1)
+                    {
+                        result = String::Concat(instance, secondArg);
+                    }
+                    else
+                    {
+                        method = (_numArg == 0) ? "op_UnaryPlus" : "op_Addition";
+                        isOperator = true;
+                    }
+                    break;
+                case '-':
+                    if(targetType->IsPrimitive
+                        && (_numArg == 0 || secondArg->GetType()->IsPrimitive))
+                    {
+                        result = PrimitiveSub(argTypes, instance, secondArg);
+                    }
+                    else
+                    {
+                        method = (_numArg == 0) ? "op_UnaryNegation" : "op_Subtraction";
+                        isOperator = true;
+                    }
+                    break;
+                case '*':
+                    if(targetType->IsPrimitive)
+                    {
+                        result = PrimitiveMul(argTypes, instance, secondArg);
+                    }
+                    else
+                    {
+                        method = "op_Multiply";
+                        isOperator = true;
+                    }
+                    break;
+                case '/':
+                    if(targetType->IsPrimitive)
+                    {
+                        result = PrimitiveDiv(argTypes, instance, secondArg);
+                    }
+                    else
+                    {
+                        method = "op_Division";
+                        isOperator = true;
+                    }
+                    break;
+                case '%':
+                    if(targetType->IsPrimitive)
+                    {
+                        result = PrimitiveRemainder(argTypes, instance, secondArg);
+                    }
+                    else
+                    {
+                        method = "op_Modulus";
+                        isOperator = true;
+                    }
+                    break;
+                case '&':
+                    if(targetType->IsPrimitive)
+                    {
+                        result = PrimitiveBitwiseAnd(argTypes, instance, secondArg);
+                    }
+                    else
+                    {
+                        method = "op_BitwiseAnd";
+                        isOperator = true;
+                    }
+                    break;
+                case '|':
+                    if(targetType->IsPrimitive)
+                    {
+                        result = PrimitiveBitwiseOr(argTypes, instance, secondArg);
+                    }
+                    else
+                    {
+                        method = "op_BitwiseOr";
+                        isOperator = true;
+                    }
+                    break;
+                case '^':
+                    if(targetType->IsPrimitive)
+                    {
+                        result = PrimitiveExclusiveOr(argTypes, instance, secondArg);
+                    }
+                    else
+                    {
+                        method = "op_ExclusiveOr";
+                        isOperator = true;
+                    }
+                    break;
+                case '~':
+                    if(targetType->IsPrimitive)
+                    {
+                        result = PrimitiveOnesComplement(argTypes, instance, secondArg);
+                    }
+                    else
+                    {
+                        method = "op_OnesComplement";
+                        isOperator = true;
+                    }
+                    break;
+                case '!':
+                    if(targetType->IsPrimitive)
+                    {
+                        result = PrimitiveNot(argTypes, instance, secondArg);
+                    }
+                    else
+                    {
+                        method = "op_LogicalNot";
+                        isOperator = true;
+                    }
+                    break;
+                case '>':
+                    if(targetType->IsPrimitive)
+                    {
+                        result = PrimitiveGt(argTypes, instance, secondArg);
+                    }
+                    else
+                    {
+                        method = "op_GreaterThan";
+                        isOperator = true;
+                    }
+                    break;
+                case '<':
+                    if(targetType->IsPrimitive)
+                    {
+                        result = PrimitiveLt(argTypes, instance, secondArg);
+                    }
+                    else
+                    {
+                        method = "op_LessThan";
+                        isOperator = true;
+                    }
+                    break;
                 }
-                else if(targetType == String::typeid && _numArg == 1)
+            }
+            else if(method->Length == 2)
+            {
+                if(method == "==")
                 {
-                    result = String::Concat(instance, secondArg);
+                    if(targetType->IsPrimitive)
+                    {
+                        result = PrimitiveEq(argTypes, instance, secondArg);
+                    }
+                    else
+                    {
+                        method = "op_Equality";
+                        isOperator = true;
+                    }
                 }
-                else
+                else if(method == "&&")
                 {
-                    method = (_numArg == 0) ? "op_UnaryPlus" : "op_Addition";
+                    if(targetType->IsPrimitive)
+                    {
+                        result = PrimitiveLogAnd(argTypes, instance, secondArg);
+                    }
+
+                    if(result == nullptr)
+                    {
+                        //無効な演算子
+                        throw gcnew ArgumentException("invalid operation");
+                    }
+                }
+                else if(method == "||")
+                {
+                    if(targetType->IsPrimitive)
+                    {
+                        result = PrimitiveLogOr(argTypes, instance, secondArg);
+                    }
+
+                    if(result == nullptr)
+                    {
+                        //無効な演算子
+                        throw gcnew ArgumentException("invalid operation");
+                    }
+                }
+                else if(method == "!=")
+                {
+                    if(targetType->IsPrimitive)
+                    {
+                        result = PrimitiveNotEq(argTypes, instance, secondArg);
+                    }
+                    else
+                    {
+                        method = "op_Inequality";
+                        isOperator = true;
+                    }
+                }
+                else if(method == ">=")
+                {
+                    if(targetType->IsPrimitive)
+                    {
+                        result = PrimitiveGtEq(argTypes, instance, secondArg);
+                    }
+                    else
+                    {
+                        method = "op_GreaterThanOrEqual";
+                        isOperator = true;
+                    }
+                }
+                else if(method == "<=")
+                {
+                    if(targetType->IsPrimitive)
+                    {
+                        result = PrimitiveLtEq(argTypes, instance, secondArg);
+                    }
+                    else
+                    {
+                        method = "op_LessThanOrEqual";
+                        isOperator = true;
+                    }
+                }
+                else if(method == "<<")
+                {
+                    if(targetType->IsPrimitive)
+                    {
+                        result = PrimitiveLeftShift(argTypes, instance, secondArg);
+                    }
+                    else
+                    {
+                        method = "op_LeftShift";
+                        isOperator = true;
+                    }
+                }
+                else if(method == ">>")
+                {
+                    if(targetType->IsPrimitive)
+                    {
+                        result = PrimitiveRightShift(argTypes, instance, secondArg);
+                    }
+                    else
+                    {
+                        method = "op_RightShift";
+                        isOperator = true;
+                    }
+                }
+            }
+            else //if(method->Length == 3)
+            {
+                int inc = 0;
+                bool pre = true;
+                if(method == "++x")
+                {
+                    inc = 1;
+                    method = "op_Increment";
                     isOperator = true;
                 }
-            }
-            else if(method == "-")
-            {
-                if(targetType->IsPrimitive
-                    && (_numArg == 0 || secondArg->GetType()->IsPrimitive))
+                else if(method == "x++")
                 {
-                    result = PrimitiveSub(argTypes, instance, secondArg);
-                }
-                else
-                {
-                    method = (_numArg == 0) ? "op_UnaryNegation" : "op_Subtraction";
+                    inc = 1;
+                    pre = false;
+                    method = "op_Increment";
                     isOperator = true;
                 }
-            }
-            else if(method == "*")
-            {
-                method = "op_Multiply";
-                isOperator = true;
-            }
-            else if(method == "/")
-            {
-                method = "op_Division";
-                isOperator = true;
-            }
-            else if(method == "%")
-            {
-                method = "op_Modulus";
-                isOperator = true;
-            }
-            else if(method == "++")
-            {
-                method = "op_Increment";
-                isOperator = true;
-            }
-            else if(method == "--")
-            {
-                method = "op_Decrement";
-                isOperator = true;
-            }
-            else if(method == "&")
-            {
-                method = "op_BitwiseAnd";
-                isOperator = true;
-            }
-            else if(method == "|")
-            {
-                method = "op_BitwiseOr";
-                isOperator = true;
-            }
-            else if(method == "^")
-            {
-                method = "op_ExclusiveOr";
-                isOperator = true;
-            }
-            else if(method == "<<")
-            {
-                method = "op_LeftShift";
-                isOperator = true;
-            }
-            else if(method == ">>")
-            {
-                method = "op_RightShift";
-                isOperator = true;
-            }
-            else if(method == "~")
-            {
-                method = "op_OnesComplement";
-                isOperator = true;
-            }
-            else if(method == "!")
-            {
-                if(targetType->IsPrimitive)
+                else if(method == "--x")
                 {
-                    result = PrimitiveNot(argTypes, instance, secondArg);
-                }
-                else
-                {
-                    method = "op_LogicalNot";
+                    inc = -1;
+                    method = "op_Decrement";
                     isOperator = true;
                 }
-            }
-            else if(method == "==")
-            {
-                method = "op_Equality";
-                isOperator = true;
-            }
-            else if(method == "!=")
-            {
-                method = "op_Inequality";
-                isOperator = true;
-            }
-            else if(method == ">")
-            {
-                method = "op_GreaterThan";
-                isOperator = true;
-            }
-            else if(method == "<")
-            {
-                method = "op_LessThan";
-                isOperator = true;
-            }
-            else if(method == ">=")
-            {
-                method = "op_GreaterThanOrEqual";
-                isOperator = true;
-            }
-            else if(method == "<=")
-            {
-                method = "op_LessThanOrEqual";
-                isOperator = true;
+                else if(method == "x--")
+                {
+                    inc = -1;
+                    pre = false;
+                    method = "op_Decrement";
+                    isOperator = true;
+                }
+
+                if(inc != 0)
+                {
+					//TODO increment and decrement
+                }
             }
 
             if(result != nullptr)

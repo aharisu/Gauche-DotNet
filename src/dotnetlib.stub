@@ -72,29 +72,25 @@
 
 (define-cfn to-objwrapper (obj::ScmObj for-method-arg::int raise-error::int) :: ObjWrapper :static
   (let* ([o::ObjWrapper])
+    (set! (@ o.ptr) (cast _pvoid_t obj))
     (cond
       [(is-type? obj <clr-object>)
-       (set! (@ o.ptr) (unboxing obj <clr-object>))
+       (set! (@ o.value) (unboxing obj <clr-object>))
        (set! (@ o.kind) OBJWRAP_CLROBJECT)]
       [(is-type? obj <fixnum>)
-       (set! (@ o.ptr) (cast _pvoid_t obj))
        (set! (@ o.value) (cast _pvoid_t (unboxing obj <fixnum>)))
        (set! (@ o.kind) OBJWRAP_INT)]
       [(is-type? obj <string>)
-       (set! (@ o.ptr) (cast _pvoid_t obj)) 
        (set! (@ o.value) (cast _pvoid_t (SCM_STRING_START (unboxing obj <string>))))
        (set! (@ o.kind) OBJWRAP_STRING)]
       [(is-type? obj <boolean>)
-       (set! (@ o.ptr) (cast _pvoid_t obj)) 
        (set! (@ o.value) (cast _pvoid_t (unboxing obj <boolean>)))
        (set! (@ o.kind) OBJWRAP_BOOL)]
       ;TODO more primitive type
       [(and for-method-arg (is-type? obj <procedure>))
-        (set! (@ o.ptr) (cast _pvoid_t obj))
         (set! (@ o.value) (unboxing obj <procedure>))
         (set! (@ o.kind) OBJWRAP_PROC)]
       [for-method-arg
-        (set! (@ o.ptr) (ToClrObj obj))
         (set! (@ o.kind) OBJWRAP_CLROBJECT)]
       [raise-error
         (Scm_Error "obj required <clr-object>, but got %S" obj)]
