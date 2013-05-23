@@ -325,6 +325,10 @@ namespace GaucheDotNet
                     //TODO
                 }
             }
+            else if (obj is String)
+            {
+                return GoshInvoke.Scm_MakeString((String)obj, -1, -1, StringFlags.Copying);
+            }
 
             GCHandle handle = GCHandle.Alloc(obj);
             return GoshInvoke.Scm_MakeClrObject((IntPtr)handle);
