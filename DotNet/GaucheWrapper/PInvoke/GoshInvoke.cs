@@ -506,6 +506,15 @@ namespace GaucheDotNet.Native
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr Scm_MakeBinding(IntPtr module, IntPtr symbol, IntPtr value, [MarshalAs(UnmanagedType.I4)] BindingFlag flags);
 
+#if HAS_DELETE_BINDING
+        /// <param name="module">ScmModule*</param>
+        /// <param name="symbol">ScmSymbol*</param>
+        /// <param name="flags"></param>
+        /// <returns>ScmGloc*</returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Scm_DeleteBinding(IntPtr module, IntPtr symbol, [MarshalAs(UnmanagedType.I4)] BindingFlag flags);
+#endif
+
         /// <param name="module">ScmModule*</param>
         /// <param name="symbol">ScmSymbol*</param>
         /// <param name="flags"></param>

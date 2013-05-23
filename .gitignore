@@ -30,8 +30,7 @@ Makefile
 *.ncb
 
 [Db]ebug/
-[Rr]elease/
-[Rr]elease_9_3_3/
+[Rr]elease*/
 x64/
 x86/
 [Bb]in/

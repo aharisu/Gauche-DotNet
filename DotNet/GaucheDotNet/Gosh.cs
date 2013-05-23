@@ -409,6 +409,13 @@ namespace GaucheDotNet
             return MakeBinding(module, symbol, value, BindingFlag.Const);
         }
 
+#if HAS_DELETE_BINDING
+        public static void DeleteBinding(GoshModule module, GoshSymbol symbol, BindingFlag flags)
+        {
+            GoshInvoke.Scm_DeleteBinding(module.Ptr, symbol.Ptr, flags);
+        }
+#endif
+
         public static GoshObj GlobalVariableRef(GoshModule module, GoshSymbol symbol, BindingFlag flags)
         {
             return new GoshRefObj(GoshInvoke.Scm_GlobalVariableRef(module.Ptr, symbol.Ptr, flags));
