@@ -5,6 +5,14 @@ using GaucheDotNet;
 
 namespace Example
 {
+    static class Ext
+    {
+        public static void WriteLine(this GoshObj obj)
+        {
+            Console.WriteLine(obj.Object);
+        }
+    }
+
     public delegate double EventTest(int num, String str);
 
     class Program
@@ -22,22 +30,6 @@ namespace Example
             }
         }
 
-        private static void EvalStringInUser(String exp)
-        {
-            GoshEvalPacket packet = new GoshEvalPacket();
-
-            if (Gosh.EvalString(exp, Gosh.UserModule(), packet) < 0)
-            {
-                GoshCondition exception = packet.Exception;
-                Console.WriteLine(exception.Message);
-                Console.WriteLine(exception.ConditionTypeName);
-            }
-            else
-            {
-                Console.WriteLine(packet[0].Object);
-            }
-        }
-
         static void Main(string[] args)
         {
             Gosh.Initialize();
@@ -49,19 +41,19 @@ namespace Example
 
             Console.WriteLine("show windows form...");
             //load assembly
-            EvalStringInUser("(clr-reference 'System.Windows.Forms)");
+            "(clr-reference 'System.Windows.Forms)".Eval().WriteLine();
 
             //register namespace shortcut
-            EvalStringInUser("(clr-using 'System.Windows.Forms)");
+            "(clr-using 'System.Windows.Forms)".Eval().WriteLine();
 
             //type resolve test
-            EvalStringInUser("(clr-resolve-type 'Form)");
+            "(clr-resolve-type 'Form)".Eval().WriteLine();
 
             //create Form instance
-            EvalStringInUser("(define form (clr-new 'Form))");
+            "(define form (clr-new 'Form))".Eval().WriteLine();
 
             //show and run the Form
-            EvalStringInUser("(clr-call 'Run 'Application form)");
+            "(clr-call 'Run 'Application form)".Eval().WriteLine();
 
             #endregion
 
@@ -77,29 +69,29 @@ namespace Example
             Gosh.Define(user, symHoge, hoge);
 
             //get property
-            EvalStringInUser("(+ 1 2 (clr->int (clr-prop-get hoge 'Num)))");
+            "(+ 1 2 (clr->int (clr-prop-get hoge 'Num)))".Eval().WriteLine();
 
             //set property
             GoshSymbol symNum = Gosh.Intern("num");
             Gosh.Define(user, symNum, 1000);
-            EvalStringInUser("(clr-prop-set! hoge 'Num num)");
+            "(clr-prop-set! hoge 'Num num)".Eval().WriteLine();
 
-            EvalStringInUser("(+ 1 2 (clr->int (clr-prop-get hoge 'Num)))");
+            "(+ 1 2 (clr->int (clr-prop-get hoge 'Num)))".Eval().WriteLine();
 
             //get field
-            EvalStringInUser("(clr-field-get hoge 'str)");
+            "(clr-field-get hoge 'str)".Eval().WriteLine();
 
             //set field
-            EvalStringInUser("(clr-field-set! hoge 'str \"Foo\")");
-            EvalStringInUser("(clr-field-get hoge 'str)");
+            "(clr-field-set! hoge 'str \"Foo\")".Eval().WriteLine();
+            "(clr-field-get hoge 'str)".Eval().WriteLine();
 
             //add event
-            EvalStringInUser("(define ev (lambda (num str) (print (clr->int num))  (print (clr->string str)) 3.14))");
-            EvalStringInUser("(clr-event-add! hoge 'Event ev)");
-            EvalStringInUser("(clr-event-add! hoge 'Event (lambda (num str) (print \"second\") (*  2 3.14)))");
+            "(define ev (lambda (num str) (print (clr->int num))  (print (clr->string str)) 3.14))".Eval().WriteLine();
+            "(clr-event-add! hoge 'Event ev)".Eval().WriteLine();
+            "(clr-event-add! hoge 'Event (lambda (num str) (print \"second\") (*  2 3.14)))".Eval().WriteLine();
             Console.WriteLine(hoge.eventTest(10, "hohoho"));
             //remove event
-            EvalStringInUser("(clr-event-remove! hoge 'Event ev)");
+            "(clr-event-remove! hoge 'Event ev)".Eval().WriteLine();
             Console.WriteLine(hoge.eventTest(10, "hohoho"));
 
             #endregion
@@ -109,30 +101,30 @@ namespace Example
             Console.WriteLine("\n\ncreate generic instance");
 
             //create List<int> object
-            EvalStringInUser("(clr-using 'System.Collections.Generic)");
-            EvalStringInUser("(define l (clr-new '(List int)))");
+            "(clr-using 'System.Collections.Generic)".Eval().WriteLine();
+            "(define l (clr-new '(List int)))".Eval().WriteLine();
 
             //add three element
-            EvalStringInUser("(clr-call 'Add l 1)");
-            EvalStringInUser("(clr-call 'Add l 2)");
-            EvalStringInUser("(clr-call 'Add l 3)");
+            "(clr-call 'Add l 1)".Eval().WriteLine();
+            "(clr-call 'Add l 2)".Eval().WriteLine();
+            "(clr-call 'Add l 3)".Eval().WriteLine();
 
             //get Count property
-            EvalStringInUser("(clr-prop-get l 'Count)");
+            "(clr-prop-get l 'Count)".Eval().WriteLine();
             // get element at index
-            EvalStringInUser("(clr-prop-get l 0)");
+            "(clr-prop-get l 0)".Eval().WriteLine();
 
             //create Dictionary object
-            EvalStringInUser("(define dict (clr-new '(Dictionary string int)))");
+            "(define dict (clr-new '(Dictionary string int)))".Eval().WriteLine();
             //add three key/value
-            EvalStringInUser("(clr-prop-set! dict \"Zero\" 0)");
-            EvalStringInUser("(clr-prop-set! dict \"One\" 1)");
-            EvalStringInUser("(clr-prop-set! dict \"Two\" 2)");
+            "(clr-prop-set! dict \"Zero\" 0)".Eval().WriteLine();
+            "(clr-prop-set! dict \"One\" 1)".Eval().WriteLine();
+            "(clr-prop-set! dict \"Two\" 2)".Eval().WriteLine();
 
             //get Count property
-            EvalStringInUser("(clr-prop-get dict 'Count)");
+            "(clr-prop-get dict 'Count)".Eval().WriteLine();
             // get element at key
-            EvalStringInUser("(clr-prop-get dict \"Two\")");
+            "(clr-prop-get dict \"Two\")".Eval().WriteLine();
 
             #endregion
 
@@ -186,7 +178,7 @@ namespace Example
             //create function that take argument
             GoshSymbol symMul = Gosh.Intern("clr-mul");
             Gosh.Define(user, symMul, Gosh.MakeSubr((int num) => 10 * num));
-            EvalStringInUser("(clr-mul 2)");
+            "(clr-mul 2)".Eval().WriteLine();
 
             //get clr-mull function
             if (Gosh.EvalString("clr-mul", user, packet) < 0)
