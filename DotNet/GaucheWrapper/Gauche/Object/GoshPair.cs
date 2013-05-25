@@ -97,7 +97,7 @@ namespace GaucheDotNet
             while (pair != null)
             {
                 yield return pair.Car;
-                pair = CdrOrNull;
+                pair = pair.CdrOrNull;
             }
             yield break;
         }
