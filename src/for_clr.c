@@ -52,6 +52,11 @@ SCM_EXTERN int Scm_ExtendedPairP(ScmObj obj)
   return SCM_EXTENDED_PAIR_P(obj);
 }
 
+SCM_EXTERN int Scm_HashTableP(ScmObj obj)
+{
+  return SCM_HASH_TABLE_P(obj);
+}
+
 /* Returns FALSE if the process doesn't have a console. */
 static int init_console(void)
 {

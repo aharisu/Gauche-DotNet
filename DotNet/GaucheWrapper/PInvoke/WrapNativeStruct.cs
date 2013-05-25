@@ -111,6 +111,42 @@ namespace GaucheDotNet.Native
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct ScmDictEntry
+    {
+        public IntPtr key;
+        public IntPtr value;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct ScmHashCore
+    {
+        public IntPtr buckets;
+        public Int32 numBuckets;
+        public Int32 numEntries;
+        public Int32 numBucketsLog2;
+        public IntPtr accessfn;
+        public IntPtr hashfn;
+        public IntPtr cmpfn;
+        public IntPtr data;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct ScmHashIter
+    {
+        public ScmHashCore* core;
+        public Int32 bucket;
+        public void* next;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct ScmHashTable
+    {
+        public IntPtr tag;
+        public Int32 type;
+        public ScmHashCore core;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     public struct ScmModule
     {
         public IntPtr tag;

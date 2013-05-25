@@ -142,6 +142,7 @@
     <Compile Include="Gauche\Object\Constant.cs" />
     <Compile Include="Gauche\Object\GoshClrObject.cs" />
     <Compile Include="Gauche\Object\GoshCondition.cs" />
+    <Compile Include="Gauche\Object\GoshHashTable.cs" />
     <Compile Include="Gauche\Object\GoshKeyword.cs" />
     <Compile Include="Gauche\Object\GoshModule.cs" />
     <Compile Include="Gauche\Object\GoshObj.cs" />

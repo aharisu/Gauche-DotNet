@@ -485,6 +485,75 @@ namespace GaucheDotNet.Native
 
         #endregion }
 
+        #region hash.h {
+
+        /// <param name="iter">ScmHashIter*</param>
+        /// <param name="core">ScmHashCore*</param>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Scm_HashIterInit(IntPtr iter, IntPtr core);
+
+        /// <param name="iter">ScmHashIter*</param>
+        /// <returns>ScmDictEntry*</returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_HashIterNext(IntPtr iter);
+
+        /// <param name="type"></param>
+        /// <param name="initSize"></param>
+        /// <returns>ScmObj</returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeHashTableSimple(
+            [MarshalAs(UnmanagedType.I4)] HashType type
+            , int initSize);
+
+        /// <param name="tab">ScmHashTable*</param>
+        /// <returns>ScmObj</returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_HashTableCopy(IntPtr tab);
+
+        /// <param name="ht">ScmHashTable*</param>
+        /// <param name="key">ScmObj</param>
+        /// <param name="fallback">ScmObj</param>
+        /// <returns>ScmObj</returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_HashTableRef(IntPtr ht, IntPtr key, IntPtr fallback);
+
+        /// <param name="ht">ScmHashTable*</param>
+        /// <param name="key">ScmObj</param>
+        /// <param name="value">ScmObj</param>
+        /// <param name="flags"></param>
+        /// <returns>ScmObj</returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_HashTableSet(IntPtr ht, IntPtr key, IntPtr value,
+            [MarshalAs(UnmanagedType.I4)]DictSetFlags flags);
+
+        /// <param name="ht">ScmHashTable*</param>
+        /// <param name="key">ScmObj</param>
+        /// <returns>ScmObj</returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_HashTableDelete(IntPtr ht, IntPtr key);
+
+        /// <param name="table">ScmHashTable*</param>
+        /// <returns>ScmObj (List)</returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_HashTableKeys(IntPtr table);
+
+        /// <param name="table">ScmHashTable*</param>
+        /// <returns>ScmObj (List)</returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_HashTableValues(IntPtr table);
+
+        /// <param name="table">ScmHashTable*</param>
+        /// <returns>ScmObj (List)</returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_HashTableStat(IntPtr table);
+
+        /// <param name="obj">ScmObj</param>
+        /// <returns>objがScm_HashTableのオブジェクトならtrue</returns>
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_HashTableP(IntPtr obj);
+
+        #endregion }
 
         #region module.h {
 

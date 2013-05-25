@@ -134,6 +134,9 @@ namespace GaucheDotNet
                     case KnownClass.Keyword:
                         return new GoshKeyword(ptr);
 
+                    case KnownClass.HashTable:
+                        return new GoshHashTable(ptr);
+
                     case KnownClass.Closure:
                     case KnownClass.Method:
                     case KnownClass.Generic:
@@ -225,6 +228,9 @@ namespace GaucheDotNet
                     case KnownClass.Keyword:
                         return new GoshKeyword(ptr);
 
+                    case KnownClass.HashTable:
+                        return GoshHashTable.ToHashtable(ptr);
+
                     case KnownClass.Closure:
                     case KnownClass.Method:
                     case KnownClass.Generic:
@@ -255,6 +261,43 @@ namespace GaucheDotNet
                         return new GoshRefObj(ptr);
                 }
             }
+        }
+
+        /// <summary>
+        /// ptrの指すオブジェクトがGoshClrObjectであれば.Netのオブジェクトを取得します。
+        /// それ以外のオブジェクトの場合はSpecifyしたGoshObjを返します
+        /// </summary>
+        /// <param name="ptr"></param>
+        /// <returns></returns>
+        public static object ToClrObject(IntPtr ptr)
+        {
+            object obj =  Cast.Specify(ptr);
+            GoshClrObject clrObj = obj as GoshClrObject;
+            if (clrObj != null)
+            {
+                obj = clrObj.Object;
+            }
+            return obj;
+        }
+
+        /// <summary>
+        /// GoshObjであればそのポインタ、.NetのオブジェクトならGoshClrObjectを作成してそのポインタを返す
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public static IntPtr ToGoshObjPtr(object obj)
+        {
+            IntPtr ret;
+            GoshObj goshObj = obj as GoshObj;
+            if (goshObj == null)
+            {
+                ret = GoshInvoke.Scm_MakeClrObject((IntPtr)GCHandle.Alloc(obj));
+            }
+            else
+            {
+                ret = goshObj.Ptr;
+            }
+            return ret;
         }
 
 #if X64

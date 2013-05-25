@@ -387,6 +387,97 @@ namespace GaucheDotNet
 
         #endregion
 
+        #region hash.h {
+
+        public static GoshHashTable MakeHashTable(HashType type, int initSize)
+        {
+            return new GoshHashTable(type, initSize);
+        }
+
+        public static GoshObj HashTableCopy(GoshObj obj)
+        {
+            return new GoshRefObj(GoshInvoke.Scm_HashTableCopy(obj.Ptr));
+        }
+
+        public static object HashTableRef(GoshObj obj, object key)
+        {
+            if (GoshInvoke.Scm_HashTableP(obj.Ptr))
+            {
+                return GoshHashTable.HashTableRef(obj.Ptr, key);
+            }
+            else
+            {
+                throw new GoshException("Scm_HashTable required");
+            }
+        }
+
+        public static void HashTableSet(GoshObj obj, object key, object value)
+        {
+            if (GoshInvoke.Scm_HashTableP(obj.Ptr))
+            {
+                GoshHashTable.HashTableSet(obj.Ptr, key, value);
+            }
+            else
+            {
+                throw new GoshException("Scm_HashTable required");
+            }
+        }
+
+        public static object HashTableDelete(GoshObj obj, object key)
+        {
+            if (GoshInvoke.Scm_HashTableP(obj.Ptr))
+            {
+                return GoshHashTable.HashTableDelete(obj.Ptr, key);
+            }
+            else
+            {
+                throw new GoshException("Scm_HashTable required");
+            }
+        }
+
+        public static GoshObj HashTableKeys(GoshObj obj)
+        {
+            if (GoshInvoke.Scm_HashTableP(obj.Ptr))
+            {
+                return new GoshRefObj(GoshInvoke.Scm_HashTableKeys(obj.Ptr));
+            }
+            else
+            {
+                throw new GoshException("Scm_HashTable required");
+            }
+        }
+
+        public static GoshObj HashTableValues(GoshObj obj)
+        {
+            if (GoshInvoke.Scm_HashTableP(obj.Ptr))
+            {
+                return new GoshRefObj(GoshInvoke.Scm_HashTableValues(obj.Ptr));
+            }
+            else
+            {
+                throw new GoshException("Scm_HashTable required");
+            }
+        }
+
+        public static GoshObj HashTableStat(GoshObj obj)
+        {
+            if (GoshInvoke.Scm_HashTableP(obj.Ptr))
+            {
+                return new GoshRefObj(GoshInvoke.Scm_HashTableStat(obj.Ptr));
+            }
+            else
+            {
+                throw new GoshException("Scm_HashTable required");
+            }
+        }
+
+        public static bool IsHashTable(GoshObj obj)
+        {
+            return GoshInvoke.Scm_HashTableP(obj.Ptr);
+        }
+
+        #endregion }
+
         #region module.h {
 
         public static GoshGloc FindBinding(GoshModule module, GoshSymbol symbol, BindingFlag flags)

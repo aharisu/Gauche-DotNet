@@ -85,4 +85,60 @@ namespace GaucheDotNet
     }
 
     #endregion }
+
+    #region hash.h {
+
+    public enum HashType : int
+    {
+        Eq = 0,
+        Eqv,
+        Equal,
+        String,
+        General,
+    }
+
+    #endregion }
+
+    #region collection.h {
+
+    /// <summary>
+    /// Common operation argument for *Search functions
+    /// </summary>
+    public enum DictOp : int
+    {
+        /// <summary>
+        /// returns ScmDictEntry* if found, NULL otherwise.
+        /// </summary>
+        Get = 0,
+        /// <summary>
+        /// if not found, create a new entry.always return ScmDictEntry*.
+        /// </summary>
+        Create,
+        /// <summary>
+        /// deletes found entry
+        /// </summary>
+        Delete
+    }
+
+    /// <summary>
+    /// Common flags for *Set functions
+    /// </summary>
+    [Flags]
+    public enum DictSetFlags : int
+    {
+        None = 0,
+
+        /// <summary>
+        /// do not overwrite the existing entry
+        /// </summary>
+        NoOverwrite = (1<< 0),
+
+        /// <summary>
+        /// do not create new one if no match
+        /// </summary>
+        NoCreate = (1 << 1),
+    }
+
+    #endregion }
+
 }
