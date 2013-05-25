@@ -131,6 +131,9 @@ namespace GaucheDotNet
                     case KnownClass.Symbol:
                         return new GoshSymbol(ptr);
 
+                    case KnownClass.Keyword:
+                        return new GoshKeyword(ptr);
+
                     case KnownClass.Closure:
                     case KnownClass.Method:
                     case KnownClass.Generic:
@@ -218,6 +221,9 @@ namespace GaucheDotNet
 
                     case KnownClass.Symbol:
                         return new GoshSymbol(ptr);
+
+                    case KnownClass.Keyword:
+                        return new GoshKeyword(ptr);
 
                     case KnownClass.Closure:
                     case KnownClass.Method:
