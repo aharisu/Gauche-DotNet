@@ -158,6 +158,9 @@ namespace GaucheDotNet
                             }
                         }
 
+                    case KnownClass.Condition:
+                        return new GoshCondition(ptr);
+
                     case KnownClass.ClrObject:
                         return new GoshClrObject(ptr);
 
@@ -250,6 +253,21 @@ namespace GaucheDotNet
                             {
                                 return (GoshFunc)func.Target;
                             }
+                        }
+
+                    case KnownClass.Condition:
+                        {
+                            Exception e = null;
+                            IntPtr condition =  GoshInvoke.Scm_ClrConditionInnerException(ptr);
+                            if (condition != IntPtr.Zero)
+                            {
+                                e = GCHandle.FromIntPtr(condition).Target as Exception;
+                            }
+                            if (e == null)
+                            {
+                                e = new GoshException(new GoshCondition(ptr).ToString());
+                            }
+                            return e;
                         }
 
                     case KnownClass.ClrObject:

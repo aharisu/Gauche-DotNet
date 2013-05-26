@@ -130,11 +130,13 @@
 
 (use gauche.sequence)
 
+(define-constant offset 7)
+
 (define (output-class-getter index class)
   (print "#if !defined(GAUCHE_BROKEN_LINKER_WORKAROUND)")
-  (print "  else if (tag == SCM_CLASS2TAG(&" class ")) return " (+ index 6) ";")
+  (print "  else if (tag == SCM_CLASS2TAG(&" class ")) return " (+ index offset) ";")
   (print "#else")
-  (print "  else if (klass == &" class ") return " (+ index 6) ";")
+  (print "  else if (klass == &" class ") return " (+ index offset) ";")
   (print "#endif")
   )
 
@@ -171,6 +173,10 @@ SCM_EXTERN int Scm_IsKnownType(void* ptr)
     else if (SCM_PROCEDURE_TYPE(ptr) == SCM_PROC_GENERIC) return 4;
     else if (SCM_PROCEDURE_TYPE(ptr) == SCM_PROC_NEXT_METHOD) return 5;
   }
+  else if(SCM_CONDITIONP(ptr))
+  {
+    return 6;
+  }
 ")
       (for-each-with-index
         output-class-getter
@@ -197,10 +203,11 @@ namespace GaucheDotNet
       Subr = 2,
       Method = 3,
       Generic = 4,
-      NextMethod = 5,")
+      NextMethod = 5,
+      Condition = 6,")
       (for-each-with-index
         (lambda (index class)
-          (print "      " (trim-scm-class class) " = " (+ 6 index) ","))
+          (print "      " (trim-scm-class class) " = " (+ index offset) ","))
         classes)
       (print
 "    }
