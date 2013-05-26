@@ -47,6 +47,9 @@ extern "C" {
 DECDLL void ReleaseClrObject(void* obj);
 DECDLL void* ToClrObj(void* scmObj);
 
+DECDLL int ClrEqualP(void* x, void* y);
+DECDLL int ClrCompare(void* x, void* y);
+
 DECDLL void* BooleanToClr(int boolean);
 DECDLL int ClrToBoolean(void* obj);
 

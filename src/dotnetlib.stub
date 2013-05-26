@@ -49,7 +49,7 @@
       ,(symbol->string func-name) ,msg)]
   )
 
-(define-cfn clr-object-print (obj::ScmObj port::ScmPort*) :: void
+(define-cfn clr-object-print (obj::ScmObj port::ScmPort*) :: void :static
   (cond
     [(is-type? obj <clr-object>)
      (Scm_Printf port "#{<clr-object> %A::%A}" 
@@ -57,6 +57,11 @@
                  (ClrGetTypeName (unboxing obj <clr-object>)))]
     [else
       (Scm_Printf port "#{<clr-object>}")]))
+
+(define-cfn clr-object-compare (x::ScmObj y::ScmObj equalP::int) :: int :static
+  (if equalP
+    (return (not (ClrEqualP (unboxing x <clr-object>) (unboxing y <clr-object>))))
+    (return (ClrCompare (unboxing x <clr-object>) (unboxing y <clr-object>)))))
 
 ;;-----------------
 ;;ClrObject(Gauche .Net Object)
@@ -68,6 +73,7 @@
   ( ;;slot
    )
   (printer (clr-object-print obj port))
+  (compare (return (clr-object-compare x y equalp)))
   )
 
 (define-cfn to-objwrapper (obj::ScmObj for-method-arg::int raise-error::int) :: ObjWrapper :static

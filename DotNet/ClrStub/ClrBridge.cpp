@@ -63,6 +63,64 @@ DECDLL void* ToClrObj(void* scmObj)
     return (void*)(IntPtr) GCHandle::Alloc(hClrObj);
 }
 
+DECDLL int ClrEqualP(void* x, void* y)
+{
+    Object^ objX = GCHandle::FromIntPtr(IntPtr(x)).Target;
+    Object^ objY = GCHandle::FromIntPtr(IntPtr(y)).Target;
+    if(objX == nullptr)
+    {
+        if(objY == nullptr)
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    if(objY == nullptr)
+    {
+        return 0;
+    }
+
+    return objX->Equals(objY) ? 1 : 0;
+}
+
+DECDLL int ClrCompare(void* x, void* y)
+{
+    Object^ objX = GCHandle::FromIntPtr(IntPtr(x)).Target;
+    Object^ objY = GCHandle::FromIntPtr(IntPtr(y)).Target;
+    if(objX == nullptr)
+    {
+        if(objY == nullptr)
+        {
+            return 0;
+        }
+        else
+        {
+            return -1;
+        }
+    }
+    if(objY == nullptr)
+    {
+        return 1;
+    }
+
+    if(objX->GetType()->IsAssignableFrom(IComparable::typeid))
+    {
+        return ((IComparable^)objX)->CompareTo(objY);
+    }
+
+    if(objY->GetType()->IsAssignableFrom(IComparable::typeid))
+    {
+        int cmp = ((IComparable^)objY)->CompareTo(objX);
+        return  cmp == 0 ? 0 : cmp > 0 ? -1 : 1;
+    } 
+
+    ClrStubConstant::RaiseClrError(gcnew InvalidOperationException("can not be compared object"));
+    return 0; //does not reach
+}
+
 static void ObjectNullCheck(Object^ obj)
 {
     if(obj == nullptr)
