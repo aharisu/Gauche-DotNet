@@ -121,6 +121,17 @@ DECDLL int ClrCompare(void* x, void* y)
     return 0; //does not reach
 }
 
+DECDLL int ClrGetHash(void* obj)
+{
+    Object^ clrObj = GCHandle::FromIntPtr(IntPtr(obj)).Target;
+    if(clrObj == nullptr)
+    {
+        return 0;
+    }
+
+    return clrObj->GetHashCode();
+}
+
 static void ObjectNullCheck(Object^ obj)
 {
     if(obj == nullptr)

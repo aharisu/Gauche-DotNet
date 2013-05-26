@@ -76,6 +76,9 @@
   (compare (return (clr-object-compare x y equalp)))
   )
 
+(define-cproc clr-object-hash (obj::<clr-object>) :: <int>
+  (result (ClrGetHash obj)))
+
 (define-cfn to-objwrapper (obj::ScmObj for-method-arg::int raise-error::int) :: ObjWrapper :static
   (let* ([o::ObjWrapper])
     (set! (@ o.ptr) (cast _pvoid_t obj))

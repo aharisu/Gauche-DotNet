@@ -37,3 +37,6 @@
 ;; Loads extension
 (dynamic-load "gauche_dotnet")
 
+(define-method object-hash ((obj <clr-object>))
+  (clr-object-hash obj))
+

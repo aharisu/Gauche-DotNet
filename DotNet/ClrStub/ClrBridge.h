@@ -50,6 +50,8 @@ DECDLL void* ToClrObj(void* scmObj);
 DECDLL int ClrEqualP(void* x, void* y);
 DECDLL int ClrCompare(void* x, void* y);
 
+DECDLL int ClrGetHash(void* obj);
+
 DECDLL void* BooleanToClr(int boolean);
 DECDLL int ClrToBoolean(void* obj);
 
