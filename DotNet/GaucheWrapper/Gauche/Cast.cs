@@ -140,6 +140,9 @@ namespace GaucheDotNet
                     case KnownClass.HashTable:
                         return new GoshHashTable(ptr);
 
+                    case KnownClass.Vector:
+                        return new GoshVector(ptr);
+
                     case KnownClass.Closure:
                     case KnownClass.Method:
                     case KnownClass.Generic:
@@ -239,6 +242,9 @@ namespace GaucheDotNet
 
                     case KnownClass.HashTable:
                         return GoshHashTable.ToHashtable(ptr);
+
+                    case KnownClass.Vector:
+                        return GoshVector.ToArray(ptr);
 
                     case KnownClass.Closure:
                     case KnownClass.Method:

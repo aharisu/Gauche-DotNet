@@ -901,6 +901,95 @@ namespace GaucheDotNet
 
         #endregion }
 
+        #region vector.h {
+
+        public static GoshVector MakeVector(int size)
+        {
+            return new GoshVector(size);
+        }
+
+        public static GoshVector MakeVector(int size, GoshObj fill)
+        {
+            return new GoshVector(size, fill);
+        }
+
+        public static GoshObj VectorRef(GoshObj vec, int i, GoshObj fallback)
+        {
+            TypeCheck(vec, GoshInvoke.Scm_VectorP, 0);
+            return new GoshRefObj(GoshInvoke.Scm_VectorRef(vec.Ptr, i, fallback.Ptr));
+        }
+
+        public static GoshObj VectorSet(GoshObj vec, int i, GoshObj obj)
+        {
+            TypeCheck(vec, GoshInvoke.Scm_VectorP, 0);
+            return new GoshRefObj(GoshInvoke.Scm_VectorRef(vec.Ptr, i, obj.Ptr));
+        }
+
+        public static GoshObj VectorFill(GoshObj vec, GoshObj fill, int start, int end)
+        {
+            TypeCheck(vec, GoshInvoke.Scm_VectorP, 0);
+            return new GoshRefObj(GoshInvoke.Scm_VectorFill(vec.Ptr, fill.Ptr, start, end));
+        }
+
+        public static GoshVector ListToVector(GoshObj list)
+        {
+            return ListToVector(list, 0, -1);
+        }
+        public static GoshVector ListToVector(GoshObj list, int start)
+        {
+            return ListToVector(list, start, -1);
+        }
+
+        public static GoshVector ListToVector(GoshObj list, int start, int end)
+        {
+            return new GoshVector(GoshInvoke.Scm_ListToVector(list.Ptr, start, end));
+        }
+
+        public static GoshObj VectorToList(GoshObj vec)
+        {
+            return VectorToList(vec, 0);
+        }
+        public static GoshObj VectorToList(GoshObj vec, int start)
+        {
+            TypeCheck(vec, GoshInvoke.Scm_VectorP, 0);
+
+            int end;
+            unsafe
+            {
+                end= (int)((GaucheDotNet.Native.ScmVector*)vec.Ptr)->size;
+            }
+            return new GoshRefObj(GoshInvoke.Scm_VectorToList(vec.Ptr, start, end));
+        }
+
+        public static GoshObj VectorToList(GoshObj vec, int start, int end)
+        {
+            TypeCheck(vec, GoshInvoke.Scm_VectorP, 0);
+            return new GoshRefObj(GoshInvoke.Scm_VectorToList(vec.Ptr, start, end));
+        }
+
+        public static GoshVector VectorCopy(GoshObj vec)
+        {
+            return VectorCopy(vec, 0, -1, Gosh.Undefined);
+        }
+
+        public static GoshVector VectorCopy(GoshObj vec, int start)
+        {
+            return VectorCopy(vec, start, -1, Gosh.Undefined);
+        }
+
+        public static GoshVector VectorCopy(GoshObj vec, int start, int end)
+        {
+            return VectorCopy(vec, start, end, Gosh.Undefined);
+        }
+
+        public static GoshVector VectorCopy(GoshObj vec, int start, int end, GoshObj fill)
+        {
+            TypeCheck(vec, GoshInvoke.Scm_VectorP, 0);
+            return new GoshVector(GoshInvoke.Scm_VectorCopy(vec.Ptr, start, end, fill.Ptr));
+        }
+
+        #endregion }
+
         #region symbol.h {
 
         public static GoshSymbol MakeSymbol(GoshString name, bool interned)

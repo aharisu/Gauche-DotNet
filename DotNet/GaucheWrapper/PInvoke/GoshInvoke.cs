@@ -810,6 +810,48 @@ namespace GaucheDotNet.Native
 
         #endregion }
 
+        #region vector.h {
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeVector(Int32 size, IntPtr fill);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_VectorRef(IntPtr vec, Int32 i, IntPtr fallback);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_VectorSet(IntPtr vec, Int32 i, IntPtr obj);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_VectorFill(IntPtr vec, IntPtr fill, Int32 start, Int32 end);
+
+        /// <param name="l">ScmObj(List)</param>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <returns></returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_ListToVector(IntPtr l, Int32 start, Int32 end);
+
+        /// <param name="v">ScmVector*</param>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <returns></returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_VectorToList(IntPtr v, Int32 start, Int32 end);
+
+        /// <param name="v">ScmVector*</param>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <returns></returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_VectorCopy(IntPtr v, Int32 start, Int32 end, IntPtr fill);
+
+        /// <param name="obj">ScmObj</param>
+        /// <returns>objがScm_Vectorのオブジェクトならtrue</returns>
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_VectorP(IntPtr obj);
+
+        #endregion }
 
         #region symbol.h {
 
@@ -1019,6 +1061,13 @@ namespace GaucheDotNet.Native
         /// <returns>GCHandle ptr</returns>
         [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr Scm_ClrConditionInnerException(IntPtr obj);
+
+        #endregion }
+
+        #region gc.h {
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void GC_init();
 
         #endregion }
 

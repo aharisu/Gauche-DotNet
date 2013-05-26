@@ -67,6 +67,11 @@ SCM_EXTERN int Scm_BignumP(ScmObj obj)
   return SCM_BIGNUMP(obj);
 }
 
+SCM_EXTERN int Scm_VectorP(ScmObj obj)
+{
+  return SCM_VECTORP(obj);
+}
+
 /* Returns FALSE if the process doesn't have a console. */
 static int init_console(void)
 {

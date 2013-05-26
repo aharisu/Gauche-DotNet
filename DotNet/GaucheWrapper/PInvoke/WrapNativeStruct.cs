@@ -111,6 +111,14 @@ namespace GaucheDotNet.Native
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct ScmVector
+    {
+        public IntPtr tag;
+        public IntPtr size;
+        public IntPtr* elements;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     public unsafe struct ScmDictEntry
     {
         public IntPtr key;
