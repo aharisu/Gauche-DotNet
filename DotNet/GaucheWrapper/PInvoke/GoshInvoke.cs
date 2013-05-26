@@ -87,6 +87,134 @@ namespace GaucheDotNet.Native
         // FLONUM
         //
 
+        #region bignum.h {
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeBignumFromSI(Int32 val);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeBignumFromUI(UInt32 val);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeBignumFromUIArray(Int32 sign,
+            [MarshalAs(UnmanagedType.LPArray)] UInt32[] values,
+            Int32 size);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeBignumFromDouble(Double val);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_BignumCopy(IntPtr b);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_BignumToString(IntPtr b, Int32 radix, Int32 use_upper);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern Int32 Scm_BignumToSI(IntPtr b,
+            [MarshalAs(UnmanagedType.I4)] ClampMode clamp,
+            [MarshalAs(UnmanagedType.Bool)] out bool oor);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern UInt32 Scm_BignumToUI(IntPtr b,
+            [MarshalAs(UnmanagedType.I4)] ClampMode clamp,
+            [MarshalAs(UnmanagedType.Bool)] out bool oor);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern Int64 Scm_BignumToSI64(IntPtr b,
+            [MarshalAs(UnmanagedType.I4)] ClampMode clamp,
+            [MarshalAs(UnmanagedType.Bool)] out bool oor);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern UInt64 Scm_BignumToUI64(IntPtr b,
+            [MarshalAs(UnmanagedType.I4)] ClampMode clamp,
+            [MarshalAs(UnmanagedType.Bool)] out bool oor);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern Double Scm_BignumToDouble(IntPtr b);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_NormalizeBignum(IntPtr b);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_BignumNegate(IntPtr b);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        [return:MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_BignumCmp(IntPtr bx, IntPtr by);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        [return:MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_BignumAbsCmp(IntPtr bx, IntPtr by);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        [return:MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_BignumCmp3U(IntPtr bx, IntPtr off, IntPtr by);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_BignumComplement(IntPtr bx);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_BignumAdd(IntPtr bx, IntPtr by);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_BignumAddSI(IntPtr bx, Int32 y);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_BignumSub(IntPtr bx, IntPtr by);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_BignumSubSI(IntPtr bx, Int32 y);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_BignumMul(IntPtr bx, IntPtr by);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_BignumMulSI(IntPtr bx, Int32 y);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_BignumDivSI(IntPtr bx, Int32 y, out Int32 remainder);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_BignumDivRem(IntPtr bx, IntPtr by);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern Int32 Scm_BignumRemSI(IntPtr bx, Int32 y);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_BignumLogAnd(IntPtr bx, IntPtr by);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_BignumLogIor(IntPtr bx, IntPtr by);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_BignumLogXor(IntPtr bx, IntPtr by);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_BignumLogNot(IntPtr bx);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern Int32 Scm_BignumLogCount(IntPtr b);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_BignumAsh(IntPtr bx, Int32 cnt);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeBignumWithSize(Int32 size, UInt32 init);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_BignumAccMultAddUI(IntPtr acc, UInt32 coef, UInt32 c);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern Int32 Scm_DumpBignum(IntPtr b, IntPtr outPort);
+
+        /// <param name="obj">ScmObj</param>
+        /// <returns>objがScm_Bignumのオブジェクトならtrue</returns>
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_BignumP(IntPtr obj);
+
+        #endregion }
+
         //
         // CHARACTERS
         //

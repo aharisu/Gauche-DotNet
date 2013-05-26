@@ -45,6 +45,25 @@ namespace GaucheDotNet
     }
     #endregion }
 
+    #region number.h {
+
+    public enum ClampMode : int
+    {
+        /// <summary>
+        /// throws an error when out-of-range
+        /// </summary>
+        Error = 0,
+        Hi = 1,
+        Lo = 2,
+        Both = 3,
+        /// <summary>
+        /// do not convert when out-of-range
+        /// </summary>
+        None = 4,
+    }
+
+    #endregion }
+
     #region string.h {
 
     [Flags]

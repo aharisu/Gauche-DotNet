@@ -34,6 +34,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Runtime.InteropServices;
 using GaucheDotNet.Native;
+using System.Diagnostics;
 
 namespace GaucheDotNet
 {
@@ -45,6 +46,24 @@ namespace GaucheDotNet
         public static readonly GoshEOF EOF = GoshEOF.EOF;
         public static readonly GoshUndefined Undefined = GoshUndefined.Undefined;
         public static readonly GoshUnbound Unbound = GoshUnbound.Unbound;
+
+        private delegate bool TypeChecker(IntPtr obj);
+
+        private static void TypeCheck(GoshObj obj, TypeChecker checker, int argIndex)
+        {
+            if (!checker(obj.Ptr))
+            {
+                StackFrame caller = new StackFrame(1);
+                System.Reflection.MethodBase callerMethod = caller.GetMethod();
+                string callerName = callerMethod.Name;
+                string argName = callerMethod.GetParameters()[argIndex].Name;
+
+                string typename = checker.Method.Name.TrimEnd('P');
+                string objectTypeName = obj.Specify.GetType().Name.Replace("Gosh", "Scm_");
+
+                throw new GoshException(callerName + ": " + argName + " required " + typename + ", bug got " + objectTypeName + ".");
+            }
+        }
 
         #region gauche_dotnet {
 
@@ -118,6 +137,287 @@ namespace GaucheDotNet
         public static int Apply(object proc, object args, GoshEvalPacket packet)
         {
             return GoshInvoke.Scm_Apply(Cast.ToIntPtr(proc), Cast.ToIntPtr(args), packet.Ptr);
+        }
+
+        #endregion }
+
+        #region bignum.h {
+
+        public static GoshObj MakeBignum(Int32 val)
+        {
+            return new GoshRefObj(GoshInvoke.Scm_MakeBignumFromSI(val));
+        }
+
+        public static GoshObj MakeBignum(UInt32 val)
+        {
+            return new GoshRefObj(GoshInvoke.Scm_MakeBignumFromUI(val));
+        }
+
+        public static GoshObj MakeBignum(int sign, UInt32[] values)
+        {
+            return new GoshRefObj(GoshInvoke.Scm_MakeBignumFromUIArray(sign, values, values.Length));
+        }
+
+        public static GoshObj MakeBignum(double val)
+        {
+            return new GoshRefObj(GoshInvoke.Scm_MakeBignumFromDouble(val));
+        }
+
+        public static GoshObj BignumCopy(GoshObj b)
+        {
+            TypeCheck(b, GoshInvoke.Scm_BignumP, 0);
+
+            return new GoshRefObj(GoshInvoke.Scm_BignumCopy(b.Ptr));
+        }
+
+        public static GoshObj BignumToString(GoshObj b, int radix, bool useUpper)
+        {
+            TypeCheck(b, GoshInvoke.Scm_BignumP, 0);
+
+            return new GoshRefObj(GoshInvoke.Scm_BignumToString(b.Ptr, radix, useUpper ? 1 : 0));
+        }
+
+        public static Int32 BignumToSI(GoshObj b, ClampMode clamp)
+        {
+            bool oor;
+            return BignumToSI(b, clamp, out oor);
+        }
+
+        public static Int32 BignumToSI(GoshObj b, ClampMode clamp, out bool oor)
+        {
+            TypeCheck(b, GoshInvoke.Scm_BignumP, 0);
+
+            return GoshInvoke.Scm_BignumToSI(b.Ptr, clamp, out oor);
+        }
+
+        public static UInt32 BignumToUI(GoshObj b, ClampMode clamp)
+        {
+            bool oor;
+            return BignumToUI(b, clamp, out oor);
+        }
+
+        public static UInt32 BignumToUI(GoshObj b, ClampMode clamp, out bool oor)
+        {
+            TypeCheck(b, GoshInvoke.Scm_BignumP, 0);
+
+            return GoshInvoke.Scm_BignumToUI(b.Ptr, clamp, out oor);
+        }
+
+        public static Int64 BignumToSI64(GoshObj b, ClampMode clamp)
+        {
+            bool oor;
+            return BignumToSI64(b, clamp, out oor);
+        }
+
+        public static Int64 BignumToSI64(GoshObj b, ClampMode clamp, out bool oor)
+        {
+            TypeCheck(b, GoshInvoke.Scm_BignumP, 0);
+
+            return GoshInvoke.Scm_BignumToSI64(b.Ptr, clamp, out oor);
+        }
+
+        public static UInt64 BignumToUI64(GoshObj b, ClampMode clamp)
+        {
+            bool oor;
+            return BignumToUI64(b, clamp, out oor);
+        }
+
+        public static UInt64 BignumToUI64(GoshObj b, ClampMode clamp, out bool oor)
+        {
+            TypeCheck(b, GoshInvoke.Scm_BignumP, 0);
+
+            return GoshInvoke.Scm_BignumToUI64(b.Ptr, clamp, out oor);
+        }
+
+        public static double BignumToDouble(GoshObj b)
+        {
+            TypeCheck(b, GoshInvoke.Scm_BignumP, 0);
+
+            return GoshInvoke.Scm_BignumToDouble(b.Ptr);
+        }
+
+        public static GoshObj NormalizeBignum(GoshObj b)
+        {
+            TypeCheck(b, GoshInvoke.Scm_BignumP, 0);
+
+            return new GoshRefObj(GoshInvoke.Scm_NormalizeBignum(b.Ptr));
+        }
+
+        public static GoshObj BignumNegete(GoshObj b)
+        {
+            TypeCheck(b, GoshInvoke.Scm_BignumP, 0);
+
+            return new GoshRefObj(GoshInvoke.Scm_BignumNegate(b.Ptr));
+        }
+
+        public static bool BignumCmp(GoshObj bx, GoshObj by)
+        {
+            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(by, GoshInvoke.Scm_BignumP, 1);
+
+            return GoshInvoke.Scm_BignumCmp(bx.Ptr, by.Ptr);
+        }
+
+        public static bool BignumAbsCmp(GoshObj bx, GoshObj by)
+        {
+            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(by, GoshInvoke.Scm_BignumP, 1);
+
+            return GoshInvoke.Scm_BignumAbsCmp(bx.Ptr, by.Ptr);
+        }
+
+        public static bool BignumCmp3U(GoshObj bx, GoshObj off, GoshObj by)
+        {
+            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(off, GoshInvoke.Scm_BignumP, 1);
+            TypeCheck(by, GoshInvoke.Scm_BignumP, 2);
+
+            return GoshInvoke.Scm_BignumCmp3U(bx.Ptr, off.Ptr, by.Ptr);
+        }
+
+        public static GoshObj BignumComplement(GoshObj bx)
+        {
+            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
+
+            return new GoshRefObj(GoshInvoke.Scm_BignumComplement(bx.Ptr));
+        }
+
+        public static GoshObj BignumAdd(GoshObj bx, GoshObj by)
+        {
+            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(by, GoshInvoke.Scm_BignumP, 1);
+
+            return new GoshRefObj(GoshInvoke.Scm_BignumAdd(bx.Ptr, by.Ptr));
+        }
+
+        public static GoshObj BignumAddSI(GoshObj bx, Int32 y)
+        {
+            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
+
+            return new GoshRefObj(GoshInvoke.Scm_BignumAddSI(bx.Ptr, y));
+        }
+
+        public static GoshObj BignumSub(GoshObj bx, GoshObj by)
+        {
+            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(by, GoshInvoke.Scm_BignumP, 1);
+
+            return new GoshRefObj(GoshInvoke.Scm_BignumSub(bx.Ptr, by.Ptr));
+        }
+
+        public static GoshObj BignumSubSI(GoshObj bx, Int32 y)
+        {
+            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
+
+            return new GoshRefObj(GoshInvoke.Scm_BignumSubSI(bx.Ptr, y));
+        }
+
+        public static GoshObj BignumMul(GoshObj bx, GoshObj by)
+        {
+            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(by, GoshInvoke.Scm_BignumP, 1);
+
+            return new GoshRefObj(GoshInvoke.Scm_BignumMul(bx.Ptr, by.Ptr));
+        }
+
+        public static GoshObj BignumMulSI(GoshObj bx, Int32 y)
+        {
+            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
+
+            return new GoshRefObj(GoshInvoke.Scm_BignumMulSI(bx.Ptr, y));
+        }
+
+        public static GoshObj BignumDivSI(GoshObj bx, Int32 y)
+        {
+            int rem;
+            return BignumDivSI(bx, y, out rem);
+        }
+
+        public static GoshObj BignumDivSI(GoshObj bx, Int32 y, out int remainder)
+        {
+            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
+
+            return new GoshRefObj(GoshInvoke.Scm_BignumDivSI(bx.Ptr, y, out remainder));
+        }
+
+        public static GoshObj BignumDivRem(GoshObj bx, GoshObj by)
+        {
+            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(by, GoshInvoke.Scm_BignumP, 1);
+
+            return new GoshRefObj(GoshInvoke.Scm_BignumDivRem(bx.Ptr, by.Ptr));
+        }
+
+        public static GoshObj BignumRemSI(GoshObj bx, int y)
+        {
+            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
+
+            return new GoshRefObj(GoshInvoke.Scm_BignumRemSI(bx.Ptr, y));
+        }
+
+        public static GoshObj BignumLogAnd(GoshObj bx, GoshObj by)
+        {
+            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(by, GoshInvoke.Scm_BignumP, 1);
+
+            return new GoshRefObj(GoshInvoke.Scm_BignumLogAnd(bx.Ptr, by.Ptr));
+        }
+
+        public static GoshObj BignumLogIor(GoshObj bx, GoshObj by)
+        {
+            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(by, GoshInvoke.Scm_BignumP, 1);
+
+            return new GoshRefObj(GoshInvoke.Scm_BignumLogIor(bx.Ptr, by.Ptr));
+        }
+
+        public static GoshObj BignumLogXor(GoshObj bx, GoshObj by)
+        {
+            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(by, GoshInvoke.Scm_BignumP, 1);
+
+            return new GoshRefObj(GoshInvoke.Scm_BignumLogXor(bx.Ptr, by.Ptr));
+        }
+
+        public static GoshObj BignumLogNot(GoshObj bx)
+        {
+            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
+
+            return new GoshRefObj(GoshInvoke.Scm_BignumLogNot(bx.Ptr));
+        }
+
+        public static int BignumLogCount(GoshObj b)
+        {
+            TypeCheck(b, GoshInvoke.Scm_BignumP, 0);
+
+            return GoshInvoke.Scm_BignumLogCount(b.Ptr);
+        }
+
+        public static GoshObj BignumAsh(GoshObj bx, int cnt)
+        {
+            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
+
+            return new GoshRefObj(GoshInvoke.Scm_BignumAsh(bx.Ptr, cnt));
+        }
+
+        public static GoshBignum MakeBignumWithSize(int size, UInt32 init)
+        {
+            return new GoshBignum(GoshInvoke.Scm_MakeBignumWithSize(size, init));
+        }
+
+        public static GoshBignum BignumAccMultAddUI(GoshObj acc, UInt32 coef, UInt32 c)
+        {
+            TypeCheck(acc, GoshInvoke.Scm_BignumP, 0);
+
+            return new GoshBignum(GoshInvoke.Scm_BignumAccMultAddUI(acc.Ptr, coef, c));
+        }
+
+        public static int DumpBignum(GoshObj b, GoshObj outPort)
+        {
+            TypeCheck(b, GoshInvoke.Scm_BignumP, 0);
+            //TODO outPort type check
+
+            return GoshInvoke.Scm_DumpBignum(b.Ptr, outPort.Ptr);
         }
 
         #endregion }

@@ -125,6 +125,9 @@ namespace GaucheDotNet
                     case KnownClass.Pair:
                         return new GoshPair(ptr);
 
+                    case KnownClass.Integer:
+                        return new GoshBignum(ptr);
+
                     case KnownClass.String:
                         return new GoshString(ptr);
 
@@ -221,6 +224,9 @@ namespace GaucheDotNet
                 {
                     case KnownClass.Pair:
                         return new GoshPair(ptr);
+
+                    case KnownClass.Integer:
+                        return new GoshBignum(ptr);
 
                     case KnownClass.String:
                         return GoshInvoke.Scm_GetStringConst(ptr);

@@ -32,6 +32,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using GaucheDotNet.Native;
 
 namespace GaucheDotNet
 {
@@ -108,6 +109,29 @@ namespace GaucheDotNet
         public override string ToString()
         {
             return _val.ToString();
+        }
+    }
+    #endregion }
+
+    #region GoshBignum {
+    public class GoshBignum : GoshObj
+    {
+        private readonly IntPtr _ptr;
+
+        public GoshBignum(IntPtr ptr)
+        {
+            this._ptr = ptr;
+        }
+
+        public override IntPtr Ptr
+        {
+            get { return _ptr; }
+        }
+
+        public override string ToString()
+        {
+            return GoshInvoke.Scm_GetStringConst(
+                GoshInvoke.Scm_BignumToString(_ptr, 10, 1));
         }
     }
     #endregion }

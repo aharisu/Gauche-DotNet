@@ -62,6 +62,11 @@ SCM_EXTERN int Scm_HashTableP(ScmObj obj)
   return SCM_HASH_TABLE_P(obj);
 }
 
+SCM_EXTERN int Scm_BignumP(ScmObj obj)
+{
+  return SCM_BIGNUMP(obj);
+}
+
 /* Returns FALSE if the process doesn't have a console. */
 static int init_console(void)
 {
