@@ -51,6 +51,26 @@ namespace GaucheDotNet
         [DllImport("Kernel32.dll")]
         static extern bool SetEnvironmentVariable(string name, string val);
 
+        /// <summary>
+        /// GaucheのVMに設定されるデフォルトのエラーハンドラ
+        /// </summary>
+        /// <param name="args"></param>
+        /// <param name="num"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        private static IntPtr ErrorHandler(IntPtr args, int num, IntPtr data)
+        {
+            Exception e = null;
+            IntPtr obj = Marshal.ReadIntPtr(args);
+            e = Cast.ToObj(obj) as Exception;
+            if (e == null)
+            {
+                e = new GoshException(Cast.Specify(obj).ToString());
+            }
+
+            throw e;
+        }
+        private static IntPtr ErrorHandlerRec;
 
         public static void Initialize()
         {
@@ -66,6 +86,19 @@ namespace GaucheDotNet
 
             //拡張ライブラリ内にあるGaucheの初期化関数を実行
             GoshInvoke.GaucheDotNetInitialize();
+
+            //エラーハンドラの関数を作成
+            ErrorHandlerRec = GoshInvoke.Scm_MakeSubr(ErrorHandler, IntPtr.Zero, 1, 0, Gosh.False.Ptr);
+            //現在のVMにデフォルトエラーハンドラを設定する
+            InstallErrorHandler();
+        }
+
+        /// <summary>
+        /// 現在のVMにデフォルトエラーハンドラを設定する
+        /// </summary>
+        public static void InstallErrorHandler()
+        {
+            GoshInvoke.Scm_InstallErrorHandler(ErrorHandlerRec);
         }
 
         #endregion }

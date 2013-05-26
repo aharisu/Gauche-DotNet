@@ -875,6 +875,18 @@ namespace GaucheDotNet.Native
         [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern int Scm_IsKnownType(IntPtr ptr);
 
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Scm_InstallErrorHandler(IntPtr ptr);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate IntPtr UnwindProtectThunk();
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_WithUnwindProtect(
+            [MarshalAs(UnmanagedType.FunctionPtr)][In] UnwindProtectThunk thunk);
+
+
+
         /// <param name="obj">ScmObj</param>
         /// <returns>GCHandle ptr</returns>
         [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]

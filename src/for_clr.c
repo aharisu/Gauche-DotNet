@@ -35,6 +35,11 @@
 
 #include"dotnet_type.gen.h"
 
+SCM_EXTERN void Scm_InstallErrorHandler(ScmObj ehandler)
+{
+  Scm_VM()->exceptionHandler = ehandler;
+}
+
 SCM_EXTERN ClrObject Scm_ClrConditionInnerException(ScmObj obj)
 {
   if(SCM_ISA(obj, SCM_CLASS_CLR_ERROR))
