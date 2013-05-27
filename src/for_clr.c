@@ -72,6 +72,80 @@ SCM_EXTERN int Scm_VectorP(ScmObj obj)
   return SCM_VECTORP(obj);
 }
 
+SCM_EXTERN int Scm_UVectorP(ScmObj obj)
+{
+  return SCM_UVECTORP(obj);
+}
+
+SCM_EXTERN ScmClass* Scm_GetUVectorClass(int type)
+{
+  switch(type)
+  {
+    case SCM_UVECTOR_S8: return SCM_CLASS_S8VECTOR;
+    case SCM_UVECTOR_U8: return SCM_CLASS_S8VECTOR;
+    case SCM_UVECTOR_S16: return SCM_CLASS_S8VECTOR;
+    case SCM_UVECTOR_U16: return SCM_CLASS_S8VECTOR;
+    case SCM_UVECTOR_S32: return SCM_CLASS_S8VECTOR;
+    case SCM_UVECTOR_U32: return SCM_CLASS_S8VECTOR;
+    case SCM_UVECTOR_S64: return SCM_CLASS_S8VECTOR;
+    case SCM_UVECTOR_U64: return SCM_CLASS_S8VECTOR;
+    case SCM_UVECTOR_F16: return SCM_CLASS_S8VECTOR;
+    case SCM_UVECTOR_F32: return SCM_CLASS_S8VECTOR;
+    case SCM_UVECTOR_F64: return SCM_CLASS_S8VECTOR;
+    default: return NULL;
+  }
+}
+
+SCM_EXTERN int Scm_UVectorLength(ScmUVector* vec)
+{
+  return SCM_UVECTOR_SIZE(vec);
+}
+
+SCM_EXTERN void Scm_UVectorCopy(ScmUVector* srcVec, void* dest, int size)
+{
+  memcpy(dest, SCM_UVECTOR_ELEMENTS(srcVec), size);
+}
+
+SCM_EXTERN void Scm_UVectorCopyF16(ScmUVector* srcVec, double* dest, int len)
+{
+  int i = 0;
+  for(;i < len;++i)
+  {
+    dest[i] = Scm_HalfToDouble(SCM_F16VECTOR_ELEMENT(srcVec, i));
+  }
+}
+
+#define def_uvector_accessor(tag, type)  \
+  SCM_EXTERN type SCM_CPP_CAT3(Scm_,tag,VectorRef)(ScmUVector* vec, int i) \
+  { \
+    return SCM_CPP_CAT3(SCM_, tag, VECTOR_ELEMENT)(vec, i); \
+  } \
+  SCM_EXTERN void SCM_CPP_CAT3(Scm_,tag,VectorSet)(ScmUVector* vec, int i, type val)  \
+  { \
+    SCM_CPP_CAT3(SCM_,tag, VECTOR_ELEMENT)(vec, i) = val; \
+  } \
+
+def_uvector_accessor(S8, signed char)
+def_uvector_accessor(U8, char)
+def_uvector_accessor(S16, short)
+def_uvector_accessor(U16, unsigned short)
+def_uvector_accessor(S32, int)
+def_uvector_accessor(U32, unsigned int)
+def_uvector_accessor(S64, ScmInt64)
+def_uvector_accessor(U64, ScmUInt64)
+def_uvector_accessor(F32, float)
+def_uvector_accessor(F64, double)
+
+SCM_EXTERN double Scm_F16VectorRef(ScmUVector* vec, int i)
+{
+  return Scm_HalfToDouble(SCM_F16VECTOR_ELEMENT(vec, i));
+}
+
+SCM_EXTERN void Scm_F16VectorSet(ScmUVector* vec, int i, double val)
+{
+  SCM_F16VECTOR_ELEMENT(vec, i) = Scm_DoubleToHalf(val);
+}
+
 /* Returns FALSE if the process doesn't have a console. */
 static int init_console(void)
 {

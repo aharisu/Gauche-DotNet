@@ -143,6 +143,9 @@ namespace GaucheDotNet
                     case KnownClass.Vector:
                         return new GoshVector(ptr);
 
+                    case KnownClass.UVector:
+                        return new GoshUVector(ptr);
+
                     case KnownClass.Closure:
                     case KnownClass.Method:
                     case KnownClass.Generic:
@@ -245,6 +248,9 @@ namespace GaucheDotNet
 
                     case KnownClass.Vector:
                         return GoshVector.ToArray(ptr);
+
+                    case KnownClass.UVector:
+                        return GoshUVector.ToArray(ptr);
 
                     case KnownClass.Closure:
                     case KnownClass.Method:

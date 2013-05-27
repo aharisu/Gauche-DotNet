@@ -105,6 +105,25 @@ namespace GaucheDotNet
 
     #endregion }
 
+    #region vector.h {
+
+    public enum UVectorType : int
+    {
+        S8 = 0,
+        U8,
+        S16,
+        U16,
+        S32,
+        U32,
+        S64,
+        U64,
+        F16,
+        F32,
+        F64,
+    }
+
+    #endregion }
+
     #region hash.h {
 
     public enum HashType : int

@@ -215,6 +215,16 @@ namespace GaucheDotNet.Native
 
         #endregion }
 
+        #region number.h {
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern double Scm_HalfToDouble(UInt16 v);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern UInt16 Scm_DoubleToHalf(double v);
+
+        #endregion }
+
         //
         // CHARACTERS
         //
@@ -851,6 +861,228 @@ namespace GaucheDotNet.Native
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool Scm_VectorP(IntPtr obj);
 
+        /// <param name="klass">ScmClass*</param>
+        /// <returns></returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I4)]
+        public static extern UVectorType Scm_UVectorType(IntPtr klass);
+
+        /// <param name="klass">ScmClass*</param>
+        /// <returns></returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern String Scm_UVectorTypeName([MarshalAs(UnmanagedType.I4)]UVectorType type);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int Scm_UVectorElementSize(IntPtr klass);
+
+        /// <param name="v">ScmUVector*</param>
+        /// <returns></returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int Scm_UVectorSizeInBytes(IntPtr v);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeUVector(IntPtr klass, int size, IntPtr init);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeUVectorFill(IntPtr klass, int size, IntPtr init,
+            [MarshalAs(UnmanagedType.Bool)] bool immutablep, IntPtr owner);
+
+        /// <param name="v">ScmUVector*</param>
+        /// <param name="type"></param>
+        /// <param name="index"></param>
+        /// <param name="fallback">ScmObj</param>
+        /// <returns></returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_VMUVectorRef(IntPtr v, 
+            [MarshalAs(UnmanagedType.I4)] UVectorType type,
+            Int32 index, IntPtr fallback);
+
+        /// <param name="type"></param>
+        /// <returns>ScmClass*</returns>
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_GetUVectorClass([MarshalAs(UnmanagedType.I4)]UVectorType type);
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int Scm_UVectorLength(IntPtr obj);
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Scm_UVectorCopy(IntPtr srcVec, IntPtr dest, int sizeInBytes);
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Scm_UVectorCopyF16(IntPtr srcVec, IntPtr dest, int length);
+
+        /// <param name="obj">ScmObj</param>
+        /// <returns>objがScm_UVectorのオブジェクトならtrue</returns>
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_UVectorP(IntPtr obj);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeS8Vector(int size, sbyte fill);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeS8VectorFromArray(int size,
+            [MarshalAs(UnmanagedType.LPArray)] sbyte[] array);
+
+        //not support Scm_MakeS8VectorFromArrayShared
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern sbyte Scm_S8VectorRef(IntPtr vec, int index);
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Scm_S8VectorSet(IntPtr vec, int index, sbyte value);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeU8Vector(int size, byte fill);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeU8VectorFromArray(int size,
+            [MarshalAs(UnmanagedType.LPArray)] byte[] array);
+
+        //not support Scm_MakeU8VectorFromArrayShared
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern byte Scm_U8VectorRef(IntPtr vec, int index);
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Scm_U8VectorSet(IntPtr vec, int index, byte value);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeS16Vector(int size, Int16 fill);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeS16VectorFromArray(int size,
+            [MarshalAs(UnmanagedType.LPArray)] Int16[] array);
+
+        //not support Scm_MakeS16VectorFromArrayShared
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern Int16 Scm_S16VectorRef(IntPtr vec, int index);
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Scm_S16VectorSet(IntPtr vec, int index, Int16 value);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeU16Vector(int size, UInt16 fill);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeU16VectorFromArray(int size,
+            [MarshalAs(UnmanagedType.LPArray)] UInt16[] array);
+
+        //not support Scm_MakeU16VectorFromArrayShared
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern UInt16 Scm_U16VectorRef(IntPtr vec, int index);
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Scm_U16VectorSet(IntPtr vec, int index, UInt16 value);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeS32Vector(int size, Int32 fill);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeS32VectorFromArray(int size,
+            [MarshalAs(UnmanagedType.LPArray)] Int32[] array);
+
+        //not support Scm_MakeS32VectorFromArrayShared
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern Int32 Scm_S32VectorRef(IntPtr vec, int index);
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Scm_S32VectorSet(IntPtr vec, int index, Int32 value);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeU32Vector(int size, UInt32 fill);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeU32VectorFromArray(int size,
+            [MarshalAs(UnmanagedType.LPArray)] UInt32[] array);
+
+        //not support Scm_MakeU32VectorFromArrayShared
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern UInt32 Scm_U32VectorRef(IntPtr vec, int index);
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Scm_U32VectorSet(IntPtr vec, int index, UInt32 value);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeS64Vector(int size, Int64 fill);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeS64VectorFromArray(int size,
+            [MarshalAs(UnmanagedType.LPArray)] Int64[] array);
+
+        //not support Scm_MakeS64VectorFromArrayShared
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern Int64 Scm_S64VectorRef(IntPtr vec, int index);
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Scm_S64VectorSet(IntPtr vec, int index, Int64 value);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeU64Vector(int size, UInt64 fill);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeU64VectorFromArray(int size,
+            [MarshalAs(UnmanagedType.LPArray)] UInt64[] array);
+
+        //not support Scm_MakeU64VectorFromArrayShared
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern UInt64 Scm_U64VectorRef(IntPtr vec, int index);
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Scm_U64VectorSet(IntPtr vec, int index, UInt64 value);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeF16Vector(int size, UInt16 fill);
+
+        // not support
+        //[DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        //public static extern IntPtr Scm_MakeF16VectorFromArray(int size,
+        //    [MarshalAs(UnmanagedType.LPArray)] float[] array);
+
+        //not support Scm_MakeF16VectorFromArrayShared
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern double Scm_F16VectorRef(IntPtr vec, int index);
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Scm_F16VectorSet(IntPtr vec, int index, double value);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeF32Vector(int size, float fill);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeF32VectorFromArray(int size,
+            [MarshalAs(UnmanagedType.LPArray)] float[] array);
+
+        //not support Scm_MakeF32VectorFromArrayShared
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern float Scm_F32VectorRef(IntPtr vec, int index);
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Scm_F32VectorSet(IntPtr vec, int index, float value);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeF64Vector(int size, double fill);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeF64VectorFromArray(int size,
+            [MarshalAs(UnmanagedType.LPArray)] double[] array);
+
+        //not support Scm_MakeF64VectorFromArrayShared
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern double Scm_F64VectorRef(IntPtr vec, int index);
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Scm_F64VectorSet(IntPtr vec, int index, double value);
+
         #endregion }
 
         #region symbol.h {
@@ -1029,6 +1261,15 @@ namespace GaucheDotNet.Native
                     });
             return buf.ToString();
         }
+
+        #endregion }
+
+        #region class.h {
+
+        /// <param name="obj">ScmObj</param>
+        /// <returns>ScmClass*</returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_ClassOf(IntPtr obj);
 
         #endregion }
 

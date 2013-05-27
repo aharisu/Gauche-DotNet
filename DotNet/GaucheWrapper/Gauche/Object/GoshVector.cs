@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text;
-using GaucheDotNet;
 using GaucheDotNet.Native;
 using System.Runtime.InteropServices;
 

@@ -988,6 +988,296 @@ namespace GaucheDotNet
             return new GoshVector(GoshInvoke.Scm_VectorCopy(vec.Ptr, start, end, fill.Ptr));
         }
 
+        //
+        // UVector
+        //
+
+        public static UVectorType UVectorType(GoshObj uvec)
+        {
+            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            return GoshInvoke.Scm_UVectorType(GoshInvoke.Scm_ClassOf(uvec.Ptr));
+        }
+
+        public static String UVectorTypeName(GoshObj uvec)
+        {
+            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            return GoshInvoke.Scm_UVectorTypeName(
+                GoshInvoke.Scm_UVectorType(GoshInvoke.Scm_ClassOf(uvec.Ptr)));
+        }
+
+        public static int UVectorElementSize(GoshObj uvec)
+        {
+            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            return GoshInvoke.Scm_UVectorElementSize(GoshInvoke.Scm_ClassOf(uvec.Ptr));
+        }
+
+        public static int UVectorSizeInBytes(GoshObj uvec)
+        {
+            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            return GoshInvoke.Scm_UVectorSizeInBytes(uvec.Ptr);
+        }
+
+        public static GoshUVector UVectorSizeInBytes(UVectorType type, int size)
+        {
+            IntPtr klass =  GoshInvoke.Scm_GetUVectorClass(type);
+            if (klass == IntPtr.Zero)
+            {
+                throw new ArgumentException();
+            }
+
+            return new GoshUVector(GoshInvoke.Scm_MakeUVector(klass, size, IntPtr.Zero));
+        }
+
+        public static GoshObj UVectorRef(GoshObj uvec, UVectorType type, int index, GoshObj fallback)
+        {
+            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+
+            return new GoshRefObj(GoshInvoke.Scm_VMUVectorRef(uvec.Ptr, type, index, fallback.Ptr));
+        }
+
+        public static int UVectorLength(GoshObj uvec)
+        {
+            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            return GoshInvoke.Scm_UVectorLength(uvec.Ptr);
+        }
+
+        public static GoshUVector MakeS8Vector(int size, sbyte fill)
+        {
+            return new GoshUVector(GoshInvoke.Scm_MakeS8Vector(size, fill));
+        }
+
+        public static GoshUVector MakeS8Vector(sbyte[] array)
+        {
+            return new GoshUVector(GoshInvoke.Scm_MakeS8VectorFromArray(array.Length, array));
+        }
+
+        public static sbyte S8VectorRef(GoshObj uvec, int index)
+        {
+            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            return GoshInvoke.Scm_S8VectorRef(uvec.Ptr, index);
+        }
+
+        public static void S8VectorSet(GoshObj uvec, int index, sbyte value)
+        {
+            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            GoshInvoke.Scm_S8VectorSet(uvec.Ptr, index, value);
+        }
+
+        public static GoshUVector MakeU8Vector(int size, byte fill)
+        {
+            return new GoshUVector(GoshInvoke.Scm_MakeU8Vector(size, fill));
+        }
+
+        public static GoshUVector MakeU8Vector(byte[] array)
+        {
+            return new GoshUVector(GoshInvoke.Scm_MakeU8VectorFromArray(array.Length, array));
+        }
+
+        public static byte U8VectorRef(GoshObj uvec, int index)
+        {
+            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            return GoshInvoke.Scm_U8VectorRef(uvec.Ptr, index);
+        }
+
+        public static void U8VectorSet(GoshObj uvec, int index, byte value)
+        {
+            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            GoshInvoke.Scm_U8VectorSet(uvec.Ptr, index, value);
+        }
+
+        public static GoshUVector MakeS16Vector(int size, Int16 fill)
+        {
+            return new GoshUVector(GoshInvoke.Scm_MakeS16Vector(size, fill));
+        }
+
+        public static GoshUVector MakeS16Vector(Int16[] array)
+        {
+            return new GoshUVector(GoshInvoke.Scm_MakeS16VectorFromArray(array.Length, array));
+        }
+
+        public static Int16 S16VectorRef(GoshObj uvec, int index)
+        {
+            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            return GoshInvoke.Scm_S16VectorRef(uvec.Ptr, index);
+        }
+
+        public static void S16VectorSet(GoshObj uvec, int index, Int16 value)
+        {
+            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            GoshInvoke.Scm_S16VectorSet(uvec.Ptr, index, value);
+        }
+
+        public static GoshUVector MakeU16Vector(int size, UInt16 fill)
+        {
+            return new GoshUVector(GoshInvoke.Scm_MakeU16Vector(size, fill));
+        }
+
+        public static GoshUVector MakeU16Vector(UInt16[] array)
+        {
+            return new GoshUVector(GoshInvoke.Scm_MakeU16VectorFromArray(array.Length, array));
+        }
+
+        public static UInt16 U16VectorRef(GoshObj uvec, int index)
+        {
+            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            return GoshInvoke.Scm_U16VectorRef(uvec.Ptr, index);
+        }
+
+        public static void U16VectorSet(GoshObj uvec, int index, UInt16 value)
+        {
+            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            GoshInvoke.Scm_U16VectorSet(uvec.Ptr, index, value);
+        }
+
+        public static GoshUVector MakeS32Vector(int size, Int32 fill)
+        {
+            return new GoshUVector(GoshInvoke.Scm_MakeS32Vector(size, fill));
+        }
+
+        public static GoshUVector MakeS32Vector(Int32[] array)
+        {
+            return new GoshUVector(GoshInvoke.Scm_MakeS32VectorFromArray(array.Length, array));
+        }
+
+        public static Int32 S32VectorRef(GoshObj uvec, int index)
+        {
+            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            return GoshInvoke.Scm_S32VectorRef(uvec.Ptr, index);
+        }
+
+        public static void S32VectorSet(GoshObj uvec, int index, Int32 value)
+        {
+            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            GoshInvoke.Scm_S32VectorSet(uvec.Ptr, index, value);
+        }
+
+        public static GoshUVector MakeU32Vector(int size, UInt32 fill)
+        {
+            return new GoshUVector(GoshInvoke.Scm_MakeU32Vector(size, fill));
+        }
+
+        public static GoshUVector MakeU32Vector(UInt32[] array)
+        {
+            return new GoshUVector(GoshInvoke.Scm_MakeU32VectorFromArray(array.Length, array));
+        }
+
+        public static UInt32 U32VectorRef(GoshObj uvec, int index)
+        {
+            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            return GoshInvoke.Scm_U32VectorRef(uvec.Ptr, index);
+        }
+
+        public static void U32VectorSet(GoshObj uvec, int index, UInt32 value)
+        {
+            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            GoshInvoke.Scm_U32VectorSet(uvec.Ptr, index, value);
+        }
+
+        public static GoshUVector MakeS64Vector(int size, Int64 fill)
+        {
+            return new GoshUVector(GoshInvoke.Scm_MakeS64Vector(size, fill));
+        }
+
+        public static GoshUVector MakeS64Vector(Int64[] array)
+        {
+            return new GoshUVector(GoshInvoke.Scm_MakeS64VectorFromArray(array.Length, array));
+        }
+
+        public static Int64 S64VectorRef(GoshObj uvec, int index)
+        {
+            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            return GoshInvoke.Scm_S64VectorRef(uvec.Ptr, index);
+        }
+
+        public static void S64VectorSet(GoshObj uvec, int index, Int64 value)
+        {
+            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            GoshInvoke.Scm_S64VectorSet(uvec.Ptr, index, value);
+        }
+
+        public static GoshUVector MakeU64Vector(int size, UInt64 fill)
+        {
+            return new GoshUVector(GoshInvoke.Scm_MakeU64Vector(size, fill));
+        }
+
+        public static GoshUVector MakeU64Vector(UInt64[] array)
+        {
+            return new GoshUVector(GoshInvoke.Scm_MakeU64VectorFromArray(array.Length, array));
+        }
+
+        public static UInt64 U64VectorRef(GoshObj uvec, int index)
+        {
+            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            return GoshInvoke.Scm_U64VectorRef(uvec.Ptr, index);
+        }
+
+        public static void U64VectorSet(GoshObj uvec, int index, UInt64 value)
+        {
+            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            GoshInvoke.Scm_U64VectorSet(uvec.Ptr, index, value);
+        }
+
+        public static GoshUVector MakeF16Vector(int size, double fill)
+        {
+            return new GoshUVector(GoshInvoke.Scm_MakeF16Vector(size, GoshInvoke.Scm_DoubleToHalf(fill)));
+        }
+
+        public static double F16VectorRef(GoshObj uvec, int index)
+        {
+            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            return GoshInvoke.Scm_F16VectorRef(uvec.Ptr, index);
+        }
+
+        public static void F16VectorSet(GoshObj uvec, int index, double value)
+        {
+            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            GoshInvoke.Scm_F16VectorSet(uvec.Ptr, index, value);
+        }
+
+        public static GoshUVector MakeF32Vector(int size, Single fill)
+        {
+            return new GoshUVector(GoshInvoke.Scm_MakeF32Vector(size, fill));
+        }
+
+        public static GoshUVector MakeF32Vector(Single[] array)
+        {
+            return new GoshUVector(GoshInvoke.Scm_MakeF32VectorFromArray(array.Length, array));
+        }
+
+        public static Single F32VectorRef(GoshObj uvec, int index)
+        {
+            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            return GoshInvoke.Scm_F32VectorRef(uvec.Ptr, index);
+        }
+
+        public static void F32VectorSet(GoshObj uvec, int index, Single value)
+        {
+            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            GoshInvoke.Scm_F32VectorSet(uvec.Ptr, index, value);
+        }
+
+        public static GoshUVector MakeF64Vector(int size, double fill)
+        {
+            return new GoshUVector(GoshInvoke.Scm_MakeF64Vector(size, fill));
+        }
+
+        public static GoshUVector MakeF64Vector(double[] array)
+        {
+            return new GoshUVector(GoshInvoke.Scm_MakeF64VectorFromArray(array.Length, array));
+        }
+
+        public static double F64VectorRef(GoshObj uvec, int index)
+        {
+            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            return GoshInvoke.Scm_F64VectorRef(uvec.Ptr, index);
+        }
+
+        public static void F64VectorSet(GoshObj uvec, int index, double value)
+        {
+            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            GoshInvoke.Scm_F64VectorSet(uvec.Ptr, index, value);
+        }
+
         #endregion }
 
         #region symbol.h {
