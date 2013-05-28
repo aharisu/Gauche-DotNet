@@ -30,6 +30,7 @@
 ;;;
 
 (define-module dotnet
+  (use gauche.sequence)
   (export-all)
   )
 (select-module dotnet)
@@ -39,4 +40,8 @@
 
 (define-method object-hash ((obj <clr-object>))
   (clr-object-hash obj))
+
+(define-method call-with-iterator ((obj <clr-object>) proc . opts)
+  (let-keywords opts ([start #f])
+    (clr-iteration obj proc (or start 0))))
 

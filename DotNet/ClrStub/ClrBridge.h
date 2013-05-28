@@ -52,6 +52,11 @@ DECDLL int ClrCompare(void* x, void* y);
 
 DECDLL int ClrGetHash(void* obj);
 
+DECDLL void* ClrGetEnumerator(void* obj);
+DECDLL int ClrIsIterEnd(void* iter);
+DECDLL void* ClrIterNext(void* iter);
+DECDLL void ClrIterDispose(void* iter);
+
 DECDLL void* BooleanToClr(int boolean);
 DECDLL int ClrToBoolean(void* obj);
 

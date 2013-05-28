@@ -141,6 +141,50 @@ static void ObjectNullCheck(Object^ obj)
     }
 }
 
+DECDLL void* ClrGetEnumerator(void* objPtr)
+{
+    Object^ obj = GCHandle::FromIntPtr((IntPtr)objPtr).Target;
+    ObjectNullCheck(obj);
+
+    System::Collections::IEnumerable^ e = dynamic_cast<System::Collections::IEnumerable^>(obj);
+    if(e == nullptr)
+    {
+        ClrStubConstant::RaiseClrError(gcnew ArgumentException("object must be IEnumerable"));
+    }
+
+    return (void*)(IntPtr)GCHandle::Alloc(e->GetEnumerator());
+}
+
+DECDLL int ClrIsIterEnd(void* iter)
+{
+    GCHandle handle = GCHandle::FromIntPtr((IntPtr)iter);
+    System::Collections::IEnumerator^ enumerator = (System::Collections::IEnumerator^) handle.Target;
+
+    return enumerator->MoveNext() ? 0 : 1;
+}
+
+DECDLL void* ClrIterNext(void* iter)
+{
+    GCHandle handle = GCHandle::FromIntPtr((IntPtr)iter);
+    System::Collections::IEnumerator^ enumerator = (System::Collections::IEnumerator^) handle.Target;
+
+    return (void*)(IntPtr)GCHandle::Alloc(enumerator->Current);
+}
+
+DECDLL void ClrIterDispose(void* iter)
+{
+    GCHandle handle = GCHandle::FromIntPtr((IntPtr)iter);
+    Object^ obj = handle.Target;
+
+    IDisposable^ disposable = dynamic_cast<IDisposable^>(obj);
+    if(disposable != nullptr)
+    {
+        delete disposable;
+    }
+
+    handle.Free();
+}
+
 DECDLL void* BooleanToClr(int boolean)
 {
     return (void*)(IntPtr)GCHandle::Alloc((boolean == 1) ? true : false);

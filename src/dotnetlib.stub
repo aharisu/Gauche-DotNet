@@ -69,15 +69,12 @@
 (define-cclass <clr-object>
   :built-in
   "ScmClrObject" "Scm_ClrObjectClass"
-  ()
+  ("Scm_CollectionClass")
   ( ;;slot
    )
   (printer (clr-object-print obj port))
   (compare (return (clr-object-compare x y equalp)))
   )
-
-(define-cproc clr-object-hash (obj::<clr-object>) :: <int>
-  (result (ClrGetHash obj)))
 
 (define-cfn to-objwrapper (obj::ScmObj for-method-arg::int raise-error::int) :: ObjWrapper :static
   (let* ([o::ObjWrapper])
@@ -105,6 +102,31 @@
         (Scm_Error "obj required <clr-object>, but got %S" obj)]
       [else (set! (@ o.ptr) 0)])
     (return o)))
+
+(define-cproc clr-object-hash (obj::<clr-object>) :: <int>
+  (result (ClrGetHash obj)))
+
+(define-cfn clr-iteration-end? (args::ScmObj* nargs::int data::_pvoid_t) :: ScmObj :static
+  (return (boxing (ClrIsIterEnd data) <boolean>)))
+
+(define-cfn clr-iteration-next (args::ScmObj* nargs::int data::_pvoid_t) :: ScmObj :static
+  (return (boxing (ClrIterNext data) <clr-object>)))
+
+(define-cproc clr-iteration (obj::<clr-object> proc::<procedure> start::<fixnum>) ::<top>
+  "
+  void* iter = ClrGetEnumerator(obj);
+  ScmObj ret;
+  SCM_UNWIND_PROTECT {
+    ret = Scm_ApplyRec2(SCM_OBJ(proc), Scm_MakeSubr(clr_iteration_endP, iter,0,0,SCM_FALSE)
+                                     , Scm_MakeSubr(clr_iteration_next, iter,0,0,SCM_FALSE));
+  } SCM_WHEN_ERROR {
+    ClrIterDispose(iter);
+    SCM_NEXT_HANDLER;
+  }
+  SCM_END_PROTECT;
+  ClrIterDispose(iter);
+  return ret;
+  ")
 
 (define-cproc clr->bool (obj::<top>) :: <boolean>
   (cond
