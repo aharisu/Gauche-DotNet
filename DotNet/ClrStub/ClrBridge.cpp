@@ -225,7 +225,7 @@ DECDLL int ClrToInt(void* obj)
 
     if(target->GetType() == GoshFixnum::typeid)
     {
-        return ((GoshFixnum^)target)->Num;
+        return ((GoshFixnum^)target)->Int;
     }
     else
     {

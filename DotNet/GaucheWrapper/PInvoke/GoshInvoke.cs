@@ -79,14 +79,6 @@ namespace GaucheDotNet.Native
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern bool Scm_EqualM(IntPtr x, IntPtr y, CmpMode mode);
 
-        //
-        // FIXNUM
-        //
-
-        //
-        // FLONUM
-        //
-
         #region bignum.h {
 
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
@@ -217,11 +209,300 @@ namespace GaucheDotNet.Native
 
         #region number.h {
 
+        //TODO SIZEOF_LONG >= 8
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeInteger(Int32 i);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeIntegerU(UInt32 i);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern Int32 Scm_GetIntegerClamp(IntPtr obj
+            , [MarshalAs(UnmanagedType.I4)]ClampMode clamp, out int oor);
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern Int32 Scm_GetIntegerClamp(IntPtr obj
+            , [MarshalAs(UnmanagedType.I4)]ClampMode clamp, IntPtr oor);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern UInt32 Scm_GetIntegerUClamp(IntPtr obj
+            , [MarshalAs(UnmanagedType.I4)]ClampMode clamp, out int oor);
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern UInt32 Scm_GetIntegerUClamp(IntPtr obj
+            , [MarshalAs(UnmanagedType.I4)]ClampMode clamp, IntPtr oor);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern Int32 Scm_GetInteger8Clamp(IntPtr obj
+            , [MarshalAs(UnmanagedType.I4)]ClampMode clamp, out int oor);
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern Int32 Scm_GetInteger8Clamp(IntPtr obj
+            , [MarshalAs(UnmanagedType.I4)]ClampMode clamp, IntPtr oor);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern UInt32 Scm_GetIntegerU8Clamp(IntPtr obj
+            , [MarshalAs(UnmanagedType.I4)]ClampMode clamp, out int oor);
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern UInt32 Scm_GetIntegerU8Clamp(IntPtr obj
+            , [MarshalAs(UnmanagedType.I4)]ClampMode clamp, IntPtr oor);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern Int32 Scm_GetInteger16Clamp(IntPtr obj
+            , [MarshalAs(UnmanagedType.I4)]ClampMode clamp, out int oor);
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern Int32 Scm_GetInteger16Clamp(IntPtr obj
+            , [MarshalAs(UnmanagedType.I4)]ClampMode clamp, IntPtr oor);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern UInt32 Scm_GetIntegerU16Clamp(IntPtr obj
+            , [MarshalAs(UnmanagedType.I4)]ClampMode clamp, out int oor);
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern UInt32 Scm_GetIntegerU16Clamp(IntPtr obj
+            , [MarshalAs(UnmanagedType.I4)]ClampMode clamp, IntPtr oor);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern Int32 Scm_GetInteger32Clamp(IntPtr obj
+            , [MarshalAs(UnmanagedType.I4)]ClampMode clamp, out int oor);
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern Int32 Scm_GetInteger32Clamp(IntPtr obj
+            , [MarshalAs(UnmanagedType.I4)]ClampMode clamp, IntPtr oor);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern UInt32 Scm_GetIntegerU32Clamp(IntPtr obj
+            , [MarshalAs(UnmanagedType.I4)]ClampMode clamp, out int oor);
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern UInt32 Scm_GetIntegerU32Clamp(IntPtr obj
+            , [MarshalAs(UnmanagedType.I4)]ClampMode clamp, IntPtr oor);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeInteger64(Int64 i);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeIntegerU64(UInt64 i);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern Int64 Scm_GetInteger64Clamp(IntPtr obj
+            , [MarshalAs(UnmanagedType.I4)]ClampMode clamp, out int oor);
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern Int64 Scm_GetInteger64Clamp(IntPtr obj
+            , [MarshalAs(UnmanagedType.I4)]ClampMode clamp, IntPtr oor);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern UInt64 Scm_GetIntegerU64Clamp(IntPtr obj
+            , [MarshalAs(UnmanagedType.I4)]ClampMode clamp, IntPtr oor);
+
+        //ScmRatnum(Rational)
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeRatnum(IntPtr numer, IntPtr denom);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeRational(IntPtr numer, IntPtr denom);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_ReduceRational(IntPtr rational);
+
+        //ScmFlonum
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeFlonum(double d);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern double Scm_GetDouble(IntPtr obj);
+
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern double Scm_HalfToDouble(UInt16 v);
 
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern UInt16 Scm_DoubleToHalf(double v);
+
+        //ScmCompnum
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeCompnum(double real, double imag);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeComplex(double real, double imag);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeComplexPolar(double real, double imag);
+
+        //Operation
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_IntegerP(IntPtr obj);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_OddP(IntPtr obj);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_FiniteP(IntPtr obj);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_InfiniteP(IntPtr obj);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_NanP(IntPtr obj);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_Abs(IntPtr obj);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int Scm_Sign(IntPtr obj);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_Negate(IntPtr obj);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_Reciprocal(IntPtr obj);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_ReciprocalInexact(IntPtr obj);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_InexactToExact(IntPtr obj);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_ExactToInexact(IntPtr obj);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_Add(IntPtr obj1, IntPtr obj2);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_Sub(IntPtr obj1, IntPtr obj2);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_Mul(IntPtr obj1, IntPtr obj2);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_Div(IntPtr obj1, IntPtr obj2);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_DivInexact(IntPtr obj1, IntPtr obj2);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_DivCompat(IntPtr obj1, IntPtr obj2);
+
+        /// <param name="obj1"></param>
+        /// <param name="obj2"></param>
+        /// <param name="rem">allow NULL</param>
+        /// <returns></returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_Quotient(IntPtr obj1, IntPtr obj2, IntPtr rem);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_Modulo(IntPtr obj1, IntPtr obj2
+            , [MarshalAs(UnmanagedType.I4)] bool remainder);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_Gcd(IntPtr x, IntPtr y);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_Expt(IntPtr x, IntPtr y);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern Int32 Scm_TwosPower(IntPtr n);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_NumEq(IntPtr x, IntPtr y);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_NumLT(IntPtr x, IntPtr y);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_NumLE(IntPtr x, IntPtr y);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_NumGT(IntPtr x, IntPtr y);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_NumGE(IntPtr x, IntPtr y);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int Scm_NumCmp(IntPtr x, IntPtr y);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Scm_MinMax(IntPtr arg0, IntPtr args, out IntPtr min, IntPtr max);
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Scm_MinMax(IntPtr arg0, IntPtr args, IntPtr min, out IntPtr max);
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Scm_MinMax(IntPtr arg0, IntPtr args, out IntPtr min, out IntPtr max);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_LogAnd(IntPtr x, IntPtr y);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_LogIor(IntPtr x, IntPtr y);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_LogXor(IntPtr x, IntPtr y);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_LogNot(IntPtr x);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_Ash(IntPtr x, Int32 cnt);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_Round(IntPtr num,
+            [MarshalAs(UnmanagedType.I4)] RoundMode mode);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_RoundToExact(IntPtr num,
+            [MarshalAs(UnmanagedType.I4)] RoundMode mode);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_Numerator(IntPtr num);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_Denominator(IntPtr num);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern double Scm_Magnitude(IntPtr z);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern double Scm_Angle(IntPtr z);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern double Scm_RealPart(IntPtr z);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern double Scm_ImagPart(IntPtr z);
+
+        //TODO
+        //ScmNumberFormatInit
+        //Scm_PrintNumber
+        //Scm_PrintDouble
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_NumberToString(IntPtr num, int radix,
+            [MarshalAs(UnmanagedType.U4)]NumberFormat flags);
+
+        /// <param name="str">ScmString*</param>
+        /// <param name="radix"></param>
+        /// <param name="flags"></param>
+        /// <returns></returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_StringToNumber(IntPtr str, int radix,
+            [MarshalAs(UnmanagedType.U4)]NumberFormat flags);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_NativeEndian();
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_DefaultEndian();
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_SetDefaultEndian(IntPtr endian);
 
         #endregion }
 

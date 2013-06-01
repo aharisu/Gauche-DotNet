@@ -39,6 +39,16 @@ namespace GaucheDotNet
 {
     public static partial class Cast
     {
+        public static bool IsFixnum(IntPtr ptr)
+        {
+#if X64
+            Int64 num = ptr.ToInt64();
+#else
+            Int32 num = ptr.ToInt32();
+#endif
+            return (num & 0x03) == 1;
+        }
+
         public static IntPtr IntToScmFixnum(int num)
         {
             return (IntPtr)((num << 2) + 1); 
@@ -77,16 +87,17 @@ namespace GaucheDotNet
 
         public static GoshObj Specify(IntPtr ptr)
         {
+            if (IsFixnum(ptr))
+            {
+                return new GoshFixnum(ScmFixnumToInt(ptr));
+            }
+
 #if X64
             Int64 num = ptr.ToInt64();
 #else
             Int32 num = ptr.ToInt32();
 #endif
-            if ((num & 0x03) == 1)
-            {
-                return new GoshFixnum(ScmFixnumToInt(ptr));
-            }
-            else if ((num & 0x03) == 2)
+            if ((num & 0x03) == 2)
             {
                 return new GoshFlonum(ptr);
             }
@@ -126,7 +137,13 @@ namespace GaucheDotNet
                         return new GoshPair(ptr);
 
                     case KnownClass.Integer:
-                        return new GoshBignum(ptr);
+                        return new GoshInteger(ptr);
+
+                    case KnownClass.Rational:
+                        return new GoshRatnum(ptr);
+
+                    case KnownClass.Complex:
+                        return new GoshCompnum(ptr);
 
                     case KnownClass.String:
                         return new GoshString(ptr);
@@ -232,7 +249,14 @@ namespace GaucheDotNet
                         return new GoshPair(ptr);
 
                     case KnownClass.Integer:
-                        return new GoshBignum(ptr);
+                        {
+                            bool oor;
+                            return GoshInvoke.Scm_BignumToSI64(ptr, ClampMode.None, out oor);
+                        }
+
+                    case KnownClass.Rational:
+                    case KnownClass.Complex:
+                        return GoshInvoke.Scm_GetDouble(ptr);
 
                     case KnownClass.String:
                         return GoshInvoke.Scm_GetStringConst(ptr);

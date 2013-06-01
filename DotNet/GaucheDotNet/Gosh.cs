@@ -400,16 +400,16 @@ namespace GaucheDotNet
             return new GoshRefObj(GoshInvoke.Scm_BignumAsh(bx.Ptr, cnt));
         }
 
-        public static GoshBignum MakeBignumWithSize(int size, UInt32 init)
+        public static GoshInteger MakeBignumWithSize(int size, UInt32 init)
         {
-            return new GoshBignum(GoshInvoke.Scm_MakeBignumWithSize(size, init));
+            return new GoshInteger(GoshInvoke.Scm_MakeBignumWithSize(size, init));
         }
 
-        public static GoshBignum BignumAccMultAddUI(GoshObj acc, UInt32 coef, UInt32 c)
+        public static GoshInteger BignumAccMultAddUI(GoshObj acc, UInt32 coef, UInt32 c)
         {
             TypeCheck(acc, GoshInvoke.Scm_BignumP, 0);
 
-            return new GoshBignum(GoshInvoke.Scm_BignumAccMultAddUI(acc.Ptr, coef, c));
+            return new GoshInteger(GoshInvoke.Scm_BignumAccMultAddUI(acc.Ptr, coef, c));
         }
 
         public static int DumpBignum(GoshObj b, GoshObj outPort)
@@ -418,6 +418,413 @@ namespace GaucheDotNet
             //TODO outPort type check
 
             return GoshInvoke.Scm_DumpBignum(b.Ptr, outPort.Ptr);
+        }
+
+        #endregion }
+
+        #region number.h {
+
+        public static GoshInteger MakeInteger(Int32 i)
+        {
+            IntPtr ptr = GoshInvoke.Scm_MakeInteger(i);
+            if (Cast.IsFixnum(ptr))
+            {
+                return new GoshFixnum(ptr);
+            }
+            else
+            {
+                return new GoshInteger(ptr);
+            }
+        }
+
+        public static GoshInteger MakeIntegerU(UInt32 i)
+        {
+            IntPtr ptr = GoshInvoke.Scm_MakeIntegerU(i);
+            if (Cast.IsFixnum(ptr))
+            {
+                return new GoshFixnum(ptr);
+            }
+            else
+            {
+                return new GoshInteger(ptr);
+            }
+        }
+
+        public static Int32 GetIntegerClamp(GoshObj obj, ClampMode clamp)
+        {
+            return GoshInvoke.Scm_GetIntegerClamp(obj.Ptr, clamp, IntPtr.Zero);
+        }
+
+        public static UInt32 GetIntegerUClamp(GoshObj obj, ClampMode clamp)
+        {
+            return GoshInvoke.Scm_GetIntegerUClamp(obj.Ptr, clamp, IntPtr.Zero);
+        }
+
+        public static Int32 GetInteger8Clamp(GoshObj obj, ClampMode clamp)
+        {
+            return GoshInvoke.Scm_GetInteger8Clamp(obj.Ptr, clamp, IntPtr.Zero);
+        }
+
+        public static UInt32 GetIntegerU8Clamp(GoshObj obj, ClampMode clamp)
+        {
+            return GoshInvoke.Scm_GetIntegerU8Clamp(obj.Ptr, clamp, IntPtr.Zero);
+        }
+
+        public static Int32 GetInteger16Clamp(GoshObj obj, ClampMode clamp)
+        {
+            return GoshInvoke.Scm_GetInteger16Clamp(obj.Ptr, clamp, IntPtr.Zero);
+        }
+
+        public static UInt32 GetIntegerU16Clamp(GoshObj obj, ClampMode clamp)
+        {
+            return GoshInvoke.Scm_GetIntegerU16Clamp(obj.Ptr, clamp, IntPtr.Zero);
+        }
+
+        public static Int32 GetInteger32Clamp(GoshObj obj, ClampMode clamp)
+        {
+            return GoshInvoke.Scm_GetInteger32Clamp(obj.Ptr, clamp, IntPtr.Zero);
+        }
+
+        public static UInt32 GetIntegerU32Clamp(GoshObj obj, ClampMode clamp)
+        {
+            return GoshInvoke.Scm_GetIntegerU32Clamp(obj.Ptr, clamp, IntPtr.Zero);
+        }
+
+        public static GoshInteger MakeInteger(Int64 i)
+        {
+            return new GoshInteger(GoshInvoke.Scm_MakeInteger64(i));
+        }
+
+        public static GoshInteger MakeInteger(UInt64 i)
+        {
+            return new GoshInteger(GoshInvoke.Scm_MakeIntegerU64(i));
+        }
+
+        public static Int64 GetInteger64Clamp(GoshObj obj, ClampMode clamp)
+        {
+            return GoshInvoke.Scm_GetInteger64Clamp(obj.Ptr, clamp, IntPtr.Zero);
+        }
+
+        public static UInt64 GetIntegerU64Clamp(GoshObj obj, ClampMode clamp)
+        {
+            return GoshInvoke.Scm_GetIntegerU64Clamp(obj.Ptr, clamp, IntPtr.Zero);
+        }
+
+        //ScmRatnum(Rational)
+
+        public static GoshRatnum MakeRational(GoshObj numer, GoshObj denom)
+        {
+            return new GoshRatnum(GoshInvoke.Scm_MakeRational(numer.Ptr, denom.Ptr));
+        }
+
+        public static GoshRatnum MakeRatnum(GoshObj numer, GoshObj denom)
+        {
+            return new GoshRatnum(GoshInvoke.Scm_MakeRatnum(numer.Ptr, denom.Ptr));
+        }
+
+        public static GoshRatnum ReduceRational(GoshObj rational)
+        {
+            return new GoshRatnum(GoshInvoke.Scm_ReduceRational(rational.Ptr));
+        }
+
+        //ScmFlonum
+
+        public static GoshFlonum MakeFlonum(double d)
+        {
+            return new GoshFlonum(GoshInvoke.Scm_MakeFlonum(d));
+        }
+
+        public static double GetDouble(GoshObj obj)
+        {
+            return GoshInvoke.Scm_GetDouble(obj.Ptr);
+        }
+
+        public static double HalfToDouble(UInt16 v)
+        {
+            return GoshInvoke.Scm_HalfToDouble(v);
+        }
+
+        public static UInt16 DoubleToHalf(double v)
+        {
+            return GoshInvoke.Scm_DoubleToHalf(v);
+        }
+
+        //ScmCompnum
+
+        public static GoshCompnum MakeCompnum(double real, double imag)
+        {
+            return new GoshCompnum(GoshInvoke.Scm_MakeCompnum(real, imag));
+        }
+
+        public static GoshCompnum MakeComplex(double real, double imag)
+        {
+            return new GoshCompnum(GoshInvoke.Scm_MakeComplex(real, imag));
+        }
+
+        public static GoshCompnum MakeComplexPolar(double real, double imag)
+        {
+            return new GoshCompnum(GoshInvoke.Scm_MakeComplexPolar(real, imag));
+        }
+
+        //Operation
+
+        public static bool IntegerP(GoshObj obj)
+        {
+            return GoshInvoke.Scm_IntegerP(obj.Ptr);
+        }
+
+        public static bool OddP(GoshObj obj)
+        {
+            return GoshInvoke.Scm_OddP(obj.Ptr);
+        }
+
+        public static bool EvenP(GoshObj obj)
+        {
+            return !GoshInvoke.Scm_OddP(obj.Ptr);
+        }
+
+        public static bool FiniteP(GoshObj obj)
+        {
+            return GoshInvoke.Scm_FiniteP(obj.Ptr);
+        }
+
+        public static bool InfiniteP(GoshObj obj)
+        {
+            return GoshInvoke.Scm_InfiniteP(obj.Ptr);
+        }
+
+        public static bool NanP(GoshObj obj)
+        {
+            return GoshInvoke.Scm_NanP(obj.Ptr);
+        }
+
+        public static GoshNumber Abs(GoshObj obj)
+        {
+            return new GoshNumber(GoshInvoke.Scm_Abs(obj.Ptr));
+        }
+
+        public static int Sign(GoshObj obj)
+        {
+            return GoshInvoke.Scm_Sign(obj.Ptr);
+        }
+
+        public static GoshNumber Negate(GoshObj obj)
+        {
+            return new GoshNumber(GoshInvoke.Scm_Negate(obj.Ptr));
+        }
+
+        public static GoshNumber Reciprocal(GoshObj obj)
+        {
+            return new GoshNumber(GoshInvoke.Scm_Reciprocal(obj.Ptr));
+        }
+
+        public static GoshNumber ReciprocalInexact(GoshObj obj)
+        {
+            return new GoshNumber(GoshInvoke.Scm_ReciprocalInexact(obj.Ptr));
+        }
+
+        public static GoshNumber InexactToExact(GoshObj obj)
+        {
+            return new GoshNumber(GoshInvoke.Scm_InexactToExact(obj.Ptr));
+        }
+
+        public static GoshNumber ExactToInexact(GoshObj obj)
+        {
+            return new GoshNumber(GoshInvoke.Scm_ExactToInexact(obj.Ptr));
+        }
+
+        public static GoshNumber Add(GoshObj obj1, GoshObj obj2)
+        {
+            return new GoshNumber(GoshInvoke.Scm_Add(obj1.Ptr, obj2.Ptr));
+        }
+
+        public static GoshNumber Sub(GoshObj obj1, GoshObj obj2)
+        {
+            return new GoshNumber(GoshInvoke.Scm_Sub(obj1.Ptr, obj2.Ptr));
+        }
+
+        public static GoshNumber Mul(GoshObj obj1, GoshObj obj2)
+        {
+            return new GoshNumber(GoshInvoke.Scm_Mul(obj1.Ptr, obj2.Ptr));
+        }
+
+        public static GoshNumber Div(GoshObj obj1, GoshObj obj2)
+        {
+            return new GoshNumber(GoshInvoke.Scm_Div(obj1.Ptr, obj2.Ptr));
+        }
+
+        public static GoshNumber DivInexact(GoshObj obj1, GoshObj obj2)
+        {
+            return new GoshNumber(GoshInvoke.Scm_DivInexact(obj1.Ptr, obj2.Ptr));
+        }
+
+        public static GoshNumber DivCompat(GoshObj obj1, GoshObj obj2)
+        {
+            return new GoshNumber(GoshInvoke.Scm_DivCompat(obj1.Ptr, obj2.Ptr));
+        }
+
+        public static GoshNumber Quotient(GoshObj obj1, GoshObj obj2)
+        {
+            return new GoshNumber(GoshInvoke.Scm_Quotient(obj1.Ptr, obj2.Ptr, IntPtr.Zero));
+        }
+
+        public static GoshNumber Modulo(GoshObj obj1, GoshObj obj2)
+        {
+            return new GoshNumber(GoshInvoke.Scm_Modulo(obj1.Ptr, obj2.Ptr, false));
+        }
+
+        public static GoshNumber Remainder(GoshObj obj1, GoshObj obj2)
+        {
+            return new GoshNumber(GoshInvoke.Scm_Modulo(obj1.Ptr, obj2.Ptr, true));
+        }
+
+        public static GoshNumber Gcd(GoshObj obj1, GoshObj obj2)
+        {
+            return new GoshNumber(GoshInvoke.Scm_Gcd(obj1.Ptr, obj2.Ptr));
+        }
+
+        public static GoshNumber Expt(GoshObj obj1, GoshObj obj2)
+        {
+            return new GoshNumber(GoshInvoke.Scm_Expt(obj1.Ptr, obj2.Ptr));
+        }
+
+        public static int TwosPower(GoshObj obj)
+        {
+            return GoshInvoke.Scm_TwosPower(obj.Ptr);
+        }
+
+        public static bool NumEq(GoshObj obj1, GoshObj obj2)
+        {
+            return GoshInvoke.Scm_NumEq(obj1.Ptr, obj2.Ptr);
+        }
+
+        public static bool NumLT(GoshObj obj1, GoshObj obj2)
+        {
+            return GoshInvoke.Scm_NumLT(obj1.Ptr, obj2.Ptr);
+        }
+
+        public static bool NumLE(GoshObj obj1, GoshObj obj2)
+        {
+            return GoshInvoke.Scm_NumLE(obj1.Ptr, obj2.Ptr);
+        }
+
+        public static bool NumGT(GoshObj obj1, GoshObj obj2)
+        {
+            return GoshInvoke.Scm_NumGT(obj1.Ptr, obj2.Ptr);
+        }
+
+        public static bool NumGE(GoshObj obj1, GoshObj obj2)
+        {
+            return GoshInvoke.Scm_NumGE(obj1.Ptr, obj2.Ptr);
+        }
+
+        public static int NumCmp(GoshObj obj1, GoshObj obj2)
+        {
+            return GoshInvoke.Scm_NumCmp(obj1.Ptr, obj2.Ptr);
+        }
+
+        public static GoshNumber Min(GoshObj arg0, GoshObj args)
+        {
+            IntPtr min;
+            GoshInvoke.Scm_MinMax(arg0.Ptr, args.Ptr, out min, IntPtr.Zero);
+            return new GoshNumber(min);
+        }
+
+        public static GoshNumber Max(GoshObj arg0, GoshObj args)
+        {
+            IntPtr max;
+            GoshInvoke.Scm_MinMax(arg0.Ptr, args.Ptr, IntPtr.Zero, out max);
+            return new GoshNumber(max);
+        }
+
+        public static GoshNumber LogAnd(GoshObj x, GoshObj y)
+        {
+            return new GoshNumber(GoshInvoke.Scm_LogAnd(x.Ptr, y.Ptr));
+        }
+
+        public static GoshNumber LogIor(GoshObj x, GoshObj y)
+        {
+            return new GoshNumber(GoshInvoke.Scm_LogIor(x.Ptr, y.Ptr));
+        }
+
+        public static GoshNumber LogXor(GoshObj x, GoshObj y)
+        {
+            return new GoshNumber(GoshInvoke.Scm_LogXor(x.Ptr, y.Ptr));
+        }
+
+        public static GoshNumber LogNot(GoshObj x)
+        {
+            return new GoshNumber(GoshInvoke.Scm_LogNot(x.Ptr));
+        }
+
+        public static GoshNumber Ash(GoshObj x, int cnt)
+        {
+            return new GoshNumber(GoshInvoke.Scm_Ash(x.Ptr, cnt));
+        }
+
+        public static GoshNumber Round(GoshObj num, RoundMode mode)
+        {
+            return new GoshNumber(GoshInvoke.Scm_Round(num.Ptr, mode));
+        }
+
+        public static GoshNumber RoundToExact(GoshObj num, RoundMode mode)
+        {
+            return new GoshNumber(GoshInvoke.Scm_RoundToExact(num.Ptr, mode));
+        }
+
+        public static GoshNumber Numerator(GoshObj x)
+        {
+            return new GoshNumber(GoshInvoke.Scm_Numerator(x.Ptr));
+        }
+
+        public static GoshNumber Denominator(GoshObj x)
+        {
+            return new GoshNumber(GoshInvoke.Scm_Denominator(x.Ptr));
+        }
+
+        public static double Magnitude(GoshObj x)
+        {
+            return GoshInvoke.Scm_Magnitude(x.Ptr);
+        }
+
+        public static double Angle(GoshObj x)
+        {
+            return GoshInvoke.Scm_Angle(x.Ptr);
+        }
+
+        public static double RealPart(GoshObj x)
+        {
+            return GoshInvoke.Scm_RealPart(x.Ptr);
+        }
+
+        public static double ImagPart(GoshObj x)
+        {
+            return GoshInvoke.Scm_ImagPart(x.Ptr);
+        }
+
+        public static GoshString NumberToString(GoshObj num, int radix)
+        {
+            return NumberToString(num, radix, NumberFormat.None);
+        }
+
+        public static GoshString NumberToString(GoshObj num, int radix, NumberFormat flags)
+        {
+            return new GoshString(GoshInvoke.Scm_NumberToString(num.Ptr, radix , flags));
+        }
+
+        public static GoshSymbol NativeEndian()
+        {
+            return new GoshSymbol(GoshInvoke.Scm_NativeEndian());
+        }
+
+        public static GoshSymbol DefaultEndian()
+        {
+            return new GoshSymbol(GoshInvoke.Scm_DefaultEndian());
+        }
+
+        public static void SetDefaultEndian(GoshObj endian)
+        {
+            GoshInvoke.Scm_SetDefaultEndian(endian.Ptr);
         }
 
         #endregion }

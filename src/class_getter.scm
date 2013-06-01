@@ -43,9 +43,7 @@
   Scm_SymbolClass
   Scm_StringClass
   Scm_ClrObjectClass
-  Scm_NumberClass
   Scm_ComplexClass
-  Scm_RealClass
   Scm_RationalClass
   Scm_BoxClass
   Scm_TopClass

@@ -36,96 +36,135 @@ using GaucheDotNet.Native;
 
 namespace GaucheDotNet
 {
-    #region GoshFixnum {
-    public class GoshFixnum : GoshObj
+
+    public class GoshNumber : GoshObj
     {
-        private int _num;
+        private GoshObj _specific = null;
+        protected readonly IntPtr _ptr;
 
-        public int Num
+        public virtual double Double
         {
-            get { return _num; }
-            set { _num = value; }
+            get { return GoshInvoke.Scm_GetDouble(_ptr);}
         }
 
-        public GoshFixnum(int num)
+        public virtual Int64 Int64
         {
-            this._num = num;
+            get
+            {
+                return GoshInvoke.Scm_GetInteger64Clamp(_ptr, ClampMode.None, IntPtr.Zero);
+            }
         }
 
-        public GoshFixnum(IntPtr ptr)
+        public virtual int Int
         {
-            this._num = Cast.ScmFixnumToInt(ptr);
+            get 
+            { 
+                return GoshInvoke.Scm_GetInteger32Clamp(_ptr, ClampMode.None, IntPtr.Zero);
+            }
+        }
+
+        public GoshNumber(IntPtr ptr)
+        {
+            this._ptr = ptr;
         }
 
         public override IntPtr Ptr
         {
-            get { return Cast.IntToScmFixnum(_num); }
+            get { return _ptr; }
         }
 
         public override object Object
         {
-            get
+            get { return Double; }
+        }
+
+        public override GoshObj Specify
+        {
+            get 
             {
-                return _num;
+                if (_specific == null)
+                {
+                    _specific = Cast.Specify(_ptr); 
+                }
+
+                return _specific;
             }
         }
 
-        public override string ToString()
+        public override string  ToString()
         {
-            return _num.ToString();
+            return GoshInvoke.Scm_GetString(
+                GoshInvoke.Scm_NumberToString(_ptr, 10, NumberFormat.None));
         }
     }
-    #endregion }
 
-    #region GoshFlonum {
-    public class GoshFlonum : GoshObj
+    public class GoshCompnum : GoshNumber
     {
-        private readonly double _val;
-        private readonly IntPtr _ptr;
-
-        public double Num
+        public GoshCompnum(IntPtr ptr)
+            : base(ptr)
         {
-            get { return _val; }
         }
+    }
+
+    public class GoshFlonum : GoshCompnum
+    {
+        public override double Double
+        {
+            get { return Cast.ScmFlonumToDouble(_ptr); }
+        }
+
         public GoshFlonum(IntPtr ptr)
+            :base(ptr)
         {
-            this._ptr = ptr;
-            this._val = Cast.ScmFlonumToDouble(ptr);
+        }
+    }
+
+    public class GoshRatnum : GoshFlonum
+    {
+        public override double Double
+        {
+            get { return GoshInvoke.Scm_GetDouble(_ptr);}
         }
 
-        public override IntPtr Ptr
+        public GoshRatnum(IntPtr ptr)
+            :base(ptr)
         {
-            get { return _ptr; }
+        }
+    }
+
+    public class GoshInteger : GoshRatnum
+    {
+        public override double Double
+        {
+            get { return GoshInvoke.Scm_BignumToDouble(_ptr); }
+        }
+
+        public override Int64 Int64
+        {
+            get
+            {
+                bool oor;
+                return GoshInvoke.Scm_BignumToSI64(_ptr, ClampMode.None, out oor);
+            }
+        }
+
+        public override int Int
+        {
+            get 
+            { 
+                bool oor;
+                return GoshInvoke.Scm_BignumToSI(_ptr, ClampMode.None, out oor);
+            }
+        }
+
+        public GoshInteger(IntPtr ptr)
+            :base(ptr)
+        {
         }
 
         public override object Object
         {
-            get
-            {
-                return _val;
-            }
-        }
-
-        public override string ToString()
-        {
-            return _val.ToString();
-        }
-    }
-    #endregion }
-
-    #region GoshBignum {
-    public class GoshBignum : GoshObj
-    {
-        private readonly IntPtr _ptr;
-
-        public GoshBignum(IntPtr ptr)
-        {
-            this._ptr = ptr;
-        }
-
-        public override IntPtr Ptr
-        {
-            get { return _ptr; }
+            get { return Int64; }
         }
 
         public override string ToString()
@@ -134,7 +173,44 @@ namespace GaucheDotNet
                 GoshInvoke.Scm_BignumToString(_ptr, 10, 1));
         }
     }
-    #endregion }
+
+    public class GoshFixnum : GoshInteger
+    {
+        public override double Double
+        {
+            get { return Int; }
+        }
+
+        public override long Int64
+        {
+            get { return Int; }
+        }
+
+        public override int Int
+        {
+            get { return Cast.ScmFixnumToInt(_ptr); }
+        }
+
+        public GoshFixnum(int num)
+            :base(Cast.IntToScmFixnum(num))
+        {
+        }
+
+        public GoshFixnum(IntPtr ptr)
+            :base(ptr)
+        {
+        }
+
+        public override object Object
+        {
+            get { return this.Int; }
+        }
+
+        public override string ToString()
+        {
+            return Cast.ScmFixnumToInt(_ptr).ToString();
+        }
+    }
 
 }
 

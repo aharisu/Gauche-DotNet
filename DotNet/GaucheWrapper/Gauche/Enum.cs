@@ -62,6 +62,28 @@ namespace GaucheDotNet
         None = 4,
     }
 
+    public enum RoundMode : int
+    {
+        Floor = 0,
+        Ceil,
+        Trunc,
+        Round,
+    }
+
+    [Flags]
+    public enum NumberFormat : int
+    {
+        None = 0,
+        /// <summary>
+        /// use ABCDEF.. for base > 10
+        /// </summary>
+        UseUpper = 1,
+        /// <summary>
+        /// show '+' in positive number
+        /// </summary>
+        ShowPlus = 1 << 1,
+    }
+
     #endregion }
 
     #region string.h {
