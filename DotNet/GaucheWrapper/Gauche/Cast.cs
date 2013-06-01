@@ -91,41 +91,7 @@ namespace GaucheDotNet
             {
                 return new GoshFixnum(ScmFixnumToInt(ptr));
             }
-
-#if X64
-            Int64 num = ptr.ToInt64();
-#else
-            Int32 num = ptr.ToInt32();
-#endif
-            if ((num & 0x03) == 2)
-            {
-                return new GoshFlonum(ptr);
-            }
-            else if ((num & 0xff) == 3)
-            {
-                return new GoshChar(ScmCharToChar(ptr));
-            }
-            else if (num == GoshInvoke.SCM_FALSE)
-            {
-                return GoshBool.False;
-            }
-            else if (num == GoshInvoke.SCM_TRUE)
-            {
-                return GoshBool.True;
-            }
-            else if (num == GoshInvoke.SCM_NIL)
-            {
-                return GoshNIL.NIL;
-            }
-            else if (num == GoshInvoke.SCM_EOF)
-            {
-                return GoshEOF.EOF;
-            }
-            else if (num == GoshInvoke.SCM_UNDEFINED)
-            {
-                return GoshUndefined.Undefined;
-            }
-            else if (num == GoshInvoke.SCM_UNBOUND)
+            else if (ptr == (IntPtr)GoshInvoke.SCM_UNBOUND)
             {
                 return GoshUnbound.Unbound;
             }
@@ -133,17 +99,35 @@ namespace GaucheDotNet
             {
                 switch ((KnownClass)GoshInvoke.Scm_IsKnownType(ptr))
                 {
+                    case KnownClass.Bool:
+                        return (ptr == (IntPtr)GoshInvoke.SCM_TRUE) ? GoshBool.True : GoshBool.False;
+
+                    case KnownClass.Null:
+                        return GoshNIL.NIL;
+
+                    case KnownClass.EOFObject: 
+                        return GoshEOF.EOF;
+
+                    case KnownClass.UndefinedObject:
+                        return GoshUndefined.Undefined;
+
                     case KnownClass.Pair:
                         return new GoshPair(ptr);
 
                     case KnownClass.Integer:
                         return new GoshInteger(ptr);
 
+                    case KnownClass.Real:
+                        return new GoshFlonum(ptr);
+
                     case KnownClass.Rational:
                         return new GoshRatnum(ptr);
 
                     case KnownClass.Complex:
                         return new GoshCompnum(ptr);
+
+                    case KnownClass.Char:
+                        return new GoshChar(ScmCharToChar(ptr));
 
                     case KnownClass.String:
                         return new GoshString(ptr);
@@ -200,44 +184,11 @@ namespace GaucheDotNet
 
         public static object ToObj(IntPtr ptr)
         {
-#if X64
-            Int64 num = ptr.ToInt64();
-#else
-            Int32 num = ptr.ToInt32();
-#endif
-            if ((num & 0x03) == 1)
+            if (IsFixnum(ptr))
             {
                 return Cast.ScmFixnumToInt(ptr);
             }
-            else if ((num & 0x03) == 2)
-            {
-                return new GoshFlonum(ptr);
-            }
-            else if ((num & 0xff) == 3)
-            {
-                return Cast.ScmCharToChar(ptr);
-            }
-            else if (num == GoshInvoke.SCM_FALSE)
-            {
-                return false;
-            }
-            else if (num == GoshInvoke.SCM_TRUE)
-            {
-                return true;
-            }
-            else if (num == GoshInvoke.SCM_NIL)
-            {
-                return GoshNIL.NIL;
-            }
-            else if (num == GoshInvoke.SCM_EOF)
-            {
-                return GoshEOF.EOF;
-            }
-            else if (num == GoshInvoke.SCM_UNDEFINED)
-            {
-                return GoshUndefined.Undefined;
-            }
-            else if (num == GoshInvoke.SCM_UNBOUND)
+            else if (ptr == (IntPtr)GoshInvoke.SCM_UNBOUND)
             {
                 return GoshUnbound.Unbound;
             }
@@ -245,7 +196,20 @@ namespace GaucheDotNet
             {
                 switch ((KnownClass)GoshInvoke.Scm_IsKnownType(ptr))
                 {
+                    case KnownClass.Bool:
+                        return (ptr == (IntPtr)GoshInvoke.SCM_TRUE) ? true : false;
+
+                    case KnownClass.Null:
+                        return GoshNIL.NIL;
+
+                    case KnownClass.EOFObject:
+                        return GoshEOF.EOF;
+
+                    case KnownClass.UndefinedObject:
+                        return GoshUndefined.Undefined;
+
                     case KnownClass.Pair:
+                        //TODO 出来ればSystem.Collection.List(LinkedList)<GoshObj>に変換する
                         return new GoshPair(ptr);
 
                     case KnownClass.Integer:
@@ -254,9 +218,13 @@ namespace GaucheDotNet
                             return GoshInvoke.Scm_BignumToSI64(ptr, ClampMode.None, out oor);
                         }
 
+                    case KnownClass.Real:
                     case KnownClass.Rational:
                     case KnownClass.Complex:
                         return GoshInvoke.Scm_GetDouble(ptr);
+
+                    case KnownClass.Char:
+                        return Cast.ScmCharToChar(ptr);
 
                     case KnownClass.String:
                         return GoshInvoke.Scm_GetStringConst(ptr);
@@ -300,7 +268,7 @@ namespace GaucheDotNet
                     case KnownClass.Condition:
                         {
                             Exception e = null;
-                            IntPtr condition =  GoshInvoke.Scm_ClrConditionInnerException(ptr);
+                            IntPtr condition = GoshInvoke.Scm_ClrConditionInnerException(ptr);
                             if (condition != IntPtr.Zero)
                             {
                                 e = GCHandle.FromIntPtr(condition).Target as Exception;

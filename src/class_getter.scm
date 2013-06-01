@@ -32,20 +32,20 @@
 
 (define classes 
   '(
-  ;Scm_CharClass
-  ;Scm_BoolClass
-  ;Scm_EOFObjectClass
-  ;Scm_UndefinedObjectClass
-  ;Scm_NullClass
-  ;Scm_PairClass
-  ;Scm_LazyPairClass
   Scm_IntegerClass
+  Scm_RealClass
+  Scm_PairClass
+  Scm_NullClass
+  Scm_BoolClass
   Scm_SymbolClass
   Scm_StringClass
   Scm_ClrObjectClass
   Scm_ComplexClass
   Scm_RationalClass
+  Scm_CharClass
   Scm_BoxClass
+  Scm_EOFObjectClass
+  Scm_UndefinedObjectClass
   Scm_TopClass
   Scm_KeywordClass
   Scm_HashTableClass
@@ -62,6 +62,7 @@
   Scm_F16VectorClass
   Scm_F32VectorClass
   Scm_F64VectorClass
+  ;Scm_LazyPairClass
   ;Scm_ListClass
   ;Scm_BottomClass
   ;Scm_ClassClass
@@ -128,14 +129,10 @@
 
 (use gauche.sequence)
 
-(define-constant offset 7)
+(define-constant offset 6)
 
 (define (output-class-getter index class)
-  (print "#if !defined(GAUCHE_BROKEN_LINKER_WORKAROUND)")
-  (print "  else if (tag == SCM_CLASS2TAG(&" class ")) return " (+ index offset) ";")
-  (print "#else")
-  (print "  else if (klass == &" class ") return " (+ index offset) ";")
-  (print "#endif")
+  (print "else if(SCM_EQ(klass, &" class ")) return " (+ index offset) ";")
   )
 
 (define (trim-scm-class class)
@@ -154,26 +151,21 @@
 #define LIBGAUCHE_EXT_BODY
 #include<gauche.h>
 #include\"dotnet_type.gen.h\"
-SCM_EXTERN int Scm_IsKnownType(void* ptr)
+SCM_EXTERN int Scm_IsKnownType(ScmObj obj)
 {
-  if(!SCM_HPTRP(ptr)) return -1;
-#if !defined(GAUCHE_BROKEN_LINKER_WORKAROUND)
-  ScmByte* tag = (SCM_OBJ(ptr))->tag;
-#else
-  ScmClass* klass = (SCM_CLASS_OF(ptr));
-#endif
-  if (SCM_HTAG(ptr)!=7||Scm_PairP(SCM_OBJ(ptr))) return 0;
-  else if (SCM_CLASS_APPLICABLE_P(SCM_CLASS_OF(ptr)))
+  ScmClass* klass = Scm_ClassOf(obj);
+
+  if (SCM_CLASS_APPLICABLE_P(klass))
   {
-    if (SCM_PROCEDURE_TYPE(ptr) == SCM_PROC_CLOSURE) return 1;
-    else if (SCM_PROCEDURE_TYPE(ptr) == SCM_PROC_SUBR) return 2;
-    else if (SCM_PROCEDURE_TYPE(ptr) == SCM_PROC_METHOD) return 3;
-    else if (SCM_PROCEDURE_TYPE(ptr) == SCM_PROC_GENERIC) return 4;
-    else if (SCM_PROCEDURE_TYPE(ptr) == SCM_PROC_NEXT_METHOD) return 5;
+    if (SCM_PROCEDURE_TYPE(obj) == SCM_PROC_CLOSURE) return 0;
+    else if (SCM_PROCEDURE_TYPE(obj) == SCM_PROC_SUBR) return 1;
+    else if (SCM_PROCEDURE_TYPE(obj) == SCM_PROC_METHOD) return 2;
+    else if (SCM_PROCEDURE_TYPE(obj) == SCM_PROC_GENERIC) return 3;
+    else if (SCM_PROCEDURE_TYPE(obj) == SCM_PROC_NEXT_METHOD) return 4;
   }
-  else if(SCM_CONDITIONP(ptr))
+  else if(SCM_CONDITIONP(obj))
   {
-    return 6;
+    return 5;
   }
 ")
       (for-each-with-index
@@ -196,13 +188,12 @@ namespace GaucheDotNet
     public enum KnownClass : int
     {
       Unknown = -1,
-      Pair = 0,
-      Closure = 1,
-      Subr = 2,
-      Method = 3,
-      Generic = 4,
-      NextMethod = 5,
-      Condition = 6,")
+      Closure = 0,
+      Subr = 1,
+      Method = 2,
+      Generic = 3,
+      NextMethod = 4,
+      Condition = 5,")
       (for-each-with-index
         (lambda (index class)
           (print "      " (trim-scm-class class) " = " (+ index offset) ","))
