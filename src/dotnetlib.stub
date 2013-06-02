@@ -128,12 +128,12 @@
   return ret;
   ")
 
-(define-cproc clr-> (obj::<top>) :: <top>
+(define-cproc clr->x (obj::<top>) :: <top>
   (if (is-type? obj <clr-object>)
     (result (ClrToGoshObj (unboxing obj <clr-object>)))
     (result obj)))
 
-(define-cproc ->clr (obj::<top>) :: <clr-object>
+(define-cproc x->clr (obj::<top>) :: <clr-object>
   (cond
     [(is-type? obj <clr-object>)
      (return obj)]
