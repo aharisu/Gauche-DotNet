@@ -913,6 +913,16 @@ namespace GaucheDotNet
             return new GoshRefObj(GoshInvoke.Scm_Append(Cast.ToIntPtr(args)));
         }
 
+        public static GoshObj ReverseX(object list)
+        {
+            return new GoshRefObj(GoshInvoke.Scm_ReverseX(Cast.ToIntPtr(list)));
+        }
+
+        public static GoshObj Reverse(object list)
+        {
+            return new GoshRefObj(GoshInvoke.Scm_Reverse(Cast.ToIntPtr(list)));
+        }
+
         public static GoshObj ListTail(object list, int i, object fallback)
         {
             IntPtr ptrFallback;

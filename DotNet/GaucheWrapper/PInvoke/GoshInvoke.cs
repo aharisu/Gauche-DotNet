@@ -736,6 +736,27 @@ namespace GaucheDotNet.Native
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr Scm_Append(IntPtr args);
 
+
+        /// <param name="args">ScmObj</param>
+        /// <returns></returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_ReverseX(IntPtr list);
+
+        /// <param name="args">ScmObj</param>
+        /// <returns></returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_Reverse(IntPtr list);
+
+        /// <param name="args">ScmObj</param>
+        /// <returns></returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_Reverse2X(IntPtr list, IntPtr tail);
+
+        /// <param name="args">ScmObj</param>
+        /// <returns></returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_Reverse2(IntPtr list, IntPtr tail);
+
         /// <param name="list">ScmObj</param>
         /// <returns></returns>
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
