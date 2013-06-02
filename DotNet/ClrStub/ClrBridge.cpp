@@ -216,34 +216,91 @@ DECDLL int ClrToBoolean(void* obj)
     }
 }
 
-
-DECDLL int ClrToInt(void* obj)
+DECDLL void* ClrToNumber(void* obj)
 {
     GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
     Object^ target = gchObj.Target;
     ObjectNullCheck(target);
 
-    if(target->GetType() == GoshFixnum::typeid)
+    Type^ type = target->GetType();
+    if(GoshObj::typeid->IsAssignableFrom(type))
     {
-        return ((GoshFixnum^)target)->Int;
+        GoshObj^ goshObj = (GoshObj^)target;
+        bool firstTry = true;
+Retry:
+        if(type == GoshFixnum::typeid
+            || type == GoshInteger::typeid
+            || type == GoshFlonum::typeid
+            || type == GoshRatnum::typeid
+            || type == GoshCompnum::typeid)
+        {
+            return (void*)goshObj->Ptr;
+        }
+        else
+        {
+            if(firstTry)
+            {
+                firstTry = false;
+
+                goshObj = goshObj->Specify;
+                Type^ retryType = goshObj->GetType();
+                if(type != retryType)
+                {
+                    type = retryType;
+                    goto Retry;
+                }
+            }
+
+            ClrStubConstant::RaiseClrError(gcnew InvalidCastException("Invalid cast to number " + target));
+            //does not reach
+            return 0;
+        }
     }
     else
     {
-        try 
+        if(type == double::typeid)
         {
-            Object^ objNum = Convert::ChangeType(target, Int32::typeid);
-            return (Int32)objNum;
+            return (void*)GoshInvoke::Scm_MakeFlonum((double)target);
         }
-        catch(InvalidCastException^ e)
+        else if(type == float::typeid)
         {
-            ClrStubConstant::RaiseClrError(e);
-            //does not reach
-            return 0;
+            return (void*)GoshInvoke::Scm_MakeFlonum((double)(float)target);
+        }
+        else
+        {
+            try 
+            {
+                Int64 num = (Int64)Convert::ChangeType(target, Int64::typeid);
+                if(Int32::MinValue < num && num < Int32::MaxValue)
+                {
+                    return (void*)GoshInvoke::Scm_MakeInteger((Int32)num);
+                }
+                else
+                {
+                    return (void*)GoshInvoke::Scm_MakeInteger64(num);
+                }
+            }
+            catch(InvalidCastException^ e)
+            {
+                ClrStubConstant::RaiseClrError(e);
+                //does not reach
+                return 0;
+            }
         }
     }
 }
 
 DECDLL void* FixnumToClr(signed long int num)
+{
+    return (void*)(IntPtr)GCHandle::Alloc(num);
+}
+
+DECDLL void* Int64ToClr(System::Int64 num)
+{
+    return (void*)(IntPtr)GCHandle::Alloc(num);
+}
+
+DECDLL void* DoubleToClr(double num)
 {
     return (void*)(IntPtr)GCHandle::Alloc(num);
 }

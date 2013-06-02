@@ -61,7 +61,13 @@ DECDLL void* BooleanToClr(int boolean);
 DECDLL int ClrToBoolean(void* obj);
 
 DECDLL void* FixnumToClr(signed long int num);
-DECDLL int ClrToInt(void* obj);
+#ifdef GAUCHE_H
+DECDLL void* Int64ToClr(ScmInt64 num);
+#else
+DECDLL void* Int64ToClr(System::Int64 num);
+#endif
+DECDLL void* DoubleToClr(double num);
+DECDLL void* ClrToNumber(void* obj);
 
 DECDLL void* StringToClr(const char* str);
 DECDLL void* ClrToGoshString(void* clrObj);

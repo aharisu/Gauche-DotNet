@@ -69,14 +69,14 @@ namespace Example
             Gosh.Define(user, symHoge, hoge);
 
             //get property
-            "(+ 1 2 (clr->int (clr-prop-get hoge 'Num)))".Eval().WriteLine();
+            "(+ 1 2 (clr->number (clr-prop-get hoge 'Num)))".Eval().WriteLine();
 
             //set property
             GoshSymbol symNum = Gosh.Intern("num");
             Gosh.Define(user, symNum, 1000);
             "(clr-prop-set! hoge 'Num num)".Eval().WriteLine();
 
-            "(+ 1 2 (clr->int (clr-prop-get hoge 'Num)))".Eval().WriteLine();
+            "(+ 1 2 (clr->number (clr-prop-get hoge 'Num)))".Eval().WriteLine();
 
             //get field
             "(clr-field-get hoge 'str)".Eval().WriteLine();
@@ -86,7 +86,7 @@ namespace Example
             "(clr-field-get hoge 'str)".Eval().WriteLine();
 
             //add event
-            "(define ev (lambda (num str) (print (clr->int num))  (print (clr->string str)) 3.14))".Eval().WriteLine();
+            "(define ev (lambda (num str) (print (clr->number num))  (print (clr->string str)) 3.14))".Eval().WriteLine();
             "(clr-event-add! hoge 'Event ev)".Eval().WriteLine();
             "(clr-event-add! hoge 'Event (lambda (num str) (print \"second\") (*  2 3.14)))".Eval().WriteLine();
             Console.WriteLine(hoge.eventTest(10, "hohoho"));

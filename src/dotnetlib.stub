@@ -142,19 +142,24 @@
      (result (BooleanToClr (unboxing obj <boolean>)))]
     [else (Scm_Error "obj required <boolean>, but got %S" obj)]))
 
-(define-cproc clr->int (obj::<top>) :: <int>
+(define-cproc clr->number (obj::<top>) :: <top>
   (cond
-    [(is-type? obj <fixnum>)
-     (return obj)]
+    [(is-type? obj <number>)
+     (result obj)]
     [(is-type? obj <clr-object>)
-     (result (ClrToInt (unboxing obj <clr-object>)))]
+     (result (ClrToNumber (unboxing obj <clr-object>)))]
     [else (Scm_Error "obj required <clr-object>, but got %S" obj)]))
 
-(define-cproc int->clr (obj::<top>) ::<clr-object>
-  (cond
-    [(is-type? obj <fixnum>)
-     (result (FixnumToClr (unboxing obj <fixnum>)))]
-    [else (Scm_Error "obj required <int>, but got %S" obj)]))
+(define-cproc number->clr (obj::<top>) ::<clr-object>
+  (if (is-type? obj <number>)
+    (cond
+      [(is-type? obj <fixnum>)
+       (result (FixnumToClr (unboxing obj <fixnum>)))]
+      [(is-type? obj <integer>)
+       (result (Int64ToClr (Scm_GetInteger64Clamp obj SCM_CLAMP_ERROR NULL)))]
+      [else
+        (result (DoubleToClr (Scm_GetDouble obj)))])
+    (Scm_Error "obj required <number>, but got %S" obj)))
 
 (define-cproc clr->string (obj::<top>) :: <top>
   (cond
