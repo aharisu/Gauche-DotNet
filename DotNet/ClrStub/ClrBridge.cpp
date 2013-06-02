@@ -185,6 +185,221 @@ DECDLL void ClrIterDispose(void* iter)
     handle.Free();
 }
 
+DECDLL void* ClrToGoshObj(void* obj)
+{
+    GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
+    Object^ target = gchObj.Target;
+    ObjectNullCheck(target);
+
+    Type^ type = target->GetType();
+    if(GoshObj::typeid->IsAssignableFrom(type))
+    {
+        return (void*)((GoshObj^)target)->Ptr;
+    }
+    else
+    {
+        if(type == Boolean::typeid)
+        {
+            return (void*)(((Boolean)target) ? GoshBool::True->Ptr : GoshBool::False->Ptr);
+        }
+        else if(type == String::typeid)
+        {
+            return (void*)GoshInvoke::Scm_MakeString((String^)target, -1, -1, StringFlags::Copying);
+        }
+        else if(type == double::typeid)
+        {
+            return (void*)GoshInvoke::Scm_MakeFlonum((double)target);
+        }
+        else if(type == Char::typeid)
+        {
+            return (void*)Cast::CharToScmChar((Char)target);
+        }
+        else if(type == float::typeid)
+        {
+            return (void*)GoshInvoke::Scm_MakeFlonum((double)(float)target);
+        }
+        else if(Array::typeid->IsAssignableFrom(type)) //TO UVector or Vector
+        {
+            IntPtr vec;
+#pragma region Array {
+            Array^ ary = (Array^)target;
+            int len = ary->Length;
+
+            switch(Type::GetTypeCode(type->GetElementType()))
+            {
+            case TypeCode::Byte:
+                {
+                    array<Byte>^ a = (array<Byte>^)ary;
+                    vec = GoshInvoke::Scm_MakeU8Vector(len, 0);
+                    for(int i = 0;i < len;++i)
+                    {
+                        GoshInvoke::Scm_U8VectorSet(vec, i, a[i]);
+                    }
+                }
+                break;
+            case TypeCode::SByte:
+                {
+                    array<SByte>^ a = (array<SByte>^)ary;
+                    vec = GoshInvoke::Scm_MakeS8Vector(len, 0);
+                    for(int i = 0;i < len;++i)
+                    {
+                        GoshInvoke::Scm_S8VectorSet(vec, i, a[i]);
+                    }
+                }
+                break;
+            case TypeCode::Int16:
+                {
+                    array<Int16>^ a = (array<Int16>^)ary;
+                    vec = GoshInvoke::Scm_MakeS16Vector(len, 0);
+                    for(int i = 0;i < len;++i)
+                    {
+                        GoshInvoke::Scm_S16VectorSet(vec, i, a[i]);
+                    }
+                }
+                break;
+            case TypeCode::UInt16:
+                {
+                    array<UInt16>^ a = (array<UInt16>^)ary;
+                    vec = GoshInvoke::Scm_MakeU16Vector(len, 0);
+                    for(int i = 0;i < len;++i)
+                    {
+                        GoshInvoke::Scm_U16VectorSet(vec, i, a[i]);
+                    }
+                }
+                break;
+            case TypeCode::Int32:
+                {
+                    array<Int32>^ a = (array<Int32>^)ary;
+                    vec = GoshInvoke::Scm_MakeS32Vector(len, 0);
+                    for(int i = 0;i < len;++i)
+                    {
+                        GoshInvoke::Scm_S32VectorSet(vec, i, a[i]);
+                    }
+                }
+                break;
+            case TypeCode::UInt32:
+                {
+                    array<UInt32>^ a = (array<UInt32>^)ary;
+                    vec = GoshInvoke::Scm_MakeU32Vector(len, 0);
+                    for(int i = 0;i < len;++i)
+                    {
+                        GoshInvoke::Scm_U32VectorSet(vec, i, a[i]);
+                    }
+                }
+                break;
+            case TypeCode::Int64:
+                {
+                    array<Int64>^ a = (array<Int64>^)ary;
+                    vec = GoshInvoke::Scm_MakeS64Vector(len, 0);
+                    for(int i = 0;i < len;++i)
+                    {
+                        GoshInvoke::Scm_S64VectorSet(vec, i, a[i]);
+                    }
+                }
+                break;
+            case TypeCode::UInt64:
+                {
+                    array<UInt64>^ a = (array<UInt64>^)ary;
+                    vec = GoshInvoke::Scm_MakeU64Vector(len, 0);
+                    for(int i = 0;i < len;++i)
+                    {
+                        GoshInvoke::Scm_U64VectorSet(vec, i, a[i]);
+                    }
+                }
+                break;
+            case TypeCode::Single:
+                {
+                    array<Single>^ a = (array<Single>^)ary;
+                    vec = GoshInvoke::Scm_MakeF32Vector(len, 0);
+                    for(int i = 0;i < len;++i)
+                    {
+                        GoshInvoke::Scm_F32VectorSet(vec, i, a[i]);
+                    }
+                }
+                break;
+            case TypeCode::Double:
+                {
+                    array<Double>^ a = (array<Double>^)ary;
+                    vec = GoshInvoke::Scm_MakeF64Vector(len, 0);
+                    for(int i = 0;i < len;++i)
+                    {
+                        GoshInvoke::Scm_F64VectorSet(vec, i, a[i]);
+                    }
+                }
+                break;
+            default:
+                {
+                    vec = GoshInvoke::Scm_MakeVector(len, GoshUndefined::Undefined->Ptr);
+                    int i;
+                    for each(Object^ o in ary)
+                    {
+                        GoshInvoke::Scm_VectorSet(vec, i, Cast::ToIntPtr(o));
+                        ++i;
+                    }
+                }
+                break;
+            }
+#pragma endregion }
+
+            return (void*)vec;
+        }
+        else if(System::Collections::IList::typeid->IsAssignableFrom(type)) //To Vector
+        {
+            System::Collections::IList^ list = (System::Collections::IList^)target;
+            IntPtr vec = GoshInvoke::Scm_MakeVector(list->Count, GoshUndefined::Undefined->Ptr);
+            int i = 0;
+            for each(Object^ o in list)
+            {
+                GoshInvoke::Scm_VectorSet(vec, i, Cast::ToIntPtr(o));
+                ++i;
+            }
+            return (void*)vec;
+        }
+        else if(System::Collections::IDictionary::typeid->IsAssignableFrom(type)) //To HashTable
+        {
+            IntPtr hashtable = GoshInvoke::Scm_MakeHashTableSimple(HashType::Equal, 0);
+
+            for each(System::Collections::DictionaryEntry^ entry in
+                ((System::Collections::IDictionary^)target))
+            {
+                GoshInvoke::Scm_HashTableSet(hashtable, Cast::ToIntPtr(entry->Key), Cast::ToIntPtr(entry->Value), DictSetFlags::None);
+            }
+
+            return (void*)hashtable;
+        }
+        else if(System::Collections::IEnumerable::typeid->IsAssignableFrom(type)) // To Cons List
+        {
+            IntPtr c = GoshNIL::NIL->Ptr;
+            for each(Object^ o in ((System::Collections::IEnumerable^)target))
+            {
+                c = GoshInvoke::Scm_Cons(Cast::ToIntPtr(o), c);
+            }
+            return (void*)GoshInvoke::Scm_ReverseX(c);
+        }
+        else
+        {
+            try 
+            {
+                Int64 num = (Int64)Convert::ChangeType(target, Int64::typeid);
+                if(Int32::MinValue < num && num < Int32::MaxValue)
+                {
+                    return (void*)GoshInvoke::Scm_MakeInteger((Int32)num);
+                }
+                else
+                {
+                    return (void*)GoshInvoke::Scm_MakeInteger64(num);
+                }
+            }
+            catch(InvalidCastException^ e)
+            {
+                ClrStubConstant::RaiseClrError(e);
+                //does not reach
+                return 0;
+            }
+        }
+    }
+}
+
 DECDLL void* BooleanToClr(int boolean)
 {
     return (void*)(IntPtr)GCHandle::Alloc((boolean == 1) ? true : false);

@@ -128,6 +128,30 @@
   return ret;
   ")
 
+(define-cproc clr-> (obj::<top>) :: <top>
+  (if (is-type? obj <clr-object>)
+    (result (ClrToGoshObj (unboxing obj <clr-object>)))
+    (result obj)))
+
+(define-cproc ->clr (obj::<top>) :: <clr-object>
+  (cond
+    [(is-type? obj <clr-object>)
+     (return obj)]
+    [(is-type? obj <boolean>)
+     (result (BooleanToClr (unboxing obj <boolean>)))]
+    [(is-type? obj <number>)
+     (cond
+       [(is-type? obj <fixnum>)
+        (result (FixnumToClr (unboxing obj <fixnum>)))]
+       [(is-type? obj <integer>)
+        (result (Int64ToClr (Scm_GetInteger64Clamp obj SCM_CLAMP_ERROR NULL)))]
+       [else
+         (result (DoubleToClr (Scm_GetDouble obj)))])]
+    [(is-type? obj <string>)
+     (result (StringToClr (SCM_STRING_START obj)))]
+    [else (Scm_Error "invalid cast %S" obj)]))
+
+
 (define-cproc clr->bool (obj::<top>) :: <boolean>
   (cond
     [(is-type? obj <boolean>)

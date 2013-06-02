@@ -57,6 +57,8 @@ DECDLL int ClrIsIterEnd(void* iter);
 DECDLL void* ClrIterNext(void* iter);
 DECDLL void ClrIterDispose(void* iter);
 
+DECDLL void* ClrToGoshObj(void* obj);
+
 DECDLL void* BooleanToClr(int boolean);
 DECDLL int ClrToBoolean(void* obj);
 
