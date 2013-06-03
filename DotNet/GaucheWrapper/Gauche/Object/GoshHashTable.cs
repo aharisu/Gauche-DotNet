@@ -139,20 +139,20 @@ namespace GaucheDotNet
                 }
             }
 
-            return Cast.ToGoshObjPtr(key);
+            return Cast.ToIntPtr(key);
         }
 
         public static object HashTableRef(IntPtr ptr, object key)
         {
             IntPtr ptrKey = GetKey(ptr, key);
             IntPtr val = GoshInvoke.Scm_HashTableRef(ptr, ptrKey, (IntPtr)GoshInvoke.SCM_UNBOUND);
-            return Cast.ToClrObject(val);
+            return Cast.ToObj(val);
         }
 
         public static void HashTableSet(IntPtr ptr, object key, object value)
         {
             IntPtr ptrKey = GetKey(ptr, key);
-            IntPtr ptrValue = Cast.ToGoshObjPtr(value);
+            IntPtr ptrValue = Cast.ToIntPtr(value);
 
             GoshInvoke.Scm_HashTableSet(ptr, ptrKey, ptrValue, DictSetFlags.None);
         }
@@ -162,7 +162,7 @@ namespace GaucheDotNet
             IntPtr ptrKey = GetKey(ptr, key);
 
             IntPtr ret = GoshInvoke.Scm_HashTableDelete(ptr, ptrKey);
-            return Cast.ToClrObject(ret);
+            return Cast.ToObj(ret);
         }
 
         public static Hashtable ToHashtable(IntPtr ptr)
@@ -249,7 +249,7 @@ namespace GaucheDotNet
                     }
 
                     ScmDictEntry* entry = (ScmDictEntry*)ret;
-                    object key = Cast.ToClrObject(entry->key);
+                    object key = Cast.ToObj(entry->key);
                     if (((ScmHashTable*)_table)->type == (int)HashType.String)
                     { //文字列タイプのHashTableでKeyがGoshString型であれば、.NetのStringに変換
                         GoshString strKey = key as GoshString;
@@ -262,11 +262,11 @@ namespace GaucheDotNet
                     if (_isRecycle)
                     {
                         _cur.Key = key;
-                        _cur.Value = Cast.ToClrObject(entry->value);
+                        _cur.Value = Cast.ToObj(entry->value);
                     }
                     else
                     {
-                        _cur = new GoshHashEntry(key, Cast.ToClrObject(entry->value));
+                        _cur = new GoshHashEntry(key, Cast.ToObj(entry->value));
                     }
                     return true;
                 }

@@ -41,11 +41,11 @@ namespace GaucheDotNet
         {
             get
             {
-                return Cast.ToClrObject(GoshInvoke.Scm_VectorRef(_ptr, index, GoshUnbound.Unbound.Ptr));
+                return Cast.ToObj(GoshInvoke.Scm_VectorRef(_ptr, index, GoshUnbound.Unbound.Ptr));
             }
             set
             {
-                GoshInvoke.Scm_VectorSet(_ptr, index, Cast.ToGoshObjPtr(value));
+                GoshInvoke.Scm_VectorSet(_ptr, index, Cast.ToIntPtr(value));
             }
         }
 
@@ -58,7 +58,7 @@ namespace GaucheDotNet
 
                 for (int i = 0; i < size; ++i)
                 {
-                    ret[i] = Cast.ToClrObject(GoshInvoke.Scm_VectorRef(vec, i, GoshUnbound.Unbound.Ptr));
+                    ret[i] = Cast.ToObj(GoshInvoke.Scm_VectorRef(vec, i, GoshUnbound.Unbound.Ptr));
                 }
 
                 return ret;
