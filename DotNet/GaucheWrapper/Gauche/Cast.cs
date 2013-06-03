@@ -348,27 +348,11 @@ namespace GaucheDotNet
             }
             else if (obj is Int32)
             {
-                Int32 num = (Int32)obj;
-                if (num >= SCM_SMALL_INT_MIN && num <= SCM_SMALL_INT_MAX)
-                {
-                    return Cast.IntToScmFixnum(num);
-                }
-                else
-                {
-                    //TODO
-                }
+                return GoshInvoke.Scm_MakeInteger((Int32)obj);
             }
             else if (obj is UInt32)
             {
-                UInt32 num = (UInt32)obj;
-                if (num <= SCM_SMALL_INT_MAX)
-                {
-                    return Cast.IntToScmFixnum((int)num);
-                }
-                else
-                {
-                    //TODO
-                }
+                return GoshInvoke.Scm_MakeIntegerU((UInt32)obj);
             }
             else if (obj is Int16)
             {
@@ -380,31 +364,27 @@ namespace GaucheDotNet
             }
             else if (obj is Int64)
             {
-                Int64 num = (Int64)obj;
-                if (num >= SCM_SMALL_INT_MIN && num <= SCM_SMALL_INT_MAX)
-                {
-                    return Cast.IntToScmFixnum((int)num);
-                }
-                else
-                {
-                    //TODO
-                }
+                return GoshInvoke.Scm_MakeInteger64((Int64)obj);
             }
             else if (obj is UInt64)
             {
-                UInt64 num = (UInt64)obj;
-                if (num <= (UInt64)SCM_SMALL_INT_MAX)
-                {
-                    return Cast.IntToScmFixnum((int)num);
-                }
-                else
-                {
-                    //TODO
-                }
+                return GoshInvoke.Scm_MakeIntegerU64((UInt64)obj);
+            }
+            else if (obj is float)
+            {
+                return GoshInvoke.Scm_MakeFlonum((double)(float)obj);
+            }
+            else if (obj is double)
+            {
+                return GoshInvoke.Scm_MakeFlonum((double)obj);
             }
             else if (obj is String)
             {
                 return GoshInvoke.Scm_MakeString((String)obj, -1, -1, StringFlags.Copying);
+            }
+            else if (obj is char)
+            {
+                return CharToScmChar((int)(char)obj);
             }
 
             GCHandle handle = GCHandle.Alloc(obj);
