@@ -555,6 +555,81 @@ static void InfoNullCheck(MemberInfo^ info, Object^ obj, String^ kind, String^ n
     }
 }
 
+static int ToInteger(ObjWrapper* objWrapper)
+{
+    Object^ o = ClrMethod::ToObject(objWrapper);
+    switch(Type::GetTypeCode(o->GetType()))
+    {
+    case TypeCode::SByte:
+        return (int)(SByte)o;
+    case TypeCode::Byte:
+        return (int)(Byte)o;
+    case TypeCode::Int16:
+        return (int)(Int16)o;
+    case TypeCode::UInt16:
+        return (int)(UInt16)o;
+    case TypeCode::Int32:
+        return (int)(Int32)o;
+    case TypeCode::UInt32:
+        {
+            UInt32 num = (UInt32)o;
+            if(num < Int32::MaxValue)
+            {
+                return (Int32)num;
+            }
+        }
+    }
+
+    ClrStubConstant::RaiseClrError(gcnew InvalidCastException(
+        String::Format("required int object, but got {0}", o)));
+    //does not reach
+    return 0;
+}
+
+static bool IsArrayIndexAt(Object^ obj, const char* name, int numIndexer)
+{
+    return Array::typeid->IsAssignableFrom(obj->GetType())
+        && name == 0
+        && numIndexer != 0;
+}
+
+static void SetArrayObj(Object^ target
+                        , ObjWrapper* indexer, int numIndexer
+                        , Object^ value)
+{
+    try
+    {
+        switch(numIndexer)
+        {
+        case 1:
+            ((Array^)target)->SetValue(value, ToInteger(&(indexer[0])));
+            break;
+        case 2:
+            ((Array^)target)->SetValue(value, ToInteger(&(indexer[0])),
+                ToInteger(&(indexer[1])));
+            break;
+        case 3:
+            ((Array^)target)->SetValue(value, ToInteger(&(indexer[0])),
+                ToInteger(&(indexer[1])), ToInteger(&(indexer[2])));
+            break;
+        default:
+            {
+                array<int>^ indices = gcnew array<int>(numIndexer);
+                for(int i = 0;i < numIndexer;++i)
+                {
+                    indices[i] = ToInteger(&(indexer[i]));
+                }
+                ((Array^)target)->SetValue(value, indices);
+                break;
+            }
+        }
+    }
+    catch(Exception^ e)
+    {
+        ClrStubConstant::RaiseClrError(e);
+    }
+}
+
 DECDLL void ClrPropSetClrObj(void* obj, const char* name
                             , ObjWrapper* indexer, int numIndexer
                             , void* clrObj)
@@ -562,6 +637,13 @@ DECDLL void ClrPropSetClrObj(void* obj, const char* name
     GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
     Object^ hObj = gchObj.Target;
     ObjectNullCheck(hObj);
+
+    if(IsArrayIndexAt(hObj, name, numIndexer))
+    {
+        SetArrayObj(hObj, indexer, numIndexer
+            , GCHandle::FromIntPtr(IntPtr(clrObj)).Target);
+        return;
+    }
 
     String^ propName = (name == 0) ?
         propName = "Item" : //default indexer name;
@@ -601,6 +683,12 @@ DECDLL void ClrPropSetScmObj(void* obj, const char* name
     Object^ hObj = gchObj.Target;
     ObjectNullCheck(hObj);
 
+    if(IsArrayIndexAt(hObj, name, numIndexer))
+    {
+        SetArrayObj(hObj, indexer, numIndexer, gcnew GoshClrObject(IntPtr(scmObj)));
+        return;
+    }
+
     String^ propName = (name == 0) ?
         propName = "Item" : //default indexer name;
         Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
@@ -639,6 +727,12 @@ DECDLL void ClrPropSetInt(void* obj, const char* name
     Object^ hObj = gchObj.Target;
     ObjectNullCheck(hObj);
 
+    if(IsArrayIndexAt(hObj, name, numIndexer))
+    {
+        SetArrayObj(hObj, indexer, numIndexer, value);
+        return;
+    }
+
     String^ propName = (name == 0) ?
         propName = "Item" : //default indexer name;
         Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
@@ -675,6 +769,13 @@ DECDLL void ClrPropSetString(void* obj, const char* name
     GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
     Object^ hObj = gchObj.Target;
     ObjectNullCheck(hObj);
+
+    if(IsArrayIndexAt(hObj, name, numIndexer))
+    {
+        SetArrayObj(hObj, indexer, numIndexer
+             , Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(value))));
+        return;
+    }
 
     String^ propName = (name == 0) ?
         propName = "Item" : //default indexer name;
@@ -717,6 +818,46 @@ DECDLL void* ClrPropGet(ObjWrapper* obj, const char* name
 {
     Object^ hObj = ClrMethod::ToObject(obj);
     ObjectNullCheck(hObj);
+
+    if(IsArrayIndexAt(hObj, name, numIndexer))
+    {
+        Object^ ret;
+
+        try
+        {
+            switch(numIndexer)
+            {
+            case 1:
+                ret = ((Array^)hObj)->GetValue(ToInteger(&(indexer[0])));
+                break;
+            case 2:
+                ret = ((Array^)hObj)->GetValue(ToInteger(&(indexer[0])),
+                    ToInteger(&(indexer[1])));
+                break;
+            case 3:
+                ret = ((Array^)hObj)->GetValue(ToInteger(&(indexer[0])),
+                    ToInteger(&(indexer[1])), ToInteger(&(indexer[2])));
+                break;
+            default:
+                {
+                    array<int>^ indices = gcnew array<int>(numIndexer);
+                    for(int i = 0;i < numIndexer;++i)
+                    {
+                        indices[i] = ToInteger(&(indexer[i]));
+                    }
+                    ret = ((Array^)hObj)->GetValue(indices);
+                    break;
+                }
+            }
+            return (void*)(IntPtr) GCHandle::Alloc(ret);
+        }
+        catch(Exception^ e)
+        {
+            ClrStubConstant::RaiseClrError(e);
+            //does not reach
+            return 0;
+        }
+    }
 
     String^ propName = (name == 0) ?
         propName = "Item" : //default indexer name;
