@@ -74,19 +74,18 @@ DECDLL void* ClrToNumber(void* obj);
 DECDLL void* StringToClr(const char* str);
 DECDLL void* ClrToGoshString(void* clrObj);
 
-DECDLL void ClrPropSetClrObj(void* obj, const char* name, ObjWrapper* indexer, int numIndexer, void* clrObj);
-DECDLL void ClrPropSetScmObj(void* obj, const char* name, ObjWrapper* indexer, int numIndexer, void* scmObj);
-DECDLL void ClrPropSetInt(void* obj, const char* name, ObjWrapper* indexer, int numIndexer, int value);
-DECDLL void ClrPropSetString(void* obj, const char* name, ObjWrapper* indexer, int numIndexer, const char* value);
+typedef enum {
+    KIND_FIELD = 1,
+    KIND_PROP = 1 << 1,
+    KIND_FIELD_PROP = KIND_FIELD | KIND_PROP
+}FieldPropKind;
 
-DECDLL void* ClrPropGet(ObjWrapper* obj, const char* name, ObjWrapper* indexer, int numIndexer);
+DECDLL void ClrFieldPropSetClrObj(FieldPropKind kind, void* obj, const char* name, ObjWrapper* indexer, int numIndexer, void* clrObj);
+DECDLL void ClrFieldPropSetScmObj(FieldPropKind kind, void* obj, const char* name, ObjWrapper* indexer, int numIndexer, void* scmObj);
+DECDLL void ClrFieldPropSetInt(FieldPropKind kind, void* obj, const char* name, ObjWrapper* indexer, int numIndexer, int value);
+DECDLL void ClrFieldPropSetString(FieldPropKind kind, void* obj, const char* name, ObjWrapper* indexer, int numIndexer, const char* value);
 
-DECDLL void ClrFieldSetClrObj(void* obj, const char* name,  void* clrObj);
-DECDLL void ClrFieldSetScmObj(void* obj, const char* name,  void* scmObj);
-DECDLL void ClrFieldSetInt(void* obj, const char* name,  int value);
-DECDLL void ClrFieldSetString(void* obj, const char* name,  const char* value);
-
-DECDLL void* ClrFieldGet(void* obj, const char* name);
+DECDLL void* ClrFieldPropGet(FieldPropKind kind, ObjWrapper* obj, const char* name, ObjWrapper* indexer, int numIndexer);
 
 DECDLL void ClrEventAddGoshProc(void* obj, const char* name, void* goshProc);
 DECDLL void ClrEventAddClrObj(void* obj, const char* name, void* clrObj);

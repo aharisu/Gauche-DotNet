@@ -45,3 +45,10 @@
   (let-keywords opts ([start #f])
     (clr-iteration obj proc (or start 0))))
 
+(define-method object-apply ((obj <clr-object>) target)
+  (clr-get obj target))
+
+(define-method object-apply ((obj <clr-object>) target value)
+  (clr-set! obj target value))
+
+

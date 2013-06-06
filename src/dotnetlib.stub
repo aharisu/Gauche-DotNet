@@ -204,7 +204,7 @@
                                 tmp-num-indexer::int
                                 ) :: int
   (cond
-    [(is-type? target <symbol>)
+    [(or (is-type? target <symbol>) (is-type? target <keyword>))
      (set! (* ret-name) (SCM_STRING_START (-> (unboxing target <symbol>) name)))
      (set! (* ret-indexer) 0)
      (set! (* ret-num-indexer) 0)
@@ -228,51 +228,51 @@
 "
 #define INDEXER_TMP_ARY_SIZE 8
 "
-(define-cproc clr-prop-get (obj::<top> target::<top>) :: <clr-object>
+(define-cfn clr-field/prop-get (kind::int obj::ScmObj target::ScmObj) :: void* :static
   (let* ([o::ObjWrapper (to-objwrapper obj FALSE TRUE)]
          [name::(const char*)]
          [indexer::ObjWrapper*]
          [tmp-indexer::(.array ObjWrapper (INDEXER_TMP_ARY_SIZE))]
          [num-indexer::int])
     (prop-name/indexer target (& name) (& indexer) (& num-indexer) tmp-indexer INDEXER_TMP_ARY_SIZE)
-    (result (ClrPropGet (& o) name indexer num-indexer))))
+    (return (ClrFieldPropGet kind (& o) name indexer num-indexer))))
 
-(define-cproc clr-prop-set! (obj::<clr-object> target::<top> val::<top>) :: <void>
+(define-cfn clr-field/prop-set! (kind::int obj::ClrObject target::ScmObj val::ScmObj) :: void :static
   (let* ([name::(const char*)]
          [indexer::ObjWrapper*]
          [tmp-indexer::(.array ObjWrapper (INDEXER_TMP_ARY_SIZE))]
          [num-indexer::int])
     (prop-name/indexer target (& name) (& indexer) (& num-indexer) tmp-indexer INDEXER_TMP_ARY_SIZE)
-      (cond
-        [(is-type? val <int>)
-         (ClrPropSetInt obj name indexer num-indexer (unboxing val <int> ))]
-       [(is-type? val <string>)
-        (ClrPropSetString obj name indexer num-indexer 
-                          (SCM_STRING_START (unboxing val <string>)))]
-       ;;TODO more primitive type
-       [(is-type? val <clr-object>)
-        (ClrPropSetClrObj obj name indexer num-indexer 
-                          (unboxing val <clr-object>))]
-       [else
-         (ClrPropSetScmObj obj name indexer num-indexer val)])))
+    (cond
+      [(is-type? val <int>)
+       (ClrFieldPropSetInt kind obj name indexer num-indexer (unboxing val <int> ))]
+      [(is-type? val <string>)
+       (ClrFieldPropSetString kind obj name indexer num-indexer 
+                              (SCM_STRING_START (unboxing val <string>)))]
+      ;;TODO more primitive type 
+      [(is-type? val <clr-object>) 
+       (ClrFieldPropSetClrObj kind obj name indexer num-indexer 
+                              (unboxing val <clr-object>))]
+      [else
+        (ClrFieldPropSetScmObj kind obj name indexer num-indexer val)])))
 
-(define-cproc clr-field-get (obj::<clr-object> name::<symbol>) :: <clr-object>
-  (result (ClrFieldGet obj (SCM_STRING_START (@ name->name)))))
+(define-cproc clr-get (obj::<top> target::<top>) :: <clr-object>
+  (result (clr-field/prop-get KIND_FIELD_PROP obj target)))
 
-(define-cproc clr-field-set! (obj::<clr-object> name::<symbol> val::<top>) :: <void>
-  (cond
-    [(is-type? val <int>)
-     (ClrFieldSetInt obj (SCM_STRING_START (-> name name))
-                     (unboxing val <int>))]
-    [(is-type? val <string>)
-     (ClrFieldSetString obj (SCM_STRING_START (-> name name))
-                        (SCM_STRING_START (unboxing val <string>)))]
-    ;;TODO more primitive type
-    [(is-type? val <clr-object>)
-     (ClrFieldSetClrObj obj (SCM_STRING_START (-> name name))
-                        (unboxing val <clr-object>))]
-    [else
-      (ClrFieldSetScmObj obj (SCM_STRING_START (-> name name)) val)]))
+(define-cproc clr-set! (obj::<clr-object> target::<top> val::<top>) :: <void>
+  (clr-field/prop-set! KIND_FIELD_PROP obj target val))
+
+(define-cproc clr-prop-get (obj::<top> target::<top>) :: <clr-object>
+  (result (clr-field/prop-get KIND_PROP obj target)))
+
+(define-cproc clr-prop-set! (obj::<clr-object> target::<top> val::<top>) :: <void>
+  (clr-field/prop-set! KIND_PROP obj target val))
+
+(define-cproc clr-field-get (obj::<top> target::<top>) :: <clr-object>
+  (result (clr-field/prop-get KIND_FIELD obj target)))
+
+(define-cproc clr-field-set! (obj::<clr-object> target::<top> val::<top>) :: <void>
+  (clr-field/prop-set! KIND_FIELD obj target val))
 
 (define-cproc clr-event-add! (obj::<clr-object> name::<symbol> event::<top>) :: <void>
   (cond

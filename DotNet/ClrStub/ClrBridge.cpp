@@ -185,6 +185,8 @@ DECDLL void ClrIterDispose(void* iter)
     handle.Free();
 }
 
+#pragma region cast of clr <-> Gauche {
+
 DECDLL void* ClrToGoshObj(void* obj)
 {
     GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
@@ -545,6 +547,8 @@ DECDLL void* StringToClr(const char* str)
     return (void*)(IntPtr) GCHandle::Alloc(obj);
 }
 
+#pragma endregion }
+
 static void InfoNullCheck(MemberInfo^ info, Object^ obj, String^ kind, String^ name)
 {
     if(info == nullptr)
@@ -554,6 +558,8 @@ static void InfoNullCheck(MemberInfo^ info, Object^ obj, String^ kind, String^ n
         //does not reach
     }
 }
+
+#pragma region field/property setter / getter {
 
 static int ToInteger(ObjWrapper* objWrapper)
 {
@@ -630,7 +636,9 @@ static void SetArrayObj(Object^ target
     }
 }
 
-DECDLL void ClrPropSetClrObj(void* obj, const char* name
+
+DECDLL void ClrFieldPropSetClrObj(FieldPropKind kind
+                            , void* obj, const char* name
                             , ObjWrapper* indexer, int numIndexer
                             , void* clrObj)
 {
@@ -638,44 +646,76 @@ DECDLL void ClrPropSetClrObj(void* obj, const char* name
     Object^ hObj = gchObj.Target;
     ObjectNullCheck(hObj);
 
-    if(IsArrayIndexAt(hObj, name, numIndexer))
-    {
-        SetArrayObj(hObj, indexer, numIndexer
-            , GCHandle::FromIntPtr(IntPtr(clrObj)).Target);
-        return;
-    }
-
-    String^ propName = (name == 0) ?
-        propName = "Item" : //default indexer name;
-        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
-
-    PropertyInfo^ propInfo = hObj->GetType()->GetProperty(propName);
-    InfoNullCheck(propInfo, hObj, "property", propName);
-
     GCHandle gchVal = GCHandle::FromIntPtr(IntPtr(clrObj));
     Object^ hVal = gchVal.Target;
 
-    array<Object^>^ index = nullptr;
-    if(numIndexer != 0)
-    {
-        index = gcnew array<Object^>(numIndexer);
-        for(int i = 0;i < numIndexer;++i)
-        {
-            index[i] = ClrMethod::ToObject(&(indexer[i]));
-        }
-    }
+    String^ fpName = (name == 0) ?
+        "Item" : //default indexer name;
+        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
 
     try
     {
-        propInfo->SetValue(hObj, hVal, index);
+        if(kind & KIND_PROP)
+        {
+            if(IsArrayIndexAt(hObj, name, numIndexer))
+            {
+                SetArrayObj(hObj, indexer, numIndexer, hVal);
+                return;
+            }
+
+            PropertyInfo^ propInfo = hObj->GetType()->GetProperty(fpName);
+            if(kind & KIND_FIELD)
+            {
+                if(propInfo == nullptr) goto END_PROP;
+            }
+            else
+            {
+                InfoNullCheck(propInfo, hObj, "property", fpName);
+            }
+
+            array<Object^>^ index = nullptr;
+            if(numIndexer != 0)
+            {
+                index = gcnew array<Object^>(numIndexer);
+                for(int i = 0;i < numIndexer;++i)
+                {
+                    index[i] = ClrMethod::ToObject(&(indexer[i]));
+                }
+            }
+            propInfo->SetValue(hObj, hVal, index);
+            return;
+        }
+END_PROP:
+
+        if(kind & KIND_FIELD && name != 0)
+        {
+            FieldInfo^ fieldInfo = hObj->GetType()->GetField(fpName);
+            if(kind & KIND_PROP)
+            {
+                if(fieldInfo == nullptr) goto END_FIELD;
+            }
+            else
+            {
+                InfoNullCheck(fieldInfo, hObj, "field", fpName);
+            }
+
+            fieldInfo->SetValue(hObj, hVal);
+            return;
+        }
+END_FIELD:
+
+        ClrStubConstant::RaiseClrError(gcnew ArgumentException(
+            String::Format("{0} class dosen't have such property/field: {1}", hObj->GetType()->Name, fpName))); 
     }
     catch(Exception^ e)
     {
         ClrStubConstant::RaiseClrError(e);
     }
+
 }
 
-DECDLL void ClrPropSetScmObj(void* obj, const char* name
+DECDLL void ClrFieldPropSetScmObj(FieldPropKind kind
+                             , void* obj, const char* name
                             , ObjWrapper* indexer, int numIndexer
                             , void* scmObj)
 {
@@ -683,35 +723,66 @@ DECDLL void ClrPropSetScmObj(void* obj, const char* name
     Object^ hObj = gchObj.Target;
     ObjectNullCheck(hObj);
 
-    if(IsArrayIndexAt(hObj, name, numIndexer))
-    {
-        SetArrayObj(hObj, indexer, numIndexer, gcnew GoshClrObject(IntPtr(scmObj)));
-        return;
-    }
-
-    String^ propName = (name == 0) ?
-        propName = "Item" : //default indexer name;
-        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
-
-    PropertyInfo^ propInfo = hObj->GetType()->GetProperty(propName);
-    InfoNullCheck(propInfo, hObj, "property", propName);
-
     //ScmObj to .Net object(GoshObj instance)
     Object^ hVal = gcnew GoshClrObject(IntPtr(scmObj));
 
-    array<Object^>^ index = nullptr;
-    if(numIndexer != 0)
-    {
-        index = gcnew array<Object^>(numIndexer);
-        for(int i = 0;i < numIndexer;++i)
-        {
-            index[i] = ClrMethod::ToObject(&(indexer[i]));
-        }
-    }
+    String^ fpName = (name == 0) ?
+        "Item" : //default indexer name;
+        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
 
     try
     {
-        propInfo->SetValue(hObj, hVal, index);
+        if(kind & KIND_PROP)
+        {
+            if(IsArrayIndexAt(hObj, name, numIndexer))
+            {
+                SetArrayObj(hObj, indexer, numIndexer, gcnew GoshClrObject(IntPtr(scmObj)));
+                return;
+            }
+
+            PropertyInfo^ propInfo = hObj->GetType()->GetProperty(fpName);
+            if(kind & KIND_FIELD)
+            {
+                if(propInfo == nullptr) goto END_PROP;
+            }
+            else
+            {
+                InfoNullCheck(propInfo, hObj, "property", fpName);
+            }
+
+            array<Object^>^ index = nullptr;
+            if(numIndexer != 0)
+            {
+                index = gcnew array<Object^>(numIndexer);
+                for(int i = 0;i < numIndexer;++i)
+                {
+                    index[i] = ClrMethod::ToObject(&(indexer[i]));
+                }
+            } 
+            propInfo->SetValue(hObj, hVal, index);
+            return;
+        }
+END_PROP:
+
+        if(kind & KIND_FIELD && name != 0)
+        {
+            FieldInfo^ fieldInfo = hObj->GetType()->GetField(fpName);
+            if(kind & KIND_PROP)
+            {
+                if(fieldInfo == nullptr) goto END_FIELD;
+            }
+            else
+            {
+                InfoNullCheck(fieldInfo, hObj, "field", fpName);
+            }
+
+            fieldInfo->SetValue(hObj, hVal);
+            return;
+        }
+END_FIELD:
+
+        ClrStubConstant::RaiseClrError(gcnew ArgumentException(
+            String::Format("{0} class dosen't have such property/field: {1}", hObj->GetType()->Name, fpName))); 
     }
     catch(Exception^ e)
     {
@@ -719,7 +790,8 @@ DECDLL void ClrPropSetScmObj(void* obj, const char* name
     }
 }
 
-DECDLL void ClrPropSetInt(void* obj, const char* name
+DECDLL void ClrFieldPropSetInt(FieldPropKind kind
+                         , void* obj, const char* name
                          , ObjWrapper* indexer, int numIndexer
                          , int value)
 {
@@ -727,34 +799,66 @@ DECDLL void ClrPropSetInt(void* obj, const char* name
     Object^ hObj = gchObj.Target;
     ObjectNullCheck(hObj);
 
-    if(IsArrayIndexAt(hObj, name, numIndexer))
-    {
-        SetArrayObj(hObj, indexer, numIndexer, value);
-        return;
-    }
-
-    String^ propName = (name == 0) ?
-        propName = "Item" : //default indexer name;
+    String^ fpName = (name == 0) ?
+        "Item" : //default indexer name;
         Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
-
-    PropertyInfo^ propInfo = hObj->GetType()->GetProperty(propName);
-    InfoNullCheck(propInfo, hObj, "property", propName);
 
     try 
     {
-        Object^ objNum = Convert::ChangeType((Int32)value, propInfo->PropertyType);
-
-        array<Object^>^ index = nullptr;
-        if(numIndexer != 0)
+        if(kind & KIND_PROP)
         {
-            index = gcnew array<Object^>(numIndexer);
-            for(int i = 0;i < numIndexer;++i)
+            if(IsArrayIndexAt(hObj, name, numIndexer))
             {
-                index[i] = ClrMethod::ToObject(&(indexer[i]));
+                SetArrayObj(hObj, indexer, numIndexer, value);
+                return;
             }
-        }
 
-        propInfo->SetValue(hObj, objNum, index);
+            PropertyInfo^ propInfo = hObj->GetType()->GetProperty(fpName);
+            if(kind & KIND_FIELD)
+            {
+                if(propInfo == nullptr) goto END_PROP;
+            }
+            else
+            {
+                InfoNullCheck(propInfo, hObj, "property", fpName);
+            }
+
+            array<Object^>^ index = nullptr;
+            if(numIndexer != 0)
+            {
+                index = gcnew array<Object^>(numIndexer);
+                for(int i = 0;i < numIndexer;++i)
+                {
+                    index[i] = ClrMethod::ToObject(&(indexer[i]));
+                }
+            }
+
+            Object^ objNum = Convert::ChangeType((Int32)value, propInfo->PropertyType);
+            propInfo->SetValue(hObj, objNum, index);
+            return;
+        }
+END_PROP:
+
+        if(kind & KIND_FIELD && name != 0)
+        {
+            FieldInfo^ fieldInfo = hObj->GetType()->GetField(fpName);
+            if(kind & KIND_PROP)
+            {
+                if(fieldInfo == nullptr) goto END_FIELD;
+            }
+            else
+            {
+                InfoNullCheck(fieldInfo, hObj, "field", fpName);
+            }
+
+            Object^ objNum = Convert::ChangeType((Int32)value, fieldInfo->FieldType);
+            fieldInfo->SetValue(hObj, objNum);
+            return;
+        }
+END_FIELD:
+
+        ClrStubConstant::RaiseClrError(gcnew ArgumentException(
+            String::Format("{0} class dosen't have such property/field: {1}", hObj->GetType()->Name, fpName))); 
     }
     catch(Exception^ e)
     {
@@ -762,7 +866,8 @@ DECDLL void ClrPropSetInt(void* obj, const char* name
     }
 }
 
-DECDLL void ClrPropSetString(void* obj, const char* name
+DECDLL void ClrFieldPropSetString(FieldPropKind kind
+                             , void* obj, const char* name
                             , ObjWrapper* indexer, int numIndexer
                             , const char* value)
 {
@@ -770,42 +875,73 @@ DECDLL void ClrPropSetString(void* obj, const char* name
     Object^ hObj = gchObj.Target;
     ObjectNullCheck(hObj);
 
-    if(IsArrayIndexAt(hObj, name, numIndexer))
-    {
-        SetArrayObj(hObj, indexer, numIndexer
-             , Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(value))));
-        return;
-    }
-
-    String^ propName = (name == 0) ?
-        propName = "Item" : //default indexer name;
+    String^ fpName = (name == 0) ?
+        "Item" : //default indexer name;
         Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
-
-    PropertyInfo^ propInfo = hObj->GetType()->GetProperty(propName);
-    InfoNullCheck(propInfo, hObj, "property", propName);
-
-    //string型を設定できるプロパティか?
-    if(!propInfo->PropertyType->IsAssignableFrom(String::typeid))
-    {
-        ClrStubConstant::RaiseClrError(gcnew ArgumentException(
-            String::Format("{0} property can not assign of String object", propName)));
-    }
-
-    array<Object^>^ index = nullptr;
-    if(numIndexer != 0)
-    {
-        index = gcnew array<Object^>(numIndexer);
-        for(int i = 0;i < numIndexer;++i)
-        {
-            index[i] = ClrMethod::ToObject(&(indexer[i]));
-        }
-    }
 
     try
     {
-        propInfo->SetValue(hObj
-            , Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(value)))
-            , index);
+        String^ str = Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(value)));
+
+        if(kind & KIND_PROP)
+        {
+            if(IsArrayIndexAt(hObj, name, numIndexer))
+            {
+                SetArrayObj(hObj, indexer, numIndexer, str);
+                return;
+            } 
+
+            PropertyInfo^ propInfo = hObj->GetType()->GetProperty(fpName);
+            if(kind & KIND_FIELD)
+            {
+                if(propInfo == nullptr) goto END_PROP;
+            }
+            else
+            {
+                InfoNullCheck(propInfo, hObj, "property", fpName);
+            }
+
+            //string型を設定できるプロパティか?
+            if(!propInfo->PropertyType->IsAssignableFrom(String::typeid))
+            {
+                ClrStubConstant::RaiseClrError(gcnew ArgumentException(
+                    String::Format("{0} property can not assign of String object", fpName)));
+            }
+
+            array<Object^>^ index = nullptr;
+            if(numIndexer != 0)
+            {
+                index = gcnew array<Object^>(numIndexer);
+                for(int i = 0;i < numIndexer;++i)
+                {
+                    index[i] = ClrMethod::ToObject(&(indexer[i]));
+                }
+            } 
+
+            propInfo->SetValue(hObj, str, index);
+            return;
+        }
+END_PROP:
+
+        if(kind & KIND_FIELD && name != 0)
+        {
+            FieldInfo^ fieldInfo = hObj->GetType()->GetField(fpName);
+            if(kind & KIND_PROP)
+            {
+                if(fieldInfo == nullptr) goto END_FIELD;
+            }
+            else
+            {
+                InfoNullCheck(fieldInfo, hObj, "field", fpName);
+            }
+
+            fieldInfo->SetValue(hObj, str);
+            return;
+        }
+END_FIELD:
+
+        ClrStubConstant::RaiseClrError(gcnew ArgumentException(
+            String::Format("{0} class dosen't have such property/field: {1}", hObj->GetType()->Name, fpName))); 
     }
     catch(Exception^ e)
     {
@@ -813,200 +949,110 @@ DECDLL void ClrPropSetString(void* obj, const char* name
     }
 }
 
-DECDLL void* ClrPropGet(ObjWrapper* obj, const char* name
+DECDLL void* ClrFieldPropGet(FieldPropKind kind
+                        , ObjWrapper* obj, const char* name
                         , ObjWrapper* indexer, int numIndexer)
 {
     Object^ hObj = ClrMethod::ToObject(obj);
     ObjectNullCheck(hObj);
 
-    if(IsArrayIndexAt(hObj, name, numIndexer))
-    {
-        Object^ ret;
-
-        try
-        {
-            switch(numIndexer)
-            {
-            case 1:
-                ret = ((Array^)hObj)->GetValue(ToInteger(&(indexer[0])));
-                break;
-            case 2:
-                ret = ((Array^)hObj)->GetValue(ToInteger(&(indexer[0])),
-                    ToInteger(&(indexer[1])));
-                break;
-            case 3:
-                ret = ((Array^)hObj)->GetValue(ToInteger(&(indexer[0])),
-                    ToInteger(&(indexer[1])), ToInteger(&(indexer[2])));
-                break;
-            default:
-                {
-                    array<int>^ indices = gcnew array<int>(numIndexer);
-                    for(int i = 0;i < numIndexer;++i)
-                    {
-                        indices[i] = ToInteger(&(indexer[i]));
-                    }
-                    ret = ((Array^)hObj)->GetValue(indices);
-                    break;
-                }
-            }
-            return (void*)(IntPtr) GCHandle::Alloc(ret);
-        }
-        catch(Exception^ e)
-        {
-            ClrStubConstant::RaiseClrError(e);
-            //does not reach
-            return 0;
-        }
-    }
-
-    String^ propName = (name == 0) ?
-        propName = "Item" : //default indexer name;
+    String^ fpName = (name == 0) ?
+        "Item" : //default indexer name;
         Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
 
-    PropertyInfo^ propInfo = hObj->GetType()->GetProperty(propName);
-    InfoNullCheck(propInfo, hObj, "property", propName);
-
-    array<Object^>^ index = nullptr;
-    if(numIndexer != 0)
+    try
     {
-        index = gcnew array<Object^>(numIndexer);
-        for(int i = 0;i < numIndexer;++i)
+        if(kind & KIND_PROP)
         {
-            index[i] = ClrMethod::ToObject(&(indexer[i]));
+            if(IsArrayIndexAt(hObj, name, numIndexer))
+            {
+                Object^ ret;
+
+                try
+                {
+                    switch(numIndexer)
+                    {
+                    case 1:
+                        ret = ((Array^)hObj)->GetValue(ToInteger(&(indexer[0])));
+                        break;
+                    case 2:
+                        ret = ((Array^)hObj)->GetValue(ToInteger(&(indexer[0])),
+                            ToInteger(&(indexer[1])));
+                        break;
+                    case 3:
+                        ret = ((Array^)hObj)->GetValue(ToInteger(&(indexer[0])),
+                            ToInteger(&(indexer[1])), ToInteger(&(indexer[2])));
+                        break;
+                    default:
+                        {
+                            array<int>^ indices = gcnew array<int>(numIndexer);
+                            for(int i = 0;i < numIndexer;++i)
+                            {
+                                indices[i] = ToInteger(&(indexer[i]));
+                            }
+                            ret = ((Array^)hObj)->GetValue(indices);
+                            break;
+                        }
+                    }
+                    return (void*)(IntPtr) GCHandle::Alloc(ret);
+                }
+                catch(Exception^ e)
+                {
+                    ClrStubConstant::RaiseClrError(e);
+                    //does not reach
+                    return 0;
+                }
+            }
+            
+            PropertyInfo^ propInfo = hObj->GetType()->GetProperty(fpName);
+            if(kind & KIND_FIELD)
+            {
+                if(propInfo == nullptr) goto END_PROP;
+            }
+            else
+            {
+                InfoNullCheck(propInfo, hObj, "property", fpName);
+            }
+
+            array<Object^>^ index = nullptr;
+            if(numIndexer != 0)
+            {
+                index = gcnew array<Object^>(numIndexer);
+                for(int i = 0;i < numIndexer;++i)
+                {
+                    index[i] = ClrMethod::ToObject(&(indexer[i]));
+                }
+            }
+
+            return (void*)(IntPtr) GCHandle::Alloc(propInfo->GetValue(hObj, index));
         }
-    }
+END_PROP:
 
-    try
-    {
-        Object^ ret = propInfo->GetValue(hObj, index);
-        return (void*)(IntPtr) GCHandle::Alloc(ret);
-    }
-    catch(Exception^ e)
-    {
-        ClrStubConstant::RaiseClrError(e);
-        //does not reach
-        return 0;
-    }
-}
+        if(kind & KIND_FIELD && name != 0)
+        {
+            FieldInfo^ fieldInfo = hObj->GetType()->GetField(fpName);
+            if(kind & KIND_PROP)
+            {
+                if(fieldInfo == nullptr) goto END_FIELD;
+            }
+            else
+            {
+                InfoNullCheck(fieldInfo, hObj, "field", fpName);
+            }
 
-#pragma region field setter / getter {
+            return (void*)(IntPtr) GCHandle::Alloc(fieldInfo->GetValue(hObj));
+        }
+END_FIELD:
 
-DECDLL void ClrFieldSetClrObj(void* obj, const char* name,  void* clrObj)
-{
-    GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
-    Object^ hObj = gchObj.Target;
-    ObjectNullCheck(hObj);
-
-    String^ fieldName = Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
-    FieldInfo^ fieldInfo = hObj->GetType()->GetField(fieldName);
-    InfoNullCheck(fieldInfo, hObj, "field", fieldName);
-
-    GCHandle gchVal = GCHandle::FromIntPtr(IntPtr(clrObj));
-    Object^ hVal = gchVal.Target;
-
-    try
-    {
-        fieldInfo->SetValue(hObj, hVal);
-    }
-    catch(Exception^ e)
-    {
-        ClrStubConstant::RaiseClrError(e);
-    }
-}
-
-DECDLL void ClrFieldSetScmObj(void* obj, const char* name,  void* scmObj)
-{
-    GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
-    Object^ hObj = gchObj.Target;
-    ObjectNullCheck(hObj);
-
-    String^ fieldName = Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
-    FieldInfo^ fieldInfo = hObj->GetType()->GetField(fieldName);
-    InfoNullCheck(fieldInfo, hObj, "field", fieldName);
-
-    //ScmObj to .Net object(GoshObj instance)
-    Object^ hVal = gcnew GoshClrObject(IntPtr(scmObj));
-
-    try
-    {
-        fieldInfo->SetValue(hObj, hVal);
-    }
-    catch(Exception^ e)
-    {
-        ClrStubConstant::RaiseClrError(e);
-    }
-}
-
-DECDLL void ClrFieldSetInt(void* obj, const char* name,  int value)
-{
-    GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
-    Object^ hObj = gchObj.Target;
-    ObjectNullCheck(hObj);
-
-    String^ fieldName = Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
-    FieldInfo^ fieldInfo = hObj->GetType()->GetField(fieldName);
-    InfoNullCheck(fieldInfo, hObj, "field", fieldName);
-
-    try 
-    {
-        Object^ objNum = Convert::ChangeType((Int32)value, fieldInfo->FieldType);
-        fieldInfo->SetValue(hObj, objNum);
-    }
-    catch(Exception^ e)
-    {
-        ClrStubConstant::RaiseClrError(e);
-    }
-}
-
-DECDLL void ClrFieldSetString(void* obj, const char* name,  const char* value)
-{
-    GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
-    Object^ hObj = gchObj.Target;
-    ObjectNullCheck(hObj);
-
-    String^ fieldName = Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
-    FieldInfo^ fieldInfo = hObj->GetType()->GetField(fieldName);
-    InfoNullCheck(fieldInfo, hObj, "field", fieldName);
-
-    //string型を設定できるフィールドか?
-    if(!fieldInfo->FieldType->IsAssignableFrom(String::typeid))
-    {
         ClrStubConstant::RaiseClrError(gcnew ArgumentException(
-            String::Format("{0} field can not assign of String object", fieldName)));
-    }
-
-    try
-    {
-        fieldInfo->SetValue(hObj, 
-            Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(value))));
+            String::Format("{0} class dosen't have such property/field: {1}", hObj->GetType()->Name, fpName))); 
     }
     catch(Exception^ e)
     {
         ClrStubConstant::RaiseClrError(e);
     }
-}
-
-DECDLL void* ClrFieldGet(void* obj, const char* name)
-{
-    GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(obj));
-    Object^ hObj = gchObj.Target;
-    ObjectNullCheck(hObj);
-
-    String^ fieldName = Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
-    FieldInfo^ fieldInfo = hObj->GetType()->GetField(fieldName);
-    InfoNullCheck(fieldInfo, hObj, "field", fieldName);
-
-    try
-    {
-        Object^ ret = fieldInfo->GetValue(hObj);
-        return (void*)(IntPtr) GCHandle::Alloc(ret);
-    }
-    catch(Exception^ e)
-    {
-        ClrStubConstant::RaiseClrError(e);
-        //does not reach
-        return 0;
-    }
+    //does not reach
+    return 0;
 }
 
 #pragma endregion }
