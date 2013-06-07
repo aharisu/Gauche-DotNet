@@ -45,6 +45,23 @@
   (let-keywords opts ([start #f])
     (clr-iteration obj proc (or start 0))))
 
+
+(define-method object-apply ((obj <clr-object>) (target <pair>))
+  (if (integer? (car target))
+    (clr-get obj target)
+    (clr-call obj target)))
+
+(define-method object-apply ((obj <clr-object>) (target <pair>) value)
+  (if (integer? (car target))
+    (clr-set! obj target value)
+    (clr-call obj target value)))
+
+(define-method object-apply ((obj <clr-object>) (method <pair>) . args)
+  (apply clr-call method obj args))
+
+(define-method object-apply ((obj <clr-object>) (method <symbol>) . args)
+  (apply clr-call method obj args))
+
 (define-method object-apply ((obj <clr-object>) target)
   (clr-get obj target))
 
