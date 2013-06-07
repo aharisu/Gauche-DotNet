@@ -1196,10 +1196,34 @@ DECDLL void* ClrValidTypeName(const char* fullTypeName)
     }
 }
 
-DECDLL void* ClrNewArray(TypeSpec* typeSpec, int size)
+DECDLL void* ClrNewArray(TypeSpec* typeSpec, ObjWrapper* sizes, int numSizes)
 {
     Type^ t = ClrMethod::TypeSpecToType(typeSpec);
-    Array^ ary = Array::CreateInstance(t, size);
+    Array^ ary;
+    switch(numSizes)
+    {
+    case 1:
+        ary = Array::CreateInstance(t, ToInteger(&(sizes[0])));
+        break;
+    case 2:
+        ary = Array::CreateInstance(t, ToInteger(&(sizes[0]))
+            , ToInteger(&(sizes[1])));
+        break;
+    case 3:
+        ary = Array::CreateInstance(t, ToInteger(&(sizes[0]))
+            , ToInteger(&(sizes[1])), ToInteger(&(sizes[2])));
+        break;
+    default:
+        {
+            array<int>^ sizeAry = gcnew array<int>(numSizes);
+            for(int i = 0;i < numSizes;++i)
+            {
+                sizeAry[i] = ToInteger(&(sizes[i]));
+            }
+            ary = Array::CreateInstance(t, sizeAry);
+            break;
+        }
+    }
 
     return (void*)(IntPtr)GCHandle::Alloc(ary);
 }
