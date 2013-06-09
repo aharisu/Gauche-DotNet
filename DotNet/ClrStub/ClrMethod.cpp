@@ -48,16 +48,18 @@ Object^ ClrMethod::ToObject(ObjWrapper* obj)
     switch(obj->kind)
     {
     case OBJWRAP_BOOL:
-        return ((int)obj->value) != 0 ? true : false;
+        return ((int)obj->v.value) != 0 ? true : false;
     case OBJWRAP_INT:
-        return (int)obj->value;
+        return (int)obj->v.value;
+    case OBJWRAP_FLONUM:
+        return (double)obj->v.real;
     case OBJWRAP_STRING:
-        return Marshal::PtrToStringAnsi((IntPtr)obj->value);
+        return Marshal::PtrToStringAnsi((IntPtr)obj->v.value);
     case OBJWRAP_PROC:
         return gcnew Procedure::GoshProcedure((IntPtr)obj->ptr);
     default: //OBJWRAP_CLROBJECT:
         {
-            GCHandle gchObj = GCHandle::FromIntPtr((IntPtr)obj->value);
+            GCHandle gchObj = GCHandle::FromIntPtr((IntPtr)obj->v.value);
             return gchObj.Target;
         }
     }
@@ -226,6 +228,9 @@ MethodInfo^ ClrMethod::MakeGenericMethod(MethodInfo^ mi, array<ArgType>^ argType
                 case OBJWRAP_INT:
                     paramTypes[i - startIndex] = GoshFixnum::typeid;
                     break;
+                case OBJWRAP_FLONUM:
+                    paramTypes[i - startIndex] = GoshFlonum::typeid;
+                    break;
                 case OBJWRAP_STRING:
                     paramTypes[i - startIndex] = GoshString::typeid;
                     break;
@@ -337,20 +342,29 @@ static Object^ ToArgumentObject(Type^ type, ObjWrapper* arg)
     case OBJWRAP_BOOL:
         if(type->IsAssignableFrom(GoshBool::typeid))
         {
-            return ((int)arg->value) != 0 ? GoshBool::True : GoshBool::False;
+            return ((int)arg->v.value) != 0 ? GoshBool::True : GoshBool::False;
         }
         else
         {
-            return ((int)arg->value) != 0 ? true : false;
+            return ((int)arg->v.value) != 0 ? true : false;
         }
     case OBJWRAP_INT:
         if(type->IsAssignableFrom(GoshFixnum::typeid))
         {
-            return gcnew GoshFixnum((int)arg->value);
+            return gcnew GoshFixnum((int)arg->v.value);
         }
         else
         {
-            return Convert::ChangeType((int)arg->value, type);
+            return Convert::ChangeType((int)arg->v.value, type);
+        }
+    case OBJWRAP_FLONUM:
+        if(type->IsAssignableFrom(GoshFlonum::typeid))
+        {
+            return gcnew GoshFlonum(arg->v.real);
+        }
+        else
+        {
+            return Convert::ChangeType(arg->v.real, type);
         }
     case OBJWRAP_STRING:
         if(type->IsAssignableFrom(GoshString::typeid))
@@ -359,11 +373,11 @@ static Object^ ToArgumentObject(Type^ type, ObjWrapper* arg)
         }
         else
         {
-            return Marshal::PtrToStringAnsi(IntPtr(arg->value));
+            return Marshal::PtrToStringAnsi(IntPtr(arg->v.value));
         }
     case OBJWRAP_PROC:
         {
-            Object^ ret = gcnew Procedure::GoshProcedure((IntPtr)arg->value);
+            Object^ ret = gcnew Procedure::GoshProcedure((IntPtr)arg->v.value);
             if(Delegate::typeid->IsAssignableFrom(type))
             {
                 ret = GetWrappedDelegate(type, (GoshProc^)ret, IntPtr::Zero);
@@ -372,7 +386,7 @@ static Object^ ToArgumentObject(Type^ type, ObjWrapper* arg)
         }
     case OBJWRAP_CLROBJECT:
     default:
-        return GCHandle::FromIntPtr(IntPtr(arg->value)).Target;
+        return GCHandle::FromIntPtr(IntPtr(arg->v.value)).Target;
     }
 }
 
@@ -381,16 +395,18 @@ static Object^ ToArgumentObject(ObjWrapper* arg)
     switch(arg->kind)
     {
     case OBJWRAP_BOOL:
-        return ((int)arg->value) != 0 ? true : false;
+        return ((int)arg->v.value) != 0 ? true : false;
     case OBJWRAP_INT:
-        return (int)arg->value;
+        return (int)arg->v.value;
+    case OBJWRAP_FLONUM:
+        return arg->v.real;
     case OBJWRAP_STRING:
-        return Marshal::PtrToStringAnsi(IntPtr(arg->value));
+        return Marshal::PtrToStringAnsi(IntPtr(arg->v.value));
     case OBJWRAP_PROC:
         return gcnew Procedure::GoshProcedure((IntPtr)arg->ptr);
     case OBJWRAP_CLROBJECT:
     default:
-        return GCHandle::FromIntPtr(IntPtr(arg->value)).Target;
+        return GCHandle::FromIntPtr(IntPtr(arg->v.value)).Target;
     }
 }
 
@@ -458,9 +474,12 @@ bool ClrMethod::CreateArgTypes(StringBuilder^ builder, array<ArgType>^% argTypes
             switch(_args[i].kind)
             {
             case OBJWRAP_CLROBJECT:
-                argTypes[i + startIndex].type = GCHandle::FromIntPtr(IntPtr(_args[i].value)).Target->GetType();
+                {
+                Object^ obj = GCHandle::FromIntPtr(IntPtr(_args[i].v.value)).Target;
+                argTypes[i + startIndex].type = obj->GetType();
                 argTypes[i + startIndex].kind = OBJWRAP_CLROBJECT;
                 argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
+                }
                 break;
             case OBJWRAP_BOOL:
                 argTypes[i + startIndex].type = Boolean::typeid;
@@ -469,6 +488,11 @@ bool ClrMethod::CreateArgTypes(StringBuilder^ builder, array<ArgType>^% argTypes
             case OBJWRAP_INT:
                 argTypes[i + startIndex].type = Int32::typeid;
                 argTypes[i + startIndex].kind = OBJWRAP_INT;
+                argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
+                break;
+            case OBJWRAP_FLONUM:
+                argTypes[i + startIndex].type = Double::typeid;
+                argTypes[i + startIndex].kind = OBJWRAP_FLONUM;
                 argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
                 break;
             case OBJWRAP_STRING:

@@ -1,4 +1,4 @@
-/*
+ï»¿/*
  * ClrMethodCallStruct.h
  *
  * MIT License
@@ -59,6 +59,7 @@ typedef enum {
     OBJWRAP_CLROBJECT,
     OBJWRAP_BOOL,
     OBJWRAP_INT,
+    OBJWRAP_FLONUM,
     OBJWRAP_STRING,
 
     OBJWRAP_PROC,
@@ -67,11 +68,14 @@ typedef enum {
 typedef struct ObjWrapperRec
 {
     ObjKind kind;
-    //kind‚ªCLROBJECT‚È‚çGCHandle‚É•ÏŠ·‰Â”\‚Èƒ|ƒCƒ“ƒ^‚ªİ’è‚³‚ê‚é
-    //‚»‚êˆÈŠO‚Ìê‡‚ÍA¶‚ÌGaucheƒIƒuƒWƒFƒNƒg‚Ìƒ|ƒCƒ“ƒ^‚ªİ’è‚³‚ê‚é
+    //kindãŒCLROBJECTãªã‚‰GCHandleã«å¤‰æ›å¯èƒ½ãªãƒã‚¤ãƒ³ã‚¿ãŒè¨­å®šã•ã‚Œã‚‹
+    //ãã‚Œä»¥å¤–ã®å ´åˆã¯ã€ç”Ÿã®Gaucheã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ãƒã‚¤ãƒ³ã‚¿ãŒè¨­å®šã•ã‚Œã‚‹
     void* ptr;
-    //kind‚ªCLROBJECTˆÈŠO‚Ìê‡‚ÉAkind‚²‚Æ‚ÉˆÙ‚È‚éˆÓ–¡‚Ì’l‚ªİ’è‚³‚ê‚é
-    void* value;
+    //kindãŒCLROBJECTä»¥å¤–ã®å ´åˆã«ã€kindã”ã¨ã«ç•°ãªã‚‹æ„å‘³ã®å€¤ãŒè¨­å®šã•ã‚Œã‚‹
+    union {
+        void* value;
+        double real;
+    }v;
 } ObjWrapper;
 
 #ifdef __cplusplus

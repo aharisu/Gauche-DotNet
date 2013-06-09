@@ -117,6 +117,11 @@ namespace GaucheDotNet
             :base(ptr)
         {
         }
+
+        public GoshFlonum(double val)
+            : base(GoshInvoke.Scm_MakeFlonum(val))
+        {
+        }
     }
 
     public class GoshRatnum : GoshFlonum

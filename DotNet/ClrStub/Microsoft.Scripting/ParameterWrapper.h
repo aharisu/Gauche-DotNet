@@ -133,11 +133,28 @@ public:
                     return true;
                 }
                 return Type->IsAssignableFrom(GaucheDotNet::GoshBool::typeid);
-            //TODO GoshFixnumを受け取るケースを考える
             case OBJWRAP_INT:
-                //Gauche上のfixnumで引数が指定されている場合は、
-                //メソッドのパラメータが数値であれば何でもマッチするように判定させる
-                return CompilerHelpers::CanConvertFrom(Byte::typeid, Type);
+                if(Type->IsAssignableFrom(GoshFixnum::typeid))
+                {
+                    return true;
+                }
+                else
+                {
+                    //Gauche上のfixnumで引数が指定されている場合は、
+                    //メソッドのパラメータが数値であれば何でもマッチするように判定させる
+                    return CompilerHelpers::CanConvertFrom(Byte::typeid, Type);
+                }
+            case OBJWRAP_FLONUM:
+                if(Type->IsAssignableFrom(GoshFixnum::typeid))
+                {
+                    return true;
+                }
+                else
+                {
+                    //Gauche上のflonumで引数が指定されている場合は、
+                    //メソッドのパラメータが浮動小数点数値であれば何でもマッチするように判定させる
+                    return CompilerHelpers::CanConvertFrom(Single::typeid, Type);
+                }
             case OBJWRAP_STRING:
                 if(Type->IsAssignableFrom(String::typeid))
                 {
@@ -161,11 +178,11 @@ public:
 private:
 
     ///<summary>
-    ///型とInt32との距離を測る。
+    ///型と引数のoriginCodeとの距離を測る。
     ///ByteやInt16など本来は暗黙的なキャスト不可な型との距離もはかり、
     ///それらの場合距離はマイナスになる。
     ///</summary>
-    static int DistanceBetweenInt32(System::Type^ t)
+    static int DistanceBetweenTypeCode(System::Type^ t, TypeCode originCode)
     {
         if(t == Object::typeid)
         {
@@ -173,7 +190,7 @@ private:
         }
         else
         {
-            return (int)Type::GetTypeCode(t) - (int)TypeCode::Int32;
+            return (int)Type::GetTypeCode(t) - (int)originCode;
         }
     }
 
@@ -203,35 +220,42 @@ private:
         }
     }
 
-    static Nullable<int> TypeCompareClrOrGosh(Type^ argType, Type^ t1, Type^ t2, Type^ targetType)
+    static Nullable<int> TypeComparePrimitive(System::Type^ t1, System::Type^ t2, TypeCode originCode)
     {
-        if(t1->IsAssignableFrom(targetType))
+        int diff1 = DistanceBetweenTypeCode(t1, originCode);
+        int diff2 = DistanceBetweenTypeCode(t2, originCode);
+        if(diff1 == diff2)
         {
-            if(t2->IsAssignableFrom(targetType))
-            {
-                //t1とt2ともにclrのオブジェクトの引数になる
-                //パラメータの型とクラスとの距離を測ってより近いほうを優先にする
-                int diff1 = DistanceBetweenClass(argType, t1);
-                int diff2 = DistanceBetweenClass(argType, t2);
-                return diff1 == diff2 ? Nullable<int>() : //nullptr
-                    diff1 < diff2 ? 1 : -1;
+            return Nullable<int>(); //nullptr
+        }
+        else if(diff1 < 0)
+        {
+            if(diff2 < 0) 
+            {//両方とも距離がマイナスの場合(Int32よりも狭い範囲の型の場合)
+                //絶対値の小さいほうが優先(より範囲の広い型)
+                return Math::Abs(diff1) < Math::Abs(diff2) ? 1 : -1;
             }
             else
-            {
-                //t1はclrのオブジェクト、t2はGaucheのオブジェクトになる
-                //Gaucheオブジェクトのほうが優先なのでt2が優先
+            {//diff1はマイナスででdiff2は0以上の場合、diff2が優先
                 return -1;
             }
         }
+        else if(diff2 < 0)
+        { //diff1は0以上でdiff2はマイナスの場合、diff1が優先
+            return 1;
+        }
         else
+        {//両方とも距離がプラスの場合
+            //距離が近いほうが優先
+            return diff1 < diff2 ? 1 : -1;
+        }
+    }
+
+    static Nullable<int> TypeCompareClrOrGosh(Type^ argType, Type^ t1, Type^ t2, TypeCode targetTypeCode)
+    {
+        if(GoshObj::typeid->IsAssignableFrom(t1))
         {
-            if(t2->IsAssignableFrom(targetType))
-            {
-                //t1はGaucheのオブジェクト、t2はclrのオブジェクト
-                //Gaucheオブジェクトのほうが優先なのでt1が優先
-                return 1;
-            }
-            else
+            if(GoshObj::typeid->IsAssignableFrom(t2))
             {
                 //t1とt2ともにGaucheのオブジェクトになる
                 //パラメータの型とクラスとの距離を測ってより近いほうを優先にする
@@ -239,6 +263,27 @@ private:
                 int diff2 = DistanceBetweenClass(argType, t2);
                 return diff1 == diff2 ? Nullable<int>() : //nullptr
                     diff1 < diff2 ? 1 : -1;
+            }
+            else
+            {
+                //t1はGaucheのオブジェクト、t2はclrのオブジェクト
+                //Gaucheオブジェクトのほうが優先なのでt1が優先
+                return 1;
+            }
+        }
+        else
+        {
+            if(GoshObj::typeid->IsAssignableFrom(t2))
+            {
+                //t1はclrのオブジェクト、t2はGaucheのオブジェクトになる
+                //Gaucheオブジェクトのほうが優先なのでt2が優先
+                return -1;
+            }
+            else
+            {
+                //t1とt2ともにclrのオブジェクトの引数になる
+                //パラメータの型とクラスとの距離を測ってより近いほうを優先にする
+                return TypeComparePrimitive(t1, t2, targetTypeCode);
             }
         }
     }
@@ -253,43 +298,16 @@ private:
             return 0;
         }
 
-        switch(argType->attr)
+        switch(argType->kind)
         {
         case OBJWRAP_BOOL:
-            return TypeCompareClrOrGosh(argType->type, t1, t2, Boolean::typeid);
-            //TODO GoshFixnumを受け取るケースを考える
+            return TypeCompareClrOrGosh(argType->type, t1, t2, TypeCode::Boolean);
         case OBJWRAP_INT:
-            {
-                int diff1 = DistanceBetweenInt32(t1);
-                int diff2 = DistanceBetweenInt32(t2);
-                if(diff1 == diff2)
-                {
-                    return Nullable<int>(); //nullptr
-                }
-                else if(diff1 < 0)
-                {
-                    if(diff2 < 0) 
-                    {//両方とも距離がマイナスの場合(Int32よりも狭い範囲の型の場合)
-                        //絶対値の小さいほうが優先(より範囲の広い型)
-                        return Math::Abs(diff1) < Math::Abs(diff2) ? 1 : -1;
-                    }
-                    else
-                    {//diff1はマイナスででdiff2は0以上の場合、diff2が優先
-                        return -1;
-                    }
-                }
-                else if(diff2 < 0)
-                { //diff1は0以上でdiff2はマイナスの場合、diff1が優先
-                    return 1;
-                }
-                else
-                {//両方とも距離がプラスの場合
-                    //距離が近いほうが優先
-                    return diff1 < diff2 ? 1 : -1;
-                }
-            }
+            return TypeCompareClrOrGosh(argType->type, t1, t2, TypeCode::Int32);
+        case OBJWRAP_FLONUM:
+            return TypeCompareClrOrGosh(argType->type, t1, t2, TypeCode::Single);
         case OBJWRAP_STRING:
-            return TypeCompareClrOrGosh(argType->type, t1, t2, String::typeid);
+            return TypeCompareClrOrGosh(argType->type, t1, t2, TypeCode::String);
         case OBJWRAP_PROC:
             {
                 if(Delegate::typeid->IsAssignableFrom(t1))
