@@ -1,4 +1,4 @@
-/* ****************************************************************************
+ï»¿/* ****************************************************************************
  *
  * Copyright (c) Microsoft Corporation. 
  *
@@ -75,8 +75,8 @@ namespace CompilerHelpers
     }
 
     static bool ImplicitConvertMatrix[10][9] = {
-        // ¨ To type
-        //« From type
+        // â†’ To type
+        //â†“ From type
         //Int16, UInt16, Int32, UInt32, Int64, UInt64, Single, Double, Decimal
         {   false,  true,  true,  true, true, true, true,  true, true ,}, //Char
         {   true,   false, true, false, true, false, true, true,true ,}, //SByte
@@ -92,7 +92,7 @@ namespace CompilerHelpers
 
     bool CanImplicitConvertFrom(TypeCode fromTypeCode, TypeCode toTypeCode)
     {
-        //ƒvƒŠƒ~ƒeƒBƒuŒ^‚ÌˆÃ–Ù“I•ÏŠ·‚ª‰Â”\‚©H
+        //ãƒ—ãƒªãƒŸãƒ†ã‚£ãƒ–å‹ã®æš—é»™çš„å¤‰æ›ãŒå¯èƒ½ã‹ï¼Ÿ
         return ((int)TypeCode::Char <= (int)fromTypeCode && (int)fromTypeCode <= (int)TypeCode::Single)
             && ((int)TypeCode::Int16 <= (int)toTypeCode && (int)toTypeCode <= (int)TypeCode::Decimal)
             && ImplicitConvertMatrix[(int)(fromTypeCode - TypeCode::Char), (int)(toTypeCode - TypeCode::Int16)];
@@ -116,19 +116,19 @@ namespace CompilerHelpers
     {
         if (fromType == toType)
         {
-            //“¯‚¶Œ^‚È‚ç–³ğŒ‚Å‹——£0
+            //åŒã˜å‹ãªã‚‰ç„¡æ¡ä»¶ã§è·é›¢0
             return 0;
         }
         else if (fromType->IsPrimitive)
         {
-            //•ÏŠ·ŒãŒ^‚ªObjectŒ^‚È‚ç“K“–‚È‘å‚«‚¢”š
+            //å¤‰æ›å¾Œå‹ãŒObjectå‹ãªã‚‰é©å½“ãªå¤§ãã„æ•°å­—
             if (toType == Object::typeid)
             {
                 return 99;
             }
             else
             {
-                //ƒvƒŠƒ~ƒeƒBƒuŒ^‚ÌˆÃ–Ù“I•ÏŠ·‚Ì‹——£‚ğŒvZ‚·‚é
+                //ãƒ—ãƒªãƒŸãƒ†ã‚£ãƒ–å‹ã®æš—é»™çš„å¤‰æ›ã®è·é›¢ã‚’è¨ˆç®—ã™ã‚‹
                 TypeCode fromTypeCode = Type::GetTypeCode(fromType);
                 TypeCode toTypeCode = Type::GetTypeCode(toType);
                 if (CanImplicitConvertFrom(fromTypeCode, toTypeCode))
@@ -136,13 +136,13 @@ namespace CompilerHelpers
                     return (int)(toTypeCode - fromTypeCode);
                 }
 
-                //ˆÃ–Ù“I‚È•ÏŠ·‚ªo—ˆ‚È‚©‚Á‚½
-                return -1;
+                //æš—é»™çš„ãªå¤‰æ›ãŒå‡ºæ¥ãªã‹ã£ãŸ
+                return Int32::MaxValue;
             }
         }
         else if (toType->IsInterface)
         {
-            //•ÏŠ·Œã‚ÌŒ^‚ªƒCƒ“ƒ^ƒtƒF[ƒX‚Ìê‡
+            //å¤‰æ›å¾Œã®å‹ãŒã‚¤ãƒ³ã‚¿ãƒ•ã‚§ãƒ¼ã‚¹ã®å ´åˆ
 
             for each(Type^ t in fromType->GetInterfaces())
             {
@@ -151,17 +151,17 @@ namespace CompilerHelpers
                     return 1;
                 }
             }
-            return -1;
+            return Int32::MaxValue;
         }
         else if (toType->IsPrimitive)
         {
-            //•ÏŠ·Œã‚ÌŒ^‚ªƒvƒŠƒ~ƒeƒBƒuŒ^‚Ìê‡A
-            //•ÔŠÒ‘O‚ÌŒ^‚ªƒIƒuƒWƒFƒNƒgŒ^‚È‚Ì‚Å•ÏŠ·‚Å‚«‚È‚¢
-            return -1;
+            //å¤‰æ›å¾Œã®å‹ãŒãƒ—ãƒªãƒŸãƒ†ã‚£ãƒ–å‹ã®å ´åˆã€
+            //è¿”é‚„å‰ã®å‹ãŒã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆå‹ãªã®ã§å¤‰æ›ã§ããªã„
+            return Int32::MaxValue;
         }
         else
         {
-            //ƒIƒuƒWƒFƒNƒgŒ^“¯m‚Ì•ÏŠ·‚È‚Ì‚ÅAŒp³‚ğ‚½‚Ç‚Á‚Ä‹——£‚ğ‘ª‚é
+            //ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆå‹åŒå£«ã®å¤‰æ›ãªã®ã§ã€ç¶™æ‰¿ã‚’ãŸã©ã£ã¦è·é›¢ã‚’æ¸¬ã‚‹
 
             int diff = 1;
             while (true)
@@ -173,7 +173,7 @@ namespace CompilerHelpers
                 }
                 else if (fromType == Object::typeid)
                 {
-                    return -1;
+                    return Int32::MaxValue;
                 }
                 ++diff;
             }

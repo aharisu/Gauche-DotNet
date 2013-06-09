@@ -214,7 +214,7 @@ private:
             }
             else if (fromType == Object::typeid)
             {
-                return -1;
+                return Int32::MaxValue;
             }
             ++diff;
         }
