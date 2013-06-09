@@ -220,7 +220,7 @@ static bool CheckTypeCompatibility(Type^ from, Type^ to)
     return false;
 }
 
-static bool GenericTypeMatching(Type^ paramType, Type^ argType, array<Type^>^ genericType)
+static bool GenericTypeMatching(Type^ paramType, Type^ argType, array<Type^>^ genericType, bool isLambdaType)
 {
     if(paramType->IsGenericParameter)
     {
@@ -229,7 +229,9 @@ static bool GenericTypeMatching(Type^ paramType, Type^ argType, array<Type^>^ ge
         {
             genericType[index] = argType;
         }
-        else
+        //Gaucheのlambdaで記述された式からGenericの型(Object型)を取得している場合は
+        //既存の型を上書きしない。
+        else if(!isLambdaType)
         {
             Type^ actualType = GetHigherLevel(genericType[index], argType);
             if(actualType == nullptr)
@@ -244,12 +246,29 @@ static bool GenericTypeMatching(Type^ paramType, Type^ argType, array<Type^>^ ge
     {
         if(argType->IsArray)
         {
-            return GenericTypeMatching(paramType->GetElementType(), argType->GetElementType(), genericType);
+            return GenericTypeMatching(paramType->GetElementType(), argType->GetElementType(), genericType, isLambdaType);
         }
         else
         {
             return false;
         }
+    }
+    else if(GoshProc::typeid == argType && Delegate::typeid->IsAssignableFrom(paramType))
+    {
+        MethodInfo^ invokeInfo = paramType->GetMethod("Invoke");
+        for each(ParameterInfo^ pi in invokeInfo->GetParameters())
+        {
+            if(pi->ParameterType->ContainsGenericParameters)
+            {
+                GenericTypeMatching(pi->ParameterType, Object::typeid, genericType, true);
+            }
+        }
+        if(invokeInfo->ReturnType->ContainsGenericParameters)
+        {
+            GenericTypeMatching(invokeInfo->ReturnType, Object::typeid, genericType, true);
+        }
+
+        return true;
     }
     else
     {
@@ -264,7 +283,7 @@ static bool GenericTypeMatching(Type^ paramType, Type^ argType, array<Type^>^ ge
             Type^ argGenericArg = argType->GetElementType();
             if(paramGenericArg->ContainsGenericParameters)
             {
-                if(!GenericTypeMatching(paramGenericArg, argGenericArg, genericType)) return false;
+                if(!GenericTypeMatching(paramGenericArg, argGenericArg, genericType, isLambdaType)) return false;
             }
             else
             {
@@ -282,7 +301,7 @@ static bool GenericTypeMatching(Type^ paramType, Type^ argType, array<Type^>^ ge
                 Type^ argGenericArg = argGenericArgs[i];
                 if(paramGenericArg->ContainsGenericParameters)
                 {
-                    if(!GenericTypeMatching(paramGenericArg, argGenericArg, genericType)) return false;
+                    if(!GenericTypeMatching(paramGenericArg, argGenericArg, genericType, isLambdaType)) return false;
                 }
                 else
                 {
@@ -361,7 +380,7 @@ MethodInfo^ ClrMethod::MakeGenericMethod(MethodInfo^ mi, array<ArgType>^ argType
             Type^ paramType = pi->ParameterType;
             if(paramType->ContainsGenericParameters)
             {
-                if(!GenericTypeMatching(paramType, paramTypes[index], genericType))
+                if(!GenericTypeMatching(paramType, paramTypes[index], genericType, false))
                 {
                     return nullptr;
                 }
