@@ -183,6 +183,118 @@ static Type^ GetHigherLevel(Type^ t1, Type^ t2)
     }
 }
 
+static bool CheckTypeCompatibility(Type^ from, Type^ to)
+{
+    if(to->IsGenericType)
+    {
+        to = to->GetGenericTypeDefinition();
+    }
+
+    if(to->IsInterface)
+    {
+        for each(Type^ t in from->GetInterfaces())
+        {
+            if((t->IsGenericType ? t->GetGenericTypeDefinition() : t) == to)
+            {
+                return true;
+            }
+        }
+    }
+    else
+    {
+        do
+        {
+            if(from->IsGenericType)
+            {
+                from = from->GetGenericTypeDefinition();
+            }
+            if(from == to)
+            {
+                return true;
+            }
+
+            from = from->BaseType;
+        }while(from != nullptr);
+    }
+
+    return false;
+}
+
+static bool GenericTypeMatching(Type^ paramType, Type^ argType, array<Type^>^ genericType)
+{
+    if(paramType->IsGenericParameter)
+    {
+        int index = paramType->GenericParameterPosition;
+        if(genericType[index] == nullptr)
+        {
+            genericType[index] = argType;
+        }
+        else
+        {
+            Type^ actualType = GetHigherLevel(genericType[index], argType);
+            if(actualType == nullptr)
+            {
+                return false;
+            }
+            genericType[index] = actualType;
+        }
+        return true;
+    }
+    else if(paramType->IsArray)
+    {
+        if(argType->IsArray)
+        {
+            return GenericTypeMatching(paramType->GetElementType(), argType->GetElementType(), genericType);
+        }
+        else
+        {
+            return false;
+        }
+    }
+    else
+    {
+        if(!CheckTypeCompatibility(argType, paramType)) return false;
+
+        array<Type^>^ paramGenericArgs =  paramType->GetGenericArguments();
+        if(argType->IsArray)
+        {
+            if(paramGenericArgs->Length != 1) return false;
+
+            Type^ paramGenericArg = paramGenericArgs[0];
+            Type^ argGenericArg = argType->GetElementType();
+            if(paramGenericArg->ContainsGenericParameters)
+            {
+                if(!GenericTypeMatching(paramGenericArg, argGenericArg, genericType)) return false;
+            }
+            else
+            {
+                if(!CheckTypeCompatibility(argGenericArg, paramGenericArg)) return false;
+            }
+        }
+        else
+        {
+            array<Type^>^ argGenericArgs = argType->GetGenericArguments();
+            if(paramGenericArgs->Length != argGenericArgs->Length) return false;
+
+            for(int i = 0;i < paramGenericArgs->Length;++i)
+            {
+                Type^ paramGenericArg = paramGenericArgs[i];
+                Type^ argGenericArg = argGenericArgs[i];
+                if(paramGenericArg->ContainsGenericParameters)
+                {
+                    if(!GenericTypeMatching(paramGenericArg, argGenericArg, genericType)) return false;
+                }
+                else
+                {
+                    if(!CheckTypeCompatibility(argGenericArg, paramGenericArg)) return false;
+                }
+            }
+        }
+
+        return true;
+    }
+}
+
 MethodInfo^ ClrMethod::MakeGenericMethod(MethodInfo^ mi, array<ArgType>^ argTypes)
 {
     array<Type^>^ genericArgs = mi->GetGenericArguments();
@@ -242,56 +354,19 @@ MethodInfo^ ClrMethod::MakeGenericMethod(MethodInfo^ mi, array<ArgType>^ argType
             }
         }
 
-        array<Type^, 2>^ genericTypeCandidate = gcnew array<Type^, 2>(genericArgs->Length, piAry->Length);
+        array<Type^>^ genericType = gcnew array<Type^>(genericArgs->Length);
         int index = 0;
         for each (ParameterInfo^ pi in piAry)
         {
             Type^ paramType = pi->ParameterType;
-            if (paramType->IsGenericParameter)
+            if(paramType->ContainsGenericParameters)
             {
-                for (int i = 0; i < genericArgs->Length; ++i)
+                if(!GenericTypeMatching(paramType, paramTypes[index], genericType))
                 {
-                    if (genericArgs[i] == paramType)
-                    {
-                        genericTypeCandidate[i, index] = paramTypes[index];
-                        break;
-                    }
+                    return nullptr;
                 }
             }
             ++index;
-        }
-
-        array<Type^>^ genericType = gcnew array<Type^>(genericArgs->Length);
-        for (int y = 0; y < piAry->Length; ++y)
-        {
-            Type^ candidate = nullptr;
-            for (int x = 0; x < piAry->Length; ++x)
-            {
-                Type^ t = genericTypeCandidate[y, x];
-                if (t != nullptr)
-                {
-                    if (candidate == nullptr)
-                    {
-                        candidate = t;
-                    }
-                    else
-                    {
-                        candidate = GetHigherLevel(candidate, t);
-                        if (candidate == nullptr)
-                        {
-                            //throw new InvalidOperationException("ジェネリック型を持つ引数の整合性が取れていません。");
-                            return nullptr;
-                        }
-                    }
-                }
-            }
-
-            if (candidate == nullptr)
-            {
-                //throw new InvalidOperationException("ジェネリック型を特定できませんでした。");
-                return nullptr;
-            }
-            genericType[y] = candidate;
         }
 
         for(int i = 0;i < genericType->Length;++i)
