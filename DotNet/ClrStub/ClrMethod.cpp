@@ -183,20 +183,25 @@ static Type^ GetHigherLevel(Type^ t1, Type^ t2)
     }
 }
 
-static bool CheckTypeCompatibility(Type^ from, Type^ to)
+static Type^ GetCompatiType(Type^ from, Type^ to)
 {
     if(to->IsGenericType)
     {
         to = to->GetGenericTypeDefinition();
+    }
+    if(from->IsGenericType)
+    {
+        from = from->GetGenericTypeDefinition();
     }
 
     if(to->IsInterface)
     {
         for each(Type^ t in from->GetInterfaces())
         {
-            if((t->IsGenericType ? t->GetGenericTypeDefinition() : t) == to)
+            Type^ tt = t->IsGenericType ? t->GetGenericTypeDefinition() : t;
+            if(tt == to)
             {
-                return true;
+                return t;
             }
         }
     }
@@ -204,41 +209,57 @@ static bool CheckTypeCompatibility(Type^ from, Type^ to)
     {
         do
         {
-            if(from->IsGenericType)
+            Type^ tt = from;
+            if(tt->IsGenericType)
             {
-                from = from->GetGenericTypeDefinition();
+                tt = tt->GetGenericTypeDefinition();
             }
-            if(from == to)
+            if(tt == to)
             {
-                return true;
+                return from;
             }
 
             from = from->BaseType;
         }while(from != nullptr);
     }
 
-    return false;
+    return nullptr;
 }
 
-static bool GenericTypeMatching(Type^ paramType, Type^ argType, array<Type^>^ genericType, bool isLambdaType)
+static bool GenericTypeMatching(Type^ paramType, Type^ argType, bool isLambdaType
+                                , array<Type^>^ genericType, array<Type^>^% inLambdaGenericType)
 {
     if(paramType->IsGenericParameter)
     {
-        int index = paramType->GenericParameterPosition;
-        if(genericType[index] == nullptr)
+        array<Type^>^ target;
+        if(isLambdaType)
         {
-            genericType[index] = argType;
+            //Gaucheのlambdaで記述された式からGenericの型(Object型)を取得している場合は
+            //既存の型を上書きしない。
+            if(inLambdaGenericType == nullptr)
+            {
+                inLambdaGenericType = gcnew array<Type^>(genericType->Length);
+            }
+            target = inLambdaGenericType;
         }
-        //Gaucheのlambdaで記述された式からGenericの型(Object型)を取得している場合は
-        //既存の型を上書きしない。
-        else if(!isLambdaType)
+        else
         {
-            Type^ actualType = GetHigherLevel(genericType[index], argType);
+            target = genericType;
+        }
+
+        int index = paramType->GenericParameterPosition;
+        if(target[index] == nullptr)
+        {
+            target[index] = argType;
+        }
+        else
+        {
+            Type^ actualType = GetHigherLevel(target[index], argType);
             if(actualType == nullptr)
             {
                 return false;
             }
-            genericType[index] = actualType;
+            target[index] = actualType;
         }
         return true;
     }
@@ -246,7 +267,8 @@ static bool GenericTypeMatching(Type^ paramType, Type^ argType, array<Type^>^ ge
     {
         if(argType->IsArray)
         {
-            return GenericTypeMatching(paramType->GetElementType(), argType->GetElementType(), genericType, isLambdaType);
+            return GenericTypeMatching(paramType->GetElementType(), argType->GetElementType(), isLambdaType
+                , genericType, inLambdaGenericType);
         }
         else
         {
@@ -260,53 +282,44 @@ static bool GenericTypeMatching(Type^ paramType, Type^ argType, array<Type^>^ ge
         {
             if(pi->ParameterType->ContainsGenericParameters)
             {
-                GenericTypeMatching(pi->ParameterType, Object::typeid, genericType, true);
+                GenericTypeMatching(pi->ParameterType, Object::typeid, true
+                    , genericType, inLambdaGenericType);
             }
         }
         if(invokeInfo->ReturnType->ContainsGenericParameters)
         {
-            GenericTypeMatching(invokeInfo->ReturnType, Object::typeid, genericType, true);
+            GenericTypeMatching(invokeInfo->ReturnType, Object::typeid, true
+                , genericType, inLambdaGenericType);
         }
 
         return true;
     }
     else
     {
-        if(!CheckTypeCompatibility(argType, paramType)) return false;
+        Type^ compatiType = GetCompatiType(argType, paramType);
+        if(compatiType == nullptr) return false;
 
         array<Type^>^ paramGenericArgs =  paramType->GetGenericArguments();
-        if(argType->IsArray)
-        {
-            if(paramGenericArgs->Length != 1) return false;
+        array<Type^>^ argGenericArgs = argType->GetGenericArguments();
+        array<Type^>^ compatiGenericArgs = compatiType->GetGenericArguments();
 
-            Type^ paramGenericArg = paramGenericArgs[0];
-            Type^ argGenericArg = argType->GetElementType();
+        for(int i = 0;i < paramGenericArgs->Length;++i)
+        {
+            Type^ paramGenericArg = paramGenericArgs[i];
+            Type^ concreteType = compatiGenericArgs[i];
+            if(concreteType->IsGenericParameter)
+            {
+                concreteType = argGenericArgs[concreteType->GenericParameterPosition];
+            }
+
             if(paramGenericArg->ContainsGenericParameters)
             {
-                if(!GenericTypeMatching(paramGenericArg, argGenericArg, genericType, isLambdaType)) return false;
+                if(!GenericTypeMatching(paramGenericArg, concreteType, isLambdaType
+                    , genericType, inLambdaGenericType)) return false;
             }
             else
             {
-                if(!CheckTypeCompatibility(argGenericArg, paramGenericArg)) return false;
-            }
-        }
-        else
-        {
-            array<Type^>^ argGenericArgs = argType->GetGenericArguments();
-            if(paramGenericArgs->Length != argGenericArgs->Length) return false;
-
-            for(int i = 0;i < paramGenericArgs->Length;++i)
-            {
-                Type^ paramGenericArg = paramGenericArgs[i];
-                Type^ argGenericArg = argGenericArgs[i];
-                if(paramGenericArg->ContainsGenericParameters)
-                {
-                    if(!GenericTypeMatching(paramGenericArg, argGenericArg, genericType, isLambdaType)) return false;
-                }
-                else
-                {
-                    if(!CheckTypeCompatibility(argGenericArg, paramGenericArg)) return false;
-                }
+                if(GetCompatiType(concreteType, paramGenericArg) == nullptr) return false;
             }
         }
 
@@ -374,13 +387,14 @@ MethodInfo^ ClrMethod::MakeGenericMethod(MethodInfo^ mi, array<ArgType>^ argType
         }
 
         array<Type^>^ genericType = gcnew array<Type^>(genericArgs->Length);
+        array<Type^>^ inLambdaGenericType = nullptr;
         int index = 0;
         for each (ParameterInfo^ pi in piAry)
         {
             Type^ paramType = pi->ParameterType;
             if(paramType->ContainsGenericParameters)
             {
-                if(!GenericTypeMatching(paramType, paramTypes[index], genericType, false))
+                if(!GenericTypeMatching(paramType, paramTypes[index], false, genericType, inLambdaGenericType))
                 {
                     return nullptr;
                 }
@@ -392,8 +406,16 @@ MethodInfo^ ClrMethod::MakeGenericMethod(MethodInfo^ mi, array<ArgType>^ argType
         {
             if(genericType[i] == nullptr)
             {
-                //throw new InvalidOperationException("ジェネリック型を特定できませんでした。");
-                return nullptr;
+                if(inLambdaGenericType != nullptr 
+                    && inLambdaGenericType[i] != nullptr)
+                {
+                    genericType[i] = inLambdaGenericType[i];
+                }
+                else
+                {
+                    //throw new InvalidOperationException("ジェネリック型を特定できませんでした。");
+                    return nullptr;
+                }
             }
         }
 
