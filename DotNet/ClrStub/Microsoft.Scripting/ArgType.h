@@ -22,5 +22,6 @@ using namespace System;
 value struct ArgType {
     ObjKind kind;
     Type^ type;
+    int delegateParameterCount;
     TypeSpecAttr attr;
 };

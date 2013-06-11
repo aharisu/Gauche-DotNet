@@ -28,18 +28,21 @@ ref class ParameterWrapper
 public:
     ParameterWrapper(Type^ type)
         :Type(type)
+        ,_delegateParameterCount(-1)
     {
     }
 
     ParameterWrapper(Type^ type, String^ name)
         :Type(type)
         , Name(name)
+        ,_delegateParameterCount(-1)
     {
     }
 
     ParameterWrapper(Type^ type, bool prohibitNull)
         :Type(type)
         , _prohibitNull(prohibitNull)
+        ,_delegateParameterCount(-1)
     {
     }
 
@@ -47,11 +50,13 @@ public:
         :Type(type)
         , _prohibitNull(prohibitNull)
         , Name(name)
+        ,_delegateParameterCount(-1)
     {
     }
 
     ParameterWrapper(ParameterInfo^ info)
         :Type(info->ParameterType)
+        ,_delegateParameterCount(-1)
     {
         this->Name = info->Name == nullptr ? "<unknown>" : info->Name;
         this->IsParamsArray = info->IsDefined(ParamArrayAttribute::typeid, false);
@@ -164,7 +169,12 @@ public:
             case OBJWRAP_PROC:
                 if(Delegate::typeid->IsAssignableFrom(Type))
                 {
-                    return true;
+                    if(_delegateParameterCount == -1)
+                    {
+                        _delegateParameterCount = Type->GetMethod("Invoke")->GetParameters()->Length;
+                    }
+
+                    return _delegateParameterCount == t->delegateParameterCount;
                 }
                 return Type->IsAssignableFrom(GaucheDotNet::GoshProc::typeid);
             case OBJWRAP_CLROBJECT:
@@ -358,4 +368,5 @@ public:
     initonly String^ Name;
 private:
     bool _prohibitNull;
+    int _delegateParameterCount;
 };

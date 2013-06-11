@@ -271,6 +271,7 @@ bool ClrMethod::CreateArgTypes(StringBuilder^ builder, array<ArgType>^% argTypes
                 break;
             case OBJWRAP_PROC:
                 argTypes[i + startIndex].type = Delegate::typeid;
+                argTypes[i + startIndex].delegateParameterCount = ((ScmProcedure*)_args[i].ptr)->required;
                 argTypes[i + startIndex].kind = OBJWRAP_PROC;
                 argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
                 break;
