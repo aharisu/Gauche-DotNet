@@ -1179,6 +1179,12 @@ DECDLL int ClrReferenceAssembly(const char* assemblyName)
     return assembly == nullptr ?  0 : 1;
 }
 
+DECDLL void ClrUsingNamespace(const char* ns, void* module)
+{
+    ClrMethod::ModuleUsingNamespace((IntPtr)module, 
+    Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(ns))));
+}
+
 DECDLL void* ClrValidTypeName(const char* fullTypeName)
 {
     String^ name = gcnew String(fullTypeName);
@@ -1236,13 +1242,13 @@ DECDLL void* ClrNew(
     return ClrMethod::CallNew(methodSpec, args, numArg);
 }
 
-DECDLL void* ClrCallMethod(
-                         TypeSpec* methodSpec
+DECDLL void* ClrCallMethod(void* module
+                         , TypeSpec* methodSpec
                          , void* obj, int isStatic
                          , ObjWrapper* args, int numArg
                          )
 {
-    return ClrMethod::CallMethod(methodSpec, obj, isStatic == 1, args, numArg);
+    return ClrMethod::CallMethod(module, methodSpec, obj, isStatic == 1, args, numArg);
 }
 
 DECDLL int ClrIs(TypeSpec* typeSpec, void* obj)

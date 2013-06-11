@@ -93,9 +93,8 @@ public:
 ref class MethodBinder
 {
 public:
-    MethodBinder(String^ name, IList<MethodBase^>^ methods, BinderType binderType)
-        :Name(name)
-        ,_binderType(binderType)
+    MethodBinder(IList<MethodBase^>^ methods, BinderType binderType)
+        : _binderType(binderType)
         ,_paramsCandidates(nullptr)
     {
         for each(MethodBase^ method in methods)
@@ -229,8 +228,6 @@ private:
         return ts;
     }
 
-public:
-    initonly String^ Name;
 private:
     BinderType _binderType;
     Dictionary<int, TargetSet^> _targetSets;

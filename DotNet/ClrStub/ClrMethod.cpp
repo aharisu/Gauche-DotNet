@@ -102,6 +102,237 @@ Type^ ClrMethod::TypeSpecToType(TypeSpec* spec)
     return GetType(builder.ToString(), false);
 }
 
+static Object^ ToArgumentObject(Type^ type, ObjWrapper* arg)
+{
+    switch(arg->kind)
+    {
+    case OBJWRAP_BOOL:
+        if(type->IsAssignableFrom(GoshBool::typeid))
+        {
+            return ((int)arg->v.value) != 0 ? GoshBool::True : GoshBool::False;
+        }
+        else
+        {
+            return ((int)arg->v.value) != 0 ? true : false;
+        }
+    case OBJWRAP_INT:
+        if(type->IsAssignableFrom(GoshFixnum::typeid))
+        {
+            return gcnew GoshFixnum((int)arg->v.value);
+        }
+        else
+        {
+            return Convert::ChangeType((int)arg->v.value, type);
+        }
+    case OBJWRAP_FLONUM:
+        if(type->IsAssignableFrom(GoshFlonum::typeid))
+        {
+            return gcnew GoshFlonum(arg->v.real);
+        }
+        else
+        {
+            return Convert::ChangeType(arg->v.real, type);
+        }
+    case OBJWRAP_STRING:
+        if(type->IsAssignableFrom(GoshString::typeid))
+        {
+            return gcnew GoshString((IntPtr)arg->ptr);
+        }
+        else
+        {
+            return Marshal::PtrToStringAnsi(IntPtr(arg->v.value));
+        }
+    case OBJWRAP_PROC:
+        {
+            Object^ ret = gcnew Procedure::GoshProcedure((IntPtr)arg->v.value);
+            if(Delegate::typeid->IsAssignableFrom(type))
+            {
+                ret = GetWrappedDelegate(type, (GoshProc^)ret, IntPtr::Zero);
+            }
+            return ret;
+        }
+    case OBJWRAP_CLROBJECT:
+    default:
+        return GCHandle::FromIntPtr(IntPtr(arg->v.value)).Target;
+    }
+}
+
+static Object^ ToArgumentObject(ObjWrapper* arg)
+{
+    switch(arg->kind)
+    {
+    case OBJWRAP_BOOL:
+        return ((int)arg->v.value) != 0 ? true : false;
+    case OBJWRAP_INT:
+        return (int)arg->v.value;
+    case OBJWRAP_FLONUM:
+        return arg->v.real;
+    case OBJWRAP_STRING:
+        return Marshal::PtrToStringAnsi(IntPtr(arg->v.value));
+    case OBJWRAP_PROC:
+        return gcnew Procedure::GoshProcedure((IntPtr)arg->ptr);
+    case OBJWRAP_CLROBJECT:
+    default:
+        return GCHandle::FromIntPtr(IntPtr(arg->v.value)).Target;
+    }
+}
+
+array<Object^>^ ClrMethod::ConstractArguments(MethodCandidate^ callMethod, bool callExtensionMethod)
+{
+    int paramCount = callMethod->Parameters->Count;
+    int paramStartIndex = _isStatic ? 0 : 1;
+    int argumentOffset = callExtensionMethod ? 1 : 0;
+    
+    if(callMethod->ParamsArgumentIndex != -1)
+    {
+        int aryCount = (paramCount - callMethod->ParamsArgumentIndex);
+        int actualParamCount = paramCount - aryCount + argumentOffset;
+
+        array<Object^>^ actualArgs = gcnew array<Object^>(actualParamCount);
+        int index = paramStartIndex;
+        for(;index < callMethod->ParamsArgumentIndex; ++index)
+        {
+            actualArgs[argumentOffset + index - paramStartIndex] = 
+                ToArgumentObject(callMethod->Parameters[index]->Type, &_args[index - paramStartIndex]);
+        }
+
+        Array^ paramsAry = Array::CreateInstance(callMethod->ParamsElementType, aryCount);
+        actualArgs[argumentOffset + index - paramStartIndex] = paramsAry;
+        for(int i = 0;index < paramCount; ++index, ++i)
+        {
+            paramsAry->SetValue(
+                ToArgumentObject(callMethod->Parameters[index]->Type, &_args[index - paramStartIndex])
+                , i);
+        }
+
+        return actualArgs;
+    }
+    else
+    {
+        array<Object^>^ arguments = gcnew array<Object^>(_numArg + argumentOffset);
+        for(int i = 0;i < _numArg;++i)
+        {
+            arguments[argumentOffset + i] = ToArgumentObject(callMethod->Parameters[i + paramStartIndex]->Type, &_args[i]);
+        }
+
+        return arguments;
+    }
+}
+
+bool ClrMethod::CreateArgTypes(StringBuilder^ builder, array<ArgType>^% argTypes)
+{
+    int startIndex = _isStatic ? 0 : 1;
+    if(_methodSpec->numParamSpec >= 0)
+    {
+        argTypes = gcnew array<ArgType>(_methodSpec->numParamSpec + startIndex);
+        for(int i = 0;i < _methodSpec->numParamSpec;++i)
+        {
+            TypeSpecToString(&(_methodSpec->paramSpec[i]), builder);
+            argTypes[i + startIndex].type = ClrMethod::GetType(builder->ToString(), false);
+            argTypes[i + startIndex].kind = OBJWRAP_CLROBJECT;
+            argTypes[i + startIndex].attr = _methodSpec->paramSpec[i].attr;
+            builder->Length = 0;
+        }
+        return true;
+    }
+    else
+    {
+        argTypes = gcnew array<ArgType>(_numArg + startIndex);
+        for(int i = 0;i < _numArg;++i)
+        {
+            switch(_args[i].kind)
+            {
+            case OBJWRAP_CLROBJECT:
+                {
+                Object^ obj = GCHandle::FromIntPtr(IntPtr(_args[i].v.value)).Target;
+                argTypes[i + startIndex].type = obj->GetType();
+                argTypes[i + startIndex].kind = OBJWRAP_CLROBJECT;
+                argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
+                }
+                break;
+            case OBJWRAP_BOOL:
+                argTypes[i + startIndex].type = Boolean::typeid;
+                argTypes[i + startIndex].kind = OBJWRAP_BOOL;
+                argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
+            case OBJWRAP_INT:
+                argTypes[i + startIndex].type = Int32::typeid;
+                argTypes[i + startIndex].kind = OBJWRAP_INT;
+                argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
+                break;
+            case OBJWRAP_FLONUM:
+                argTypes[i + startIndex].type = Double::typeid;
+                argTypes[i + startIndex].kind = OBJWRAP_FLONUM;
+                argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
+                break;
+            case OBJWRAP_STRING:
+                argTypes[i + startIndex].type = String::typeid;
+                argTypes[i + startIndex].kind = OBJWRAP_STRING;
+                argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
+                break;
+            case OBJWRAP_PROC:
+                argTypes[i + startIndex].type = Delegate::typeid;
+                argTypes[i + startIndex].kind = OBJWRAP_PROC;
+                argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
+                break;
+            }
+        }
+        return false;
+    }
+}
+
+void* ClrMethod::CallNew()
+{
+    StringBuilder builder;
+    TypeSpecToString((TypeSpec*)_methodSpec, %builder);
+    Type^ targetType = ClrMethod::GetType(builder.ToString(), false);
+    if(targetType == nullptr)
+    {
+        throw gcnew GoshException("unknown type");
+    }
+    builder.Length = 0;
+
+    //メソッド名と一緒にパラメータ型指定がある場合はtrue
+    array<ArgType>^ argTypes;
+    bool isSpecifyParamType = CreateArgTypes(%builder, argTypes);
+
+    List<MethodBase^> candidates;
+    for each(MethodBase^ info in targetType->GetConstructors(BindingFlags::Public | BindingFlags::Instance))
+    {
+        bool hasParams = false;
+        array<ParameterInfo^>^ paramInfoAry = info->GetParameters();
+        if(paramInfoAry->Length != 0)
+        {
+            hasParams = CompilerHelpers::IsParamArray(paramInfoAry[paramInfoAry->Length - 1]);
+        }
+
+        if(hasParams)
+        {
+            if(_numArg < paramInfoAry->Length - 1) continue;
+        }
+        else
+        {
+            if(_numArg != paramInfoAry->Length) continue;
+        }
+        candidates.Add(info);
+    }
+
+    if(candidates.Count == 0)
+    {
+        throw gcnew GoshException("Callable constructor can not be found");
+    }
+
+    MethodBinder mb(%candidates, BinderType::Constractor);
+    MethodCandidate^ mc = mb.MakeBindingTarget(CallType::None, _numArg, argTypes, isSpecifyParamType);
+    if(mc == nullptr)
+    {
+        throw gcnew GoshException("Callable constructor can not be found");
+    }
+
+    array<Object^>^ arguments = ConstractArguments(mc, false);
+    Object^ result = ((ConstructorInfo^)mc->Target->Method)->Invoke(arguments);
+    return (void*)(IntPtr)GCHandle::Alloc(result);
+}
+
 static array<Type^>^ ConvertToTypeArray(TypeSpec* typeSpec, int numTypeSpec)
 {
     StringBuilder builder; 
@@ -115,7 +346,6 @@ static array<Type^>^ ConvertToTypeArray(TypeSpec* typeSpec, int numTypeSpec)
 
     return typeAry;
 }
-
 
 static Type^ GetHigherLevel(Type^ t1, Type^ t2)
 {
@@ -327,19 +557,20 @@ static bool GenericTypeMatching(Type^ paramType, Type^ argType, bool isLambdaTyp
     }
 }
 
-MethodInfo^ ClrMethod::MakeGenericMethod(MethodInfo^ mi, array<ArgType>^ argTypes)
+static MethodInfo^ MakeGenericMethod(MethodInfo^ mi
+                                     , TypeSpec* methodSpec, bool isStatic, array<ArgType>^ argTypes)
 {
     array<Type^>^ genericArgs = mi->GetGenericArguments();
-    if (_methodSpec->numGenericSpec >= 0)
+    if (methodSpec->numGenericSpec >= 0)
     {
         //ジェネリック型の指定がある場合は指定された型でメソッドを作成する
 
-        if (genericArgs->Length != _methodSpec->numGenericSpec)
+        if (genericArgs->Length != methodSpec->numGenericSpec)
         {
             return nullptr;
         }
 
-        return mi->MakeGenericMethod(ConvertToTypeArray(_methodSpec->genericSpec, _methodSpec->numGenericSpec));
+        return mi->MakeGenericMethod(ConvertToTypeArray(methodSpec->genericSpec, methodSpec->numGenericSpec));
     }
     else
     {
@@ -347,17 +578,17 @@ MethodInfo^ ClrMethod::MakeGenericMethod(MethodInfo^ mi, array<ArgType>^ argType
         array<ParameterInfo^>^ piAry = mi->GetParameters();
 
         array<Type^>^ paramTypes = nullptr;
-        if (_methodSpec->numParamSpec >= 0)
+        if (methodSpec->numParamSpec >= 0)
         {
-            if (piAry->Length != _methodSpec->numParamSpec)
+            if (piAry->Length != methodSpec->numParamSpec)
             {
                 return nullptr;
             }
-            paramTypes = ConvertToTypeArray(_methodSpec->paramSpec, _methodSpec->numParamSpec);
+            paramTypes = ConvertToTypeArray(methodSpec->paramSpec, methodSpec->numParamSpec);
         }
         else
         {
-            int startIndex = (_isStatic ? 0 : 1);
+            int startIndex = (isStatic ? 0 : 1);
             paramTypes = gcnew array<Type^>(argTypes->Length - startIndex);
             for(int i = startIndex;i < argTypes->Length;++i)
             {
@@ -423,7 +654,7 @@ MethodInfo^ ClrMethod::MakeGenericMethod(MethodInfo^ mi, array<ArgType>^ argType
     }
 }
 
-MethodBase^ ClrMethod::CreateCandidate(MethodBase^ info, array<ArgType>^ argTypes)
+static MethodBase^ CreateCandidate(MethodBase^ info, TypeSpec* methodSpec, bool isStatic, int numArg, array<ArgType>^ argTypes)
 {
     bool hasParams = false;
     array<ParameterInfo^>^ paramInfoAry = info->GetParameters();
@@ -434,16 +665,16 @@ MethodBase^ ClrMethod::CreateCandidate(MethodBase^ info, array<ArgType>^ argType
 
     if(hasParams)
     {
-        if(_numArg < paramInfoAry->Length - 1) return nullptr;
+        if(numArg < paramInfoAry->Length - 1) return nullptr;
     }
     else
     {
-        if(_numArg != paramInfoAry->Length) return nullptr;
+        if(numArg != paramInfoAry->Length) return nullptr;
     }
 
     if(info->ContainsGenericParameters)
     {
-        return MakeGenericMethod((MethodInfo^)info, argTypes);
+        return MakeGenericMethod((MethodInfo^)info, methodSpec, isStatic, argTypes);
     }
     else
     {
@@ -451,236 +682,36 @@ MethodBase^ ClrMethod::CreateCandidate(MethodBase^ info, array<ArgType>^ argType
     }
 }
 
-static Object^ ToArgumentObject(Type^ type, ObjWrapper* arg)
+static MethodCandidate^ GetApplicableMethod(System::Collections::IEnumerable^ methods
+    , TypeSpec* methodSpec, bool isStatic, int numArg, array<ArgType>^ argTypes, bool isSpecifyParamType
+    , List<MethodBase^>^ candidates)
 {
-    switch(arg->kind)
+    //実行メソッドの候補リストを作成する
+    for each(MethodBase^ info in methods)
     {
-    case OBJWRAP_BOOL:
-        if(type->IsAssignableFrom(GoshBool::typeid))
+        MethodBase^ candidate = CreateCandidate(info, methodSpec, isStatic, numArg, argTypes);
+        if(candidate != nullptr)
         {
-            return ((int)arg->v.value) != 0 ? GoshBool::True : GoshBool::False;
+            candidates->Add(candidate);
         }
-        else
-        {
-            return ((int)arg->v.value) != 0 ? true : false;
-        }
-    case OBJWRAP_INT:
-        if(type->IsAssignableFrom(GoshFixnum::typeid))
-        {
-            return gcnew GoshFixnum((int)arg->v.value);
-        }
-        else
-        {
-            return Convert::ChangeType((int)arg->v.value, type);
-        }
-    case OBJWRAP_FLONUM:
-        if(type->IsAssignableFrom(GoshFlonum::typeid))
-        {
-            return gcnew GoshFlonum(arg->v.real);
-        }
-        else
-        {
-            return Convert::ChangeType(arg->v.real, type);
-        }
-    case OBJWRAP_STRING:
-        if(type->IsAssignableFrom(GoshString::typeid))
-        {
-            return gcnew GoshString((IntPtr)arg->ptr);
-        }
-        else
-        {
-            return Marshal::PtrToStringAnsi(IntPtr(arg->v.value));
-        }
-    case OBJWRAP_PROC:
-        {
-            Object^ ret = gcnew Procedure::GoshProcedure((IntPtr)arg->v.value);
-            if(Delegate::typeid->IsAssignableFrom(type))
-            {
-                ret = GetWrappedDelegate(type, (GoshProc^)ret, IntPtr::Zero);
-            }
-            return ret;
-        }
-    case OBJWRAP_CLROBJECT:
-    default:
-        return GCHandle::FromIntPtr(IntPtr(arg->v.value)).Target;
     }
+
+    if(candidates->Count == 0)
+    {
+        return nullptr;
+    }
+
+    //パラメータ型配列から適用可能なメソッドを取得する
+    MethodBinder mb(candidates, BinderType::Normal);
+    return mb.MakeBindingTarget(
+        isStatic ? CallType::None : CallType::ImplicitInstance
+        ,  (isStatic ? 0 : 1) + numArg
+        , argTypes
+        , isSpecifyParamType
+        );
 }
 
-static Object^ ToArgumentObject(ObjWrapper* arg)
-{
-    switch(arg->kind)
-    {
-    case OBJWRAP_BOOL:
-        return ((int)arg->v.value) != 0 ? true : false;
-    case OBJWRAP_INT:
-        return (int)arg->v.value;
-    case OBJWRAP_FLONUM:
-        return arg->v.real;
-    case OBJWRAP_STRING:
-        return Marshal::PtrToStringAnsi(IntPtr(arg->v.value));
-    case OBJWRAP_PROC:
-        return gcnew Procedure::GoshProcedure((IntPtr)arg->ptr);
-    case OBJWRAP_CLROBJECT:
-    default:
-        return GCHandle::FromIntPtr(IntPtr(arg->v.value)).Target;
-    }
-}
-
-array<Object^>^ ClrMethod::ConstractArguments(MethodCandidate^ callMethod)
-{
-    int paramCount = callMethod->Parameters->Count;
-    int paramStartIndex = _isStatic ? 0 : 1;
-    if(callMethod->ParamsArgumentIndex != -1)
-    {
-        int aryCount = (paramCount - callMethod->ParamsArgumentIndex);
-        int actualParamCount = paramCount - aryCount;
-
-        array<Object^>^ actualArgs = gcnew array<Object^>(actualParamCount);
-        int index = paramStartIndex;
-        for(;index < callMethod->ParamsArgumentIndex; ++index)
-        {
-            actualArgs[index - paramStartIndex] = 
-                ToArgumentObject(callMethod->Parameters[index]->Type, &_args[index - paramStartIndex]);
-        }
-
-        Array^ paramsAry = Array::CreateInstance(callMethod->ParamsElementType, aryCount);
-        actualArgs[index - paramStartIndex] = paramsAry;
-        for(int i = 0;index < paramCount; ++index, ++i)
-        {
-            paramsAry->SetValue(
-                ToArgumentObject(callMethod->Parameters[index]->Type, &_args[index - paramStartIndex])
-                , i);
-        }
-
-        return actualArgs;
-    }
-    else
-    {
-        array<Object^>^ arguments = gcnew array<Object^>(_numArg);
-        for(int i = 0;i < _numArg;++i)
-        {
-            arguments[i] = ToArgumentObject(callMethod->Parameters[i + paramStartIndex]->Type, &_args[i]);
-        }
-
-        return arguments;
-    }
-}
-
-bool ClrMethod::CreateArgTypes(StringBuilder^ builder, array<ArgType>^% argTypes)
-{
-    int startIndex = _isStatic ? 0 : 1;
-    if(_methodSpec->numParamSpec >= 0)
-    {
-        argTypes = gcnew array<ArgType>(_methodSpec->numParamSpec + startIndex);
-        for(int i = 0;i < _methodSpec->numParamSpec;++i)
-        {
-            TypeSpecToString(&(_methodSpec->paramSpec[i]), builder);
-            argTypes[i + startIndex].type = ClrMethod::GetType(builder->ToString(), false);
-            argTypes[i + startIndex].kind = OBJWRAP_CLROBJECT;
-            argTypes[i + startIndex].attr = _methodSpec->paramSpec[i].attr;
-            builder->Length = 0;
-        }
-        return true;
-    }
-    else
-    {
-        argTypes = gcnew array<ArgType>(_numArg + startIndex);
-        for(int i = 0;i < _numArg;++i)
-        {
-            switch(_args[i].kind)
-            {
-            case OBJWRAP_CLROBJECT:
-                {
-                Object^ obj = GCHandle::FromIntPtr(IntPtr(_args[i].v.value)).Target;
-                argTypes[i + startIndex].type = obj->GetType();
-                argTypes[i + startIndex].kind = OBJWRAP_CLROBJECT;
-                argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
-                }
-                break;
-            case OBJWRAP_BOOL:
-                argTypes[i + startIndex].type = Boolean::typeid;
-                argTypes[i + startIndex].kind = OBJWRAP_BOOL;
-                argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
-            case OBJWRAP_INT:
-                argTypes[i + startIndex].type = Int32::typeid;
-                argTypes[i + startIndex].kind = OBJWRAP_INT;
-                argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
-                break;
-            case OBJWRAP_FLONUM:
-                argTypes[i + startIndex].type = Double::typeid;
-                argTypes[i + startIndex].kind = OBJWRAP_FLONUM;
-                argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
-                break;
-            case OBJWRAP_STRING:
-                argTypes[i + startIndex].type = String::typeid;
-                argTypes[i + startIndex].kind = OBJWRAP_STRING;
-                argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
-                break;
-            case OBJWRAP_PROC:
-                argTypes[i + startIndex].type = Delegate::typeid;
-                argTypes[i + startIndex].kind = OBJWRAP_PROC;
-                argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
-                break;
-            }
-        }
-        return false;
-    }
-}
-
-void* ClrMethod::CallNew()
-{
-    StringBuilder builder;
-    TypeSpecToString((TypeSpec*)_methodSpec, %builder);
-    Type^ targetType = ClrMethod::GetType(builder.ToString(), false);
-    if(targetType == nullptr)
-    {
-        throw gcnew GoshException("unknown type");
-    }
-    builder.Length = 0;
-
-    //メソッド名と一緒にパラメータ型指定がある場合はtrue
-    array<ArgType>^ argTypes;
-    bool isSpecifyParamType = CreateArgTypes(%builder, argTypes);
-
-    List<MethodBase^> candidates;
-    for each(MethodBase^ info in targetType->GetConstructors(BindingFlags::Public | BindingFlags::Instance))
-    {
-        bool hasParams = false;
-        array<ParameterInfo^>^ paramInfoAry = info->GetParameters();
-        if(paramInfoAry->Length != 0)
-        {
-            hasParams = CompilerHelpers::IsParamArray(paramInfoAry[paramInfoAry->Length - 1]);
-        }
-
-        if(hasParams)
-        {
-            if(_numArg < paramInfoAry->Length - 1) continue;
-        }
-        else
-        {
-            if(_numArg != paramInfoAry->Length) continue;
-        }
-        candidates.Add(info);
-    }
-
-    if(candidates.Count == 0)
-    {
-        throw gcnew GoshException("Callable constructor can not be found");
-    }
-
-    MethodBinder mb(".ctor", %candidates, BinderType::Constractor);
-    MethodCandidate^ mc = mb.MakeBindingTarget(CallType::None, _numArg, argTypes, isSpecifyParamType);
-    if(mc == nullptr)
-    {
-        throw gcnew GoshException("Callable constructor can not be found");
-    }
-
-    array<Object^>^ arguments = ConstractArguments(mc);
-    Object^ result = ((ConstructorInfo^)mc->Target->Method)->Invoke(arguments);
-    return (void*)(IntPtr)GCHandle::Alloc(result);
-}
-
-void* ClrMethod::CallMethod()
+void* ClrMethod::CallMethod(void* module)
 {
     StringBuilder builder;
     Type^ targetType;
@@ -1025,41 +1056,46 @@ void* ClrMethod::CallMethod()
         argTypes[0].attr = TYPESPEC_ATTR_NORMAL;
     }
 
-    //実行メソッドの候補リストを作成する
+    //実行メソッドの候補リストを作成し、パラメータ型配列から適用可能なメソッドを取得する
+    bool callExtensionMethod = false;
     List<MethodBase^> candidates;
-    for each(MethodBase^ info in targetType->GetMember(method, MemberTypes::Method 
-        , BindingFlags::Public | ((_isStatic | isOperator) ? BindingFlags::Static : BindingFlags::Instance)
-        ))
+    MethodCandidate^ mc = GetApplicableMethod(
+        targetType->GetMember(method, MemberTypes::Method, 
+            BindingFlags::Public | ((_isStatic | isOperator) ? BindingFlags::Static : BindingFlags::Instance))
+        , _methodSpec, _isStatic, _numArg, argTypes, isSpecifyParamType
+        , %candidates);
+
+    if(mc == nullptr && !_isStatic)
     {
-        MethodBase^ candidate = CreateCandidate(info, argTypes);
-        if(candidate != nullptr)
+        callExtensionMethod = true;
+
+        Dictionary<String^, List<MethodInfo^>^>^ nameToMethods;
+        if(_eachModuleExtensionMethods->TryGetValue((IntPtr)module, nameToMethods))
         {
-            candidates.Add(candidate);
+            List<MethodInfo^>^ methods;
+            if(nameToMethods->TryGetValue(method, methods))
+            {
+                candidates.Clear();
+                mc = GetApplicableMethod(methods
+                    ,_methodSpec, true, _numArg + 1, argTypes, isSpecifyParamType
+                    , %candidates);
+            }
         }
     }
 
-    if(candidates.Count == 0)
-    {
-        throw gcnew GoshException("Applicable method can not be found");
-    }
-
-    //パラメータ型配列から適用可能なメソッドを取得する
-    MethodBinder mb(method, %candidates 
-        , isOperator ? BinderType::BinaryOperator : BinderType::Normal);
-    MethodCandidate^ mc = mb.MakeBindingTarget(
-        _isStatic ? CallType::None : CallType::ImplicitInstance
-        , (_isStatic ? 0 : 1) + _numArg
-        , argTypes
-        , isSpecifyParamType
-        );
     if(mc == nullptr)
     {
         throw gcnew GoshException("Applicable method can not be found");
     }
 
     //メソッド実行
-    array<Object^>^ arguments = ConstractArguments(mc);
-    Object^ result = mc->Target->Method->Invoke(_isStatic ? nullptr : instance, arguments);
+    array<Object^>^ arguments = ConstractArguments(mc, callExtensionMethod);
+    //拡張メソッドを呼ぶ場合は、引数の最初にインスタンスを設定する
+    if(callExtensionMethod)
+    {
+      arguments[0] = instance;
+    }
+    Object^ result = mc->Target->Method->Invoke((_isStatic || callExtensionMethod) ? nullptr : instance, arguments);
     //TODO 戻り値がvoidのメソッドと本当にnullが返ってきたときの場合わけ
     if(result == nullptr)
     {

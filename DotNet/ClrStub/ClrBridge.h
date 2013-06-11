@@ -92,6 +92,7 @@ DECDLL void ClrEventAddClrObj(void* obj, const char* name, void* clrObj);
 DECDLL void ClrEventRemove(void* obj, const char* name, void* proc);
 
 DECDLL int ClrReferenceAssembly(const char* assemblyName);
+DECDLL void ClrUsingNamespace(const char* ns, void* module);
 
 DECDLL void* ClrValidTypeName(const char* fullTypeName);
 
@@ -102,8 +103,8 @@ DECDLL void* ClrNew(
                     , ObjWrapper* args, int numArg
                     );
 
-DECDLL void* ClrCallMethod(
-                         TypeSpec* methodSpec
+DECDLL void* ClrCallMethod(void* module
+                         , TypeSpec* methodSpec
                          , void* obj, int isStatic
                          , ObjWrapper* args, int numArg
                          );

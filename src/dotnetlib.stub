@@ -323,7 +323,8 @@ static ScmString namespace_list = SCM_STRING_CONST_INITIALIZER(\"*nsl*\", 5, 5);
       (set! ns-list (SCM_OBJ (Scm_MakeBox (SCM_OBJ SCM_NIL))))
       (Scm_DefineConst module sym-ns-list ns-list))
     (set! (SCM_BOX_VALUE ns-list)
-      (Scm_Append2 (SCM_BOX_VALUE ns-list) (Scm_Cons (SCM_OBJ ns) (SCM_OBJ SCM_NIL))))))
+      (Scm_Append2 (SCM_BOX_VALUE ns-list) (Scm_Cons (SCM_OBJ ns) (SCM_OBJ SCM_NIL))))
+    (ClrUsingNamespace (SCM_STRING_START (-> ns name)) (cast _pvoid_t module))))
 
 "
 static ScmString namespace_System = SCM_STRING_CONST_INITIALIZER(\"System.\", 7, 7);
@@ -679,6 +680,7 @@ static ScmString param_attr_params = SCM_STRING_CONST_INITIALIZER(\"params\", 6,
       (set! args (SCM_CDR (SCM_PAIR args))))
     ;;call method
     (let* ([ret::void* (ClrCallMethod
+                            (cast _pvoid_t (Scm_CurrentModule))
                             (& methodSpec)
                             ptr-obj static?
                             ptr-arg len)])
