@@ -157,26 +157,6 @@ static Object^ ToArgumentObject(Type^ type, ObjWrapper* arg)
     }
 }
 
-static Object^ ToArgumentObject(ObjWrapper* arg)
-{
-    switch(arg->kind)
-    {
-    case OBJWRAP_BOOL:
-        return ((int)arg->v.value) != 0 ? true : false;
-    case OBJWRAP_INT:
-        return (int)arg->v.value;
-    case OBJWRAP_FLONUM:
-        return arg->v.real;
-    case OBJWRAP_STRING:
-        return Marshal::PtrToStringAnsi(IntPtr(arg->v.value));
-    case OBJWRAP_PROC:
-        return gcnew Procedure::GoshProcedure((IntPtr)arg->ptr);
-    case OBJWRAP_CLROBJECT:
-    default:
-        return GCHandle::FromIntPtr(IntPtr(arg->v.value)).Target;
-    }
-}
-
 array<Object^>^ ClrMethod::ConstractArguments(MethodCandidate^ callMethod, bool callExtensionMethod)
 {
     int paramCount = callMethod->Parameters->Count;
@@ -751,7 +731,7 @@ void* ClrMethod::CallMethod(void* module)
 #pragma region プリミティブ型同士の演算子を実行する {
         if(_numArg < 2 && method->Length <= 3)
         {
-            Object^ secondArg = (_numArg == 1) ?  ToArgumentObject(&_args[0]) : nullptr;
+            Object^ secondArg = (_numArg == 1) ?  ToObject(&_args[0]) : nullptr;
 
             Object^ result = nullptr;
             if(method->Length == 1)
