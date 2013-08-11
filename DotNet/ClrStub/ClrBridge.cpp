@@ -206,7 +206,7 @@ DECDLL void* ClrToGoshObj(void* obj)
         }
         else if(type == String::typeid)
         {
-            return (void*)GoshInvoke::Scm_MakeString((String^)target, -1, -1, StringFlags::Copying);
+            return (void*)GoshInvoke::Scm_MakeString((String^)target, StringFlags::Copying);
         }
         else if(type == double::typeid)
         {
@@ -534,10 +534,7 @@ DECDLL void* ClrToGoshString(void* clrObj)
     }
     else
     {
-        return (void*)GoshInvoke::Scm_MakeString(
-            target->ToString()
-            , -1, -1, 
-            StringFlags::Copying);
+        return (void*)GoshInvoke::Scm_MakeString(target->ToString(), StringFlags::Copying);
     }
 }
 
@@ -1197,8 +1194,7 @@ DECDLL void* ClrValidTypeName(const char* fullTypeName)
     else
     {
         return (void*)GaucheDotNet::Native::GoshInvoke::Scm_MakeString(
-            ret->AssemblyQualifiedName
-            , -1, -1, GaucheDotNet::StringFlags::Copying);
+            ret->AssemblyQualifiedName, GaucheDotNet::StringFlags::Copying);
     }
 }
 
@@ -1320,7 +1316,7 @@ DECDLL void* ClrPrint(void* clrObj)
         }
     }
 
-    return (void*)GoshInvoke::Scm_MakeString(str, -1, -1, StringFlags::Copying);
+    return (void*)GoshInvoke::Scm_MakeString(str, StringFlags::Copying);
 }
 
 static String^ GetTypeName(Type^ t)
@@ -1369,7 +1365,7 @@ DECDLL void* ClrGetTypeName(void* obj)
         str = GetTypeName(o->GetType());
     }
 
-    return (void*)GoshInvoke::Scm_MakeString(str, -1, -1, StringFlags::Copying);
+    return (void*)GoshInvoke::Scm_MakeString(str, StringFlags::Copying);
 }
 
 DECDLL void* ClrMember(void* obj, int isStatic, const char* name)
@@ -1471,7 +1467,7 @@ DECDLL void* ClrMember(void* obj, int isStatic, const char* name)
 
             ret = GoshInvoke::Scm_Cons(
                 GoshInvoke::Scm_Cons(ClrStubConstant::MemberKindMethod
-                    , GoshInvoke::Scm_MakeString(builder.ToString(), -1, -1, StringFlags::Copying))
+                    , GoshInvoke::Scm_MakeString(builder.ToString(), StringFlags::Copying))
                 , ret);
         }
         else
@@ -1495,7 +1491,7 @@ DECDLL void* ClrMember(void* obj, int isStatic, const char* name)
             }
 
             ret = GoshInvoke::Scm_Cons(
-                GoshInvoke::Scm_Cons(kind,GoshInvoke::Scm_MakeString(info->Name, -1, -1, StringFlags::Copying))
+                GoshInvoke::Scm_Cons(kind,GoshInvoke::Scm_MakeString(info->Name, StringFlags::Copying))
                 , ret);
         }
     }

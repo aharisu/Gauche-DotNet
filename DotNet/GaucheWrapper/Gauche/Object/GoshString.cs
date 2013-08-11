@@ -56,7 +56,7 @@ namespace GaucheDotNet
 
         public override string ToString()
         {
-            return Native.GoshInvoke.Scm_GetStringConst(_ptr);
+            return Native.GoshInvoke.Scm_GetString(_ptr);
         }
     }
 }

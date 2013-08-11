@@ -227,7 +227,7 @@ namespace GaucheDotNet
                         return Cast.ScmCharToChar(ptr);
 
                     case KnownClass.String:
-                        return GoshInvoke.Scm_GetStringConst(ptr);
+                        return GoshInvoke.Scm_GetString(ptr);
 
                     case KnownClass.Symbol:
                         return new GoshSymbol(ptr);
@@ -343,7 +343,7 @@ namespace GaucheDotNet
             }
             else if (obj is String)
             {
-                return GoshInvoke.Scm_MakeString((String)obj, -1, -1, StringFlags.Copying);
+                return GoshInvoke.Scm_MakeString((String)obj, StringFlags.Copying);
             }
             else if (obj is char)
             {

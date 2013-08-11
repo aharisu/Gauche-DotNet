@@ -1117,7 +1117,7 @@ namespace GaucheDotNet
 
         public static GoshString MakeString(string str)
         {
-            return new GoshString(GoshInvoke.Scm_MakeString(str, -1, -1, StringFlags.Copying));
+            return new GoshString(GoshInvoke.Scm_MakeString(str, StringFlags.Copying));
         }
 
         public static GoshString MakeFillString(int len, char fill)
@@ -1127,14 +1127,13 @@ namespace GaucheDotNet
 
         public static string GetString(GoshString str)
         {
-            return GoshInvoke.Scm_GetString(str.Ptr);
-        }
+            UInt32 size, length, flags;
+            IntPtr utf8buf = GoshInvoke.Scm_GetStringContent(str.Ptr, out size, out length, out flags);
+            byte[] buf = new byte[size];
+            Marshal.Copy(utf8buf, buf, 0, (int)size);
 
-        public static string GetStringConst(GoshString str)
-        {
-            return GoshInvoke.Scm_GetStringConst(str.Ptr);
+            return Encoding.UTF8.GetString(buf);
         }
-
         #endregion
 
         #region hash.h {

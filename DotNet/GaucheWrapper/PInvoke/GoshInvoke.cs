@@ -537,12 +537,40 @@ namespace GaucheDotNet.Native
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern int Scm_Eval(IntPtr form, IntPtr env, IntPtr packet);
 
+        public static int Scm_EvalCString(string form, IntPtr env, IntPtr packet)
+        {
+            int len = Encoding.UTF8.GetByteCount(form);
+            //not contains multi byte character?
+            if (len == form.Length)
+            {
+                return Scm_EvalCString_(form, env, packet); 
+            }
+            else
+            {
+                //convert UTF8 character
+                byte[] buffer = new byte[len + 1];
+                Encoding.UTF8.GetBytes(form, 0, form.Length, buffer, 0);
+                return Scm_EvalCString_(buffer, env, packet); 
+            }
+        }
+
         /// <param name="form">const char*</param>
         /// <param name="env">ScmObj</param>
         /// <param name="packet">ScmEvalPacket*</param>
         /// <returns>int</returns>
-        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int Scm_EvalCString(string form, IntPtr env, IntPtr packet);
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl, EntryPoint="Scm_EvalCString")]
+        private static extern int Scm_EvalCString_(
+            [MarshalAs(UnmanagedType.LPArray)][In] byte[] form
+            , IntPtr env, IntPtr packet);
+
+        /// <param name="form">const char*</param>
+        /// <param name="env">ScmObj</param>
+        /// <param name="packet">ScmEvalPacket*</param>
+        /// <returns>int</returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl, EntryPoint="Scm_EvalCString")]
+        private static extern int Scm_EvalCString_(
+            [MarshalAs(UnmanagedType.LPStr)][In] string form
+            , IntPtr env, IntPtr packet);
 
         /// <param name="proc">ScmObj</param>
         /// <param name="args">ScmObj</param>
@@ -894,13 +922,41 @@ namespace GaucheDotNet.Native
 
         #region string.h {
 
+        public static IntPtr Scm_MakeString(string str, StringFlags flags)
+        {
+            int bytesLen = Encoding.UTF8.GetByteCount(str);
+            //not contains multi byte character?
+            if (bytesLen == str.Length)
+            {
+                return Scm_MakeString_(str, bytesLen, str.Length, flags);
+            }
+            else
+            {
+                //convert UTF8 character
+                byte[] buffer = new byte[bytesLen + 1];
+                Encoding.UTF8.GetBytes(str, 0, str.Length, buffer, 0);
+                return Scm_MakeString_(buffer, bytesLen, str.Length, flags);
+            }
+        }
+
         /// <param name="str">const char*</param>
         /// <param name="size"></param>
         /// <param name="len"></param>
         /// <param name="flags"></param>
         /// <returns>ScmObj(ScmString*)</returns>
-        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr Scm_MakeString(
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl, EntryPoint="Scm_MakeString")]
+        private static extern IntPtr Scm_MakeString_(
+            [MarshalAs(UnmanagedType.LPArray)][In] byte[] str 
+            , int size, int len
+            , [MarshalAs(UnmanagedType.I4)][In] StringFlags flags);
+
+        /// <param name="str">const char*</param>
+        /// <param name="size"></param>
+        /// <param name="len"></param>
+        /// <param name="flags"></param>
+        /// <returns>ScmObj(ScmString*)</returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl, EntryPoint="Scm_MakeString")]
+        private static extern IntPtr Scm_MakeString_(
             [MarshalAs(UnmanagedType.LPStr)][In] string str 
             , int size, int len
             , [MarshalAs(UnmanagedType.I4)][In] StringFlags flags);
@@ -911,17 +967,20 @@ namespace GaucheDotNet.Native
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr Scm_MakeFillString(int len, [MarshalAs(UnmanagedType.I4)][In] Int32 fill);
 
-        /// <param name="str">ScmString*</param>
-        /// <returns>char*</returns>
-        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
-        [return : MarshalAs(UnmanagedType.LPStr)]
-        public static extern String Scm_GetString(IntPtr str);
+        public static string Scm_GetString(IntPtr ptr)
+        {
+            UInt32 size, length, flags;
+            IntPtr utf8buf = GoshInvoke.Scm_GetStringContent(ptr, out size, out length, out flags);
+            byte[] buf = new byte[size];
+            Marshal.Copy(utf8buf, buf, 0, (int)size);
+
+            return Encoding.UTF8.GetString(buf);
+        }
 
         /// <param name="str">ScmString*</param>
         /// <returns>char*</returns>
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
-        [return : MarshalAs(UnmanagedType.LPStr)]
-        public static extern String Scm_GetStringConst(IntPtr str);
+        public static extern IntPtr Scm_GetStringContent(IntPtr str, out UInt32 psize, out UInt32 plength, out UInt32 pflags);
 
         #endregion }
 

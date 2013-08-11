@@ -174,7 +174,7 @@ namespace GaucheDotNet
 
         public override string ToString()
         {
-            return GoshInvoke.Scm_GetStringConst(
+            return GoshInvoke.Scm_GetString(
                 GoshInvoke.Scm_BignumToString(_ptr, 10, 1));
         }
     }

@@ -134,7 +134,7 @@ namespace GaucheDotNet
                     String strKey = key as String;
                     if (strKey != null)
                     {
-                        return GoshInvoke.Scm_MakeString(strKey, -1, -1, StringFlags.Copying);
+                        return GoshInvoke.Scm_MakeString(strKey, StringFlags.Copying);
                     }
                 }
             }

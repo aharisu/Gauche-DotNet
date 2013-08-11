@@ -81,7 +81,7 @@ public:
     {
         GoshInvoke::Scm_Raise(
             GoshInvoke::Scm_MakeClrError(
-                GoshInvoke::Scm_MakeString(clrException->Message, -1, -1, StringFlags::Copying)
+                GoshInvoke::Scm_MakeString(clrException->Message, StringFlags::Copying)
                 , GoshInvoke::Scm_MakeClrObject((IntPtr)GCHandle::Alloc(clrException))));
     }
 
@@ -89,7 +89,7 @@ public:
     {
         GoshInvoke::Scm_Raise(
             GoshInvoke::Scm_MakeClrError(
-                GoshInvoke::Scm_MakeString(msg, -1, -1, StringFlags::Copying)
+                GoshInvoke::Scm_MakeString(msg, StringFlags::Copying)
                 , GoshInvoke::Scm_MakeClrObject((IntPtr)GCHandle::Alloc(clrException))));
     }
 
@@ -121,7 +121,7 @@ public:
             if(_memberKindType == IntPtr::Zero)
             {
                 _memberKindType = GoshInvoke::Scm_MakeKeyword(
-                    GoshInvoke::Scm_MakeString("type", -1, -1, StringFlags::Copying));
+                    GoshInvoke::Scm_MakeString("type", StringFlags::Copying));
             }
 
             return _memberKindType;
@@ -135,7 +135,7 @@ public:
             if(_memberKindEvent == IntPtr::Zero)
             {
                 _memberKindEvent = GoshInvoke::Scm_MakeKeyword(
-                    GoshInvoke::Scm_MakeString("event", -1, -1, StringFlags::Copying));
+                    GoshInvoke::Scm_MakeString("event", StringFlags::Copying));
             }
 
             return _memberKindEvent;
@@ -149,7 +149,7 @@ public:
             if(_memberKindField == IntPtr::Zero)
             {
                 _memberKindField = GoshInvoke::Scm_MakeKeyword(
-                    GoshInvoke::Scm_MakeString("field", -1, -1, StringFlags::Copying));
+                    GoshInvoke::Scm_MakeString("field", StringFlags::Copying));
             }
 
             return _memberKindField;
@@ -163,7 +163,7 @@ public:
             if(_memberKindProperty == IntPtr::Zero)
             {
                 _memberKindProperty = GoshInvoke::Scm_MakeKeyword(
-                    GoshInvoke::Scm_MakeString("property", -1, -1, StringFlags::Copying));
+                    GoshInvoke::Scm_MakeString("property", StringFlags::Copying));
             }
 
             return _memberKindProperty;
@@ -177,7 +177,7 @@ public:
             if(_memberKindMethod == IntPtr::Zero)
             {
                 _memberKindMethod = GoshInvoke::Scm_MakeKeyword(
-                    GoshInvoke::Scm_MakeString("method", -1, -1, StringFlags::Copying));
+                    GoshInvoke::Scm_MakeString("method", StringFlags::Copying));
             }
 
             return _memberKindMethod;
