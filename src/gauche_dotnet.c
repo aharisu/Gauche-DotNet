@@ -32,6 +32,50 @@
 #include "gauche_dotnet.h"
 #include "dotnet_type.gen.h"
 
+static void Scm_finalize_TypedClosure(ScmObj obj, void* data){
+  ScmTypedClosure* c = SCM_TYPED_CLOSURE(obj);
+  int i;
+
+  for(i = 0;i < c->numArgTypeSpec;++i) {
+    ClrFreeTypeHandle(c->argTypeAry[i]);
+  }
+  c->numArgTypeSpec = 0;
+  c->argTypeAry = 0;
+
+  for(i = 0;i < c->numRetTypeSpec;++i) {
+    ClrFreeTypeHandle(c->retTypeAry[i]);
+  }
+  c->numRetTypeSpec = 0;
+  c->retTypeAry = 0;
+}
+
+ScmObj Scm_MakeTypedClosure(ScmClosure* closure
+    ,int numArgTypeSpec, TypeSpec* typeSpecAry
+    ,int numRetTypeSpec, TypeSpec* retSpecAry
+    )
+{
+  ScmTypedClosure* c = SCM_NEW(ScmTypedClosure);
+  int i;
+
+  memcpy(c, closure, sizeof(ScmClosure));
+
+  c->numArgTypeSpec = numArgTypeSpec;
+  c->argTypeAry = SCM_NEW_ARRAY(void*, numArgTypeSpec);
+  for(i = 0;i < numArgTypeSpec;++i) {
+    c->argTypeAry[i] = ClrTypeSpecToTypeHandle(&(typeSpecAry[i]));
+  }
+
+  c->numRetTypeSpec = numRetTypeSpec;
+  c->retTypeAry = SCM_NEW_ARRAY(void*, numRetTypeSpec);
+  for(i = 0;i < numRetTypeSpec;++i) {
+    c->retTypeAry[i] = ClrTypeSpecToTypeHandle(&(retSpecAry[i]));
+  }
+
+  Scm_RegisterFinalizer(SCM_OBJ(c), Scm_finalize_TypedClosure, NULL);
+
+  return SCM_OBJ(c);
+}
+
 /*
  * Module initialization function.
  */

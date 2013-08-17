@@ -1091,7 +1091,15 @@ static void ClrEventAddClrProc(void* obj, const char* name, GoshProc^ proc, IntP
 
 DECDLL void ClrEventAddGoshProc(void* obj, const char* name, void* goshProc)
 {
-    GoshProc^ proc = gcnew Procedure::GoshProcedure((IntPtr)goshProc);
+    GoshProc^ proc;
+    if(GoshInvoke::Scm_TypedClosureP((IntPtr)goshProc))
+    {
+        proc = gcnew Procedure::GoshTypedProcedure((IntPtr)goshProc);
+    }
+    else
+    {
+        proc = gcnew Procedure::GoshProcedure((IntPtr)goshProc);
+    }
 
     ClrEventAddClrProc(obj, name, proc, (IntPtr)goshProc);
 }
@@ -1363,6 +1371,44 @@ DECDLL void* ClrGetTypeName(void* obj)
     else 
     {
         str = GetTypeName(o->GetType());
+    }
+
+    return (void*)GoshInvoke::Scm_MakeString(str, StringFlags::Copying);
+}
+
+DECDLL void* ClrTypeSpecToTypeHandle(TypeSpec* spec)
+{
+    Type^ t = ClrMethod::TypeSpecToType(spec);
+    if(t == nullptr) 
+    {
+        return 0;
+    }
+    else
+    {
+        return (void*)(IntPtr)GCHandle::Alloc(t);
+    }
+}
+
+DECDLL void ClrFreeTypeHandle(void* type)
+{
+    if(type == 0) return;
+
+    GCHandle handle = (GCHandle)(IntPtr)type;
+    handle.Free();
+}
+
+DECDLL void* ClrTypeHandleToString(void* type)
+{
+    GCHandle handle = (GCHandle)(IntPtr)type;
+    Type^ t = (Type^) handle.Target;
+    String^ str;
+    if(t == nullptr)
+    {
+        str = "unknown";
+    }
+    else
+    {
+        str = GetTypeName(t);
     }
 
     return (void*)GoshInvoke::Scm_MakeString(str, StringFlags::Copying);

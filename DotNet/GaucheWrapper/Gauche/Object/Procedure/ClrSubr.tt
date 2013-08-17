@@ -55,6 +55,24 @@ for(int i = 0;i < ARGC;++i)
 
 namespace GaucheDotNet.Procedure
 {
+    sealed class FixedReturnIndexer<Ret> : IIndexer<Type>
+    {
+        public Type this[int index]
+        {
+            get
+            {
+                if (index == 0)
+                {
+                    return typeof(Ret);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+    }
+    
 <#
 for(int i = 0;i < ARGC;++i)
 {
@@ -62,6 +80,9 @@ for(int i = 0;i < ARGC;++i)
 #>
     public class ClrSubr<<#=genericArgs#>> : GoshProc
     {
+        private static readonly IIndexer<Type> _returnsIndexer = new FixedReturnIndexer<R>();
+        private static readonly IIndexer<Type> _argumentsIndexer = new FixedArgumentsIndexer();
+        
         public readonly Func<<#=genericArgs#>> _func;
 
         public ClrSubr(Func<<#=genericArgs#>> func)
@@ -76,6 +97,16 @@ for(int i = 0;i < ARGC;++i)
         }
 
         public override int Required { get { return <#=i#>; } }
+        
+        public override IIndexer<Type> ArgumentsType
+        {
+            get { return _argumentsIndexer; }
+        }
+        
+        public override IIndexer<Type> ReturnsType
+        {
+            get { return _returnsIndexer; }
+        }
         
         public override object Apply(params object[] args)
         {
@@ -116,6 +147,30 @@ for(int j = 0;j < i;++j)
 
             //TODO Values
             return Cast.ToIntPtr(ret);
+        }
+        
+        private sealed class FixedArgumentsIndexer : IIndexer<Type>
+        {
+            public Type this[int index]
+            {
+                get
+                {
+                    switch(index)
+                    {
+<#
+for(int j = 0;j < i;++j)
+{
+#>
+                        case <#= j #>:
+                            return typeof(A<#= j + 1 #>);
+<#
+}
+#>
+                        default:
+                            return null;
+                    }
+                }
+            }
         }
     }
 

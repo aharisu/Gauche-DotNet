@@ -75,7 +75,7 @@ static void PreprocessPrimitiveOp(array<ArgType>^ typeSpec, Object^% instance, O
 
         if(typeSpec != nullptr)
         {
-            instance = PrimitiveTypeImplicitConversion(instance, typeSpec[1].type);
+            instance = PrimitiveTypeImplicitConversion(instance, typeSpec[1].typeInfo.type);
             if(instance == nullptr)
             {
                 //型指定子と実際のオブジェクトの型が異なります。
@@ -93,13 +93,13 @@ static void PreprocessPrimitiveOp(array<ArgType>^ typeSpec, Object^% instance, O
 
         if(typeSpec != nullptr)
         {
-            instance = PrimitiveTypeImplicitConversion(instance, typeSpec[1].type);
+            instance = PrimitiveTypeImplicitConversion(instance, typeSpec[1].typeInfo.type);
             if(instance == nullptr)
             {
                 //型指定子と実際のオブジェクトの型が異なります。
                 throw gcnew GoshException("not match type specifier and type of instance object");
             }
-            secondArg = PrimitiveTypeImplicitConversion(secondArg, typeSpec[2].type);
+            secondArg = PrimitiveTypeImplicitConversion(secondArg, typeSpec[2].typeInfo.type);
             if(secondArg == nullptr)
             {
                 //型指定子と実際のオブジェクトの型が異なります。

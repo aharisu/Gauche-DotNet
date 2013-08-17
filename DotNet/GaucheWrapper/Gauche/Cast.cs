@@ -148,6 +148,14 @@ namespace GaucheDotNet
                         return new GoshUVector(ptr);
 
                     case KnownClass.Closure:
+                        if (GoshInvoke.Scm_TypedClosureSkipCheckClosureP(ptr))
+                        {
+                            return new Procedure.GoshTypedProcedure(ptr);
+                        }
+                        else
+                        {
+                            return new Procedure.GoshProcedure(ptr);
+                        }
                     case KnownClass.Method:
                     case KnownClass.Generic:
                     case KnownClass.NextMethod:
@@ -245,6 +253,14 @@ namespace GaucheDotNet
                         return GoshUVector.ToArray(ptr);
 
                     case KnownClass.Closure:
+                        if (GoshInvoke.Scm_TypedClosureSkipCheckClosureP(ptr))
+                        {
+                            return new Procedure.GoshTypedProcedure(ptr);
+                        }
+                        else
+                        {
+                            return new Procedure.GoshProcedure(ptr);
+                        }
                     case KnownClass.Method:
                     case KnownClass.Generic:
                     case KnownClass.NextMethod:

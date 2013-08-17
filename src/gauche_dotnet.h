@@ -38,7 +38,29 @@
 #include <gauche/extend.h>
 #include <gauche/class.h>
 
+#include "ClrBridge.h"
+
 SCM_DECL_BEGIN
+
+
+typedef struct ScmTypedClosureRec {
+  ScmClosure closure;
+  int numArgTypeSpec;
+  void** argTypeAry;
+  int numRetTypeSpec;
+  void** retTypeAry;
+}ScmTypedClosure;
+#define SCM_TYPED_CLOSURE(obj) ((ScmTypedClosure*)(obj))
+#define SCM_TYPED_CLOSURE_P(obj) \
+ (SCM_CLOSUREP(obj) && GC_base(obj) && GC_size(obj) >= sizeof(ScmTypedClosure))
+
+#define SCM_TYPED_CLOSURE_SKIP_CHECK_CLOSURE_P(obj) \
+ (GC_base(obj) && GC_size(obj) >= sizeof(ScmTypedClosure))
+
+ScmObj Scm_MakeTypedClosure(ScmClosure* closure
+    ,int numArgTypeSpec, TypeSpec* typeSpecAry
+    ,int numRetTypeSpec, TypeSpec* retSpecAry
+    );
 
 extern void Scm_Init_gauche_dotnet(void);
 

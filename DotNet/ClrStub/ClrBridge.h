@@ -117,6 +117,10 @@ DECDLL void* GetEnumObject(TypeSpec* enumTypeSpec, const char* enumObj);
 
 DECDLL void* ClrPrint(void* clrObj);
 DECDLL void* ClrGetTypeName(void* obj);
+DECDLL void* ClrTypeSpecToTypeHandle(TypeSpec* spec);
+DECDLL void ClrFreeTypeHandle(void* type);
+
+DECDLL void* ClrTypeHandleToString(void* type);
 
 DECDLL void* ClrMember(void* obj, int isStatic, const char* name);
 

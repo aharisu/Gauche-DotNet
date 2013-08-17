@@ -68,4 +68,7 @@
 (define-method object-apply ((obj <clr-object>) target value)
   (clr-set! obj target value))
 
+;;typed lambda
+(define-macro (tlambda typespec arg . body)
+  `(typed-lambda (quote ,typespec) (lambda ,arg ,@body)))
 

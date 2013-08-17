@@ -56,7 +56,14 @@ Object^ ClrMethod::ToObject(ObjWrapper* obj)
     case OBJWRAP_STRING:
         return Marshal::PtrToStringAnsi((IntPtr)obj->v.value);
     case OBJWRAP_PROC:
-        return gcnew Procedure::GoshProcedure((IntPtr)obj->ptr);
+            if(GoshInvoke::Scm_TypedClosureP((IntPtr)obj->ptr))
+            {
+                return gcnew Procedure::GoshTypedProcedure((IntPtr)obj->ptr);
+            }
+            else
+            {
+                return gcnew Procedure::GoshProcedure((IntPtr)obj->ptr);
+            }
     default: //OBJWRAP_CLROBJECT:
         {
             GCHandle gchObj = GCHandle::FromIntPtr((IntPtr)obj->v.value);
@@ -144,7 +151,15 @@ static Object^ ToArgumentObject(Type^ type, ObjWrapper* arg)
         }
     case OBJWRAP_PROC:
         {
-            Object^ ret = gcnew Procedure::GoshProcedure((IntPtr)arg->v.value);
+            Object^ ret;
+            if(GoshInvoke::Scm_TypedClosureP((IntPtr)arg->v.value))
+            {
+                ret = gcnew Procedure::GoshTypedProcedure((IntPtr)arg->v.value);
+            }
+            else
+            {
+                ret = gcnew Procedure::GoshProcedure((IntPtr)arg->v.value);
+            }
             if(Delegate::typeid->IsAssignableFrom(type))
             {
                 ret = GetWrappedDelegate(type, (GoshProc^)ret, IntPtr::Zero);
@@ -208,7 +223,7 @@ bool ClrMethod::CreateArgTypes(StringBuilder^ builder, array<ArgType>^% argTypes
         for(int i = 0;i < _methodSpec->numParamSpec;++i)
         {
             TypeSpecToString(&(_methodSpec->paramSpec[i]), builder);
-            argTypes[i + startIndex].type = ClrMethod::GetType(builder->ToString(), false);
+            argTypes[i + startIndex].typeInfo.type = ClrMethod::GetType(builder->ToString(), false);
             argTypes[i + startIndex].kind = OBJWRAP_CLROBJECT;
             argTypes[i + startIndex].attr = _methodSpec->paramSpec[i].attr;
             builder->Length = 0;
@@ -225,33 +240,50 @@ bool ClrMethod::CreateArgTypes(StringBuilder^ builder, array<ArgType>^% argTypes
             case OBJWRAP_CLROBJECT:
                 {
                 Object^ obj = GCHandle::FromIntPtr(IntPtr(_args[i].v.value)).Target;
-                argTypes[i + startIndex].type = obj->GetType();
+                argTypes[i + startIndex].typeInfo.type = obj->GetType();
                 argTypes[i + startIndex].kind = OBJWRAP_CLROBJECT;
                 argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
                 }
                 break;
             case OBJWRAP_BOOL:
-                argTypes[i + startIndex].type = Boolean::typeid;
+                argTypes[i + startIndex].typeInfo.type = Boolean::typeid;
                 argTypes[i + startIndex].kind = OBJWRAP_BOOL;
                 argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
             case OBJWRAP_INT:
-                argTypes[i + startIndex].type = Int32::typeid;
+                argTypes[i + startIndex].typeInfo.type = Int32::typeid;
                 argTypes[i + startIndex].kind = OBJWRAP_INT;
                 argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
                 break;
             case OBJWRAP_FLONUM:
-                argTypes[i + startIndex].type = Double::typeid;
+                argTypes[i + startIndex].typeInfo.type = Double::typeid;
                 argTypes[i + startIndex].kind = OBJWRAP_FLONUM;
                 argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
                 break;
             case OBJWRAP_STRING:
-                argTypes[i + startIndex].type = String::typeid;
+                argTypes[i + startIndex].typeInfo.type = String::typeid;
                 argTypes[i + startIndex].kind = OBJWRAP_STRING;
                 argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
                 break;
             case OBJWRAP_PROC:
-                argTypes[i + startIndex].type = Delegate::typeid;
-                argTypes[i + startIndex].delegateParameterCount = ((ScmProcedure*)_args[i].ptr)->required;
+                argTypes[i + startIndex].typeInfo.type = Delegate::typeid;
+                argTypes[i + startIndex].typeInfo.delegateParameterCount = ((ScmProcedure*)_args[i].ptr)->required;
+                if(GoshInvoke::Scm_TypedClosureP((IntPtr)_args[i].ptr))
+                {
+                    Native::ScmTypedClosure* c = (Native::ScmTypedClosure*)_args[i].ptr;
+                    if(c->numArgTypeSpec != 0)
+                    {
+                        argTypes[i + startIndex].typeInfo.argTypeAry = gcnew array<Type^>(c->numArgTypeSpec);
+                        for(int i = 0;i < c->numArgTypeSpec; ++i)
+                        {
+                            argTypes[i + startIndex].typeInfo.argTypeAry[i] = (Type^)((GCHandle)(IntPtr)c->argTypeAry[i]).Target;
+                        }
+                    }
+                    if(c->numRetTypeSpec != 0)
+                    {
+                        argTypes[i + startIndex].typeInfo.retType = (Type^)((GCHandle)(IntPtr)c->retTypeAry[0]).Target;
+                    }
+                }
+
                 argTypes[i + startIndex].kind = OBJWRAP_PROC;
                 argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
                 break;
@@ -312,20 +344,6 @@ void* ClrMethod::CallNew()
     array<Object^>^ arguments = ConstractArguments(mc, false);
     Object^ result = ((ConstructorInfo^)mc->Target->Method)->Invoke(arguments);
     return (void*)(IntPtr)GCHandle::Alloc(result);
-}
-
-static array<Type^>^ ConvertToTypeArray(TypeSpec* typeSpec, int numTypeSpec)
-{
-    StringBuilder builder; 
-    array<Type^>^ typeAry = gcnew array<Type^>(numTypeSpec);
-    for(int i = 0;i < numTypeSpec;++i)
-    {
-        TypeSpecToString(&(typeSpec[i]), %builder);
-        typeAry[i] = ClrMethod::GetType(builder.ToString(), false);
-        builder.Length = 0;
-    }
-
-    return typeAry;
 }
 
 static Type^ GetHigherLevel(Type^ t1, Type^ t2)
@@ -437,15 +455,16 @@ static Type^ GetCompatiType(Type^ from, Type^ to)
     return nullptr;
 }
 
-static bool GenericTypeMatching(Type^ paramType, Type^ argType, bool isLambdaType
+static bool GenericTypeMatching(Type^ paramType, Type^ argType, TypeInfo^ additionArgTypeInfo
+                                , bool isLambdaType
                                 , array<Type^>^ genericType, array<Type^>^% inLambdaGenericType)
 {
     if(paramType->IsGenericParameter)
     {
         array<Type^>^ target;
-        if(isLambdaType)
+        //Gaucheのlambdaで記述された式からGenericの型(Object型)を取得している場合は
+        if(argType == Object::typeid && isLambdaType)
         {
-            //Gaucheのlambdaで記述された式からGenericの型(Object型)を取得している場合は
             //既存の型を上書きしない。
             if(inLambdaGenericType == nullptr)
             {
@@ -478,7 +497,8 @@ static bool GenericTypeMatching(Type^ paramType, Type^ argType, bool isLambdaTyp
     {
         if(argType->IsArray)
         {
-            return GenericTypeMatching(paramType->GetElementType(), argType->GetElementType(), isLambdaType
+            return GenericTypeMatching(paramType->GetElementType(), argType->GetElementType(), nullptr
+                , isLambdaType
                 , genericType, inLambdaGenericType);
         }
         else
@@ -489,17 +509,44 @@ static bool GenericTypeMatching(Type^ paramType, Type^ argType, bool isLambdaTyp
     else if(GoshProc::typeid == argType && Delegate::typeid->IsAssignableFrom(paramType))
     {
         MethodInfo^ invokeInfo = paramType->GetMethod("Invoke");
+        int index = 0;
         for each(ParameterInfo^ pi in invokeInfo->GetParameters())
         {
             if(pi->ParameterType->ContainsGenericParameters)
             {
-                GenericTypeMatching(pi->ParameterType, Object::typeid, true
+                Type^ concreteType;
+                if(additionArgTypeInfo == nullptr
+                    || additionArgTypeInfo->argTypeAry == nullptr
+                    || additionArgTypeInfo->argTypeAry->Length >= index)
+                {
+                    concreteType = Object::typeid;
+                }
+                else
+                {
+                    concreteType = additionArgTypeInfo->argTypeAry[index];
+                }
+
+                GenericTypeMatching(pi->ParameterType ,concreteType, nullptr
+                    , true
                     , genericType, inLambdaGenericType);
             }
+            ++index;
         }
         if(invokeInfo->ReturnType->ContainsGenericParameters)
         {
-            GenericTypeMatching(invokeInfo->ReturnType, Object::typeid, true
+            Type^ concreteType;
+            if(additionArgTypeInfo == nullptr
+                || additionArgTypeInfo->retType == nullptr)
+            {
+                concreteType = Object::typeid;
+            }
+            else
+            {
+                concreteType = additionArgTypeInfo->retType;
+            }
+
+            GenericTypeMatching(invokeInfo->ReturnType, concreteType, nullptr
+                , true
                 , genericType, inLambdaGenericType);
         }
 
@@ -525,7 +572,8 @@ static bool GenericTypeMatching(Type^ paramType, Type^ argType, bool isLambdaTyp
 
             if(paramGenericArg->ContainsGenericParameters)
             {
-                if(!GenericTypeMatching(paramGenericArg, concreteType, isLambdaType
+                if(!GenericTypeMatching(paramGenericArg, concreteType, nullptr
+                    , isLambdaType
                     , genericType, inLambdaGenericType)) return false;
             }
             else
@@ -551,47 +599,66 @@ static MethodInfo^ MakeGenericMethod(MethodInfo^ mi
             return nullptr;
         }
 
-        return mi->MakeGenericMethod(ConvertToTypeArray(methodSpec->genericSpec, methodSpec->numGenericSpec));
+        StringBuilder builder; 
+        array<Type^>^ typeAry = gcnew array<Type^>(methodSpec->numGenericSpec);
+        for(int i = 0;i < methodSpec->numGenericSpec;++i)
+        {
+            TypeSpecToString(&(methodSpec->genericSpec[i]), %builder);
+            typeAry[i] = ClrMethod::GetType(builder.ToString(), false);
+            builder.Length = 0;
+        }
+        return mi->MakeGenericMethod(typeAry);
     }
     else
     {
         //ジェネリック型指定がない場合は実際の引数から型をジェネリック型を判別する
         array<ParameterInfo^>^ piAry = mi->GetParameters();
 
-        array<Type^>^ paramTypes = nullptr;
+        array<TypeInfo>^ paramTypes = nullptr;
         if (methodSpec->numParamSpec >= 0)
         {
             if (piAry->Length != methodSpec->numParamSpec)
             {
                 return nullptr;
             }
-            paramTypes = ConvertToTypeArray(methodSpec->paramSpec, methodSpec->numParamSpec);
+
+            StringBuilder builder; 
+            paramTypes = gcnew array<TypeInfo>(methodSpec->numParamSpec);
+            for(int i = 0;i < methodSpec->numParamSpec;++i)
+            {
+                TypeSpecToString(&(methodSpec->paramSpec[i]), %builder);
+                paramTypes[i].type = ClrMethod::GetType(builder.ToString(), false);
+                builder.Length = 0;
+            }
         }
         else
         {
             int startIndex = (isStatic ? 0 : 1);
-            paramTypes = gcnew array<Type^>(argTypes->Length - startIndex);
+            paramTypes = gcnew array<TypeInfo>(argTypes->Length - startIndex);
             for(int i = startIndex;i < argTypes->Length;++i)
             {
                 switch(argTypes[i].kind)
                 {
                 case OBJWRAP_CLROBJECT:
-                    paramTypes[i - startIndex] = argTypes[i].type;
+                    paramTypes[i - startIndex].type = argTypes[i].typeInfo.type;
                     break;
                 case OBJWRAP_BOOL:
-                    paramTypes[i - startIndex] = GoshBool::typeid;
+                    paramTypes[i - startIndex].type = GoshBool::typeid;
                     break;
                 case OBJWRAP_INT:
-                    paramTypes[i - startIndex] = GoshFixnum::typeid;
+                    paramTypes[i - startIndex].type = GoshFixnum::typeid;
                     break;
                 case OBJWRAP_FLONUM:
-                    paramTypes[i - startIndex] = GoshFlonum::typeid;
+                    paramTypes[i - startIndex].type = GoshFlonum::typeid;
                     break;
                 case OBJWRAP_STRING:
-                    paramTypes[i - startIndex] = GoshString::typeid;
+                    paramTypes[i - startIndex].type = GoshString::typeid;
                     break;
                 case OBJWRAP_PROC:
-                    paramTypes[i - startIndex] = GoshProc::typeid;
+                    paramTypes[i - startIndex].type = GoshProc::typeid;
+                    paramTypes[i - startIndex].delegateParameterCount = argTypes[i].typeInfo.delegateParameterCount;
+                    paramTypes[i - startIndex].argTypeAry = argTypes[i].typeInfo.argTypeAry;
+                    paramTypes[i - startIndex].retType = argTypes[i].typeInfo.retType;
                     break;
                 //TODO more primitive type
                 }
@@ -606,7 +673,9 @@ static MethodInfo^ MakeGenericMethod(MethodInfo^ mi
             Type^ paramType = pi->ParameterType;
             if(paramType->ContainsGenericParameters)
             {
-                if(!GenericTypeMatching(paramType, paramTypes[index], false, genericType, inLambdaGenericType))
+                if(!GenericTypeMatching(paramType, paramTypes[index].type, %(paramTypes[index])
+                    , false
+                    , genericType, inLambdaGenericType))
                 {
                     return nullptr;
                 }
@@ -1033,7 +1102,7 @@ void* ClrMethod::CallMethod(void* module)
     if(!_isStatic)
     {
         argTypes[0].kind = OBJWRAP_CLROBJECT;
-        argTypes[0].type = targetType;
+        argTypes[0].typeInfo.type = targetType;
         argTypes[0].attr = TYPESPEC_ATTR_NORMAL;
     }
 

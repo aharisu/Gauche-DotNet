@@ -247,6 +247,16 @@ namespace GaucheDotNet.Native
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct ScmTypedClosure
+    {
+        public ScmClosure closure;
+        public Int32 numArgTypeSpec;
+        public void** argTypeAry;
+        public Int32 numRetTypeSpec;
+        public void** retTypeAry;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     public unsafe struct ScmSubr
     {
         public ScmProcedure common;

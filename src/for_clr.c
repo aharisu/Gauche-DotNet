@@ -33,6 +33,7 @@
 #include<gauche.h>
 #include <fcntl.h>		/* for _O_BINMODE on windows. */
 
+#include"gauche_dotnet.h"
 #include"dotnet_type.gen.h"
 
 SCM_EXTERN void Scm_InstallErrorHandler(ScmObj ehandler)
@@ -50,6 +51,16 @@ SCM_EXTERN ClrObject Scm_ClrConditionInnerException(ScmObj obj)
   {
     return NULL;
   }
+}
+
+SCM_EXTERN int Scm_TypedClosureP(ScmObj obj)
+{
+  return SCM_TYPED_CLOSURE_P(obj);
+}
+
+SCM_EXTERN int Scm_TypedClosureSkipCheckClosureP(ScmObj obj)
+{
+  return SCM_TYPED_CLOSURE_SKIP_CHECK_CLOSURE_P(obj);
 }
 
 SCM_EXTERN int Scm_ExtendedPairP(ScmObj obj)

@@ -110,12 +110,12 @@ public:
 
     bool HasConversionFrom(ArgType^ t)
     {
-        if(t->type == Type)
+        if(t->typeInfo.type == Type)
         {
             return true;
         }
 
-        if(t->type == None::Type)
+        if(t->typeInfo.type == None::Type)
         {
             if(_prohibitNull)
             {
@@ -174,12 +174,12 @@ public:
                         _delegateParameterCount = Type->GetMethod("Invoke")->GetParameters()->Length;
                     }
 
-                    return _delegateParameterCount == t->delegateParameterCount;
+                    return _delegateParameterCount == t->typeInfo.delegateParameterCount;
                 }
                 return Type->IsAssignableFrom(GaucheDotNet::GoshProc::typeid);
             case OBJWRAP_CLROBJECT:
             default:
-                return CompilerHelpers::CanConvertFrom(t->type, Type);
+                return CompilerHelpers::CanConvertFrom(t->typeInfo.type, Type);
             }
         }
 
@@ -311,13 +311,13 @@ private:
         switch(argType->kind)
         {
         case OBJWRAP_BOOL:
-            return TypeCompareClrOrGosh(argType->type, t1, t2, TypeCode::Boolean);
+            return TypeCompareClrOrGosh(argType->typeInfo.type, t1, t2, TypeCode::Boolean);
         case OBJWRAP_INT:
-            return TypeCompareClrOrGosh(argType->type, t1, t2, TypeCode::Int32);
+            return TypeCompareClrOrGosh(argType->typeInfo.type, t1, t2, TypeCode::Int32);
         case OBJWRAP_FLONUM:
-            return TypeCompareClrOrGosh(argType->type, t1, t2, TypeCode::Single);
+            return TypeCompareClrOrGosh(argType->typeInfo.type, t1, t2, TypeCode::Single);
         case OBJWRAP_STRING:
-            return TypeCompareClrOrGosh(argType->type, t1, t2, TypeCode::String);
+            return TypeCompareClrOrGosh(argType->typeInfo.type, t1, t2, TypeCode::String);
         case OBJWRAP_PROC:
             {
                 if(Delegate::typeid->IsAssignableFrom(t1))
@@ -344,8 +344,8 @@ private:
                     {
                         //t1とt2ともにGaucheのオブジェクト
                         //パラメータの型と各引数の型との距離を測ってより近いほうを優先にする
-                        int diff1 = DistanceBetweenClass(argType->type, t1);
-                        int diff2 = DistanceBetweenClass(argType->type, t2);
+                        int diff1 = DistanceBetweenClass(argType->typeInfo.type, t1);
+                        int diff2 = DistanceBetweenClass(argType->typeInfo.type, t2);
                         return diff1 == diff2 ? Nullable<int>() : //nullptr
                             diff1 < diff2 ? 1 : -1;
                     }
@@ -354,8 +354,8 @@ private:
         case OBJWRAP_CLROBJECT:
         default:
             {
-                int diff1 = CompilerHelpers::DistanceBetweenType(argType->type, t1);
-                int diff2 = CompilerHelpers::DistanceBetweenType(argType->type, t2);
+                int diff1 = CompilerHelpers::DistanceBetweenType(argType->typeInfo.type, t1);
+                int diff2 = CompilerHelpers::DistanceBetweenType(argType->typeInfo.type, t2);
                 return diff1 == diff2 ? Nullable<int>() : //nullptr
                     diff1 < diff2 ? 1 : -1;
             }

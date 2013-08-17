@@ -38,6 +38,36 @@ namespace GaucheDotNet
 {
     public delegate object GoshFunc(params object[] args);
 
+    public interface IIndexer<T>
+    {
+        T this[int index] { get; }
+    }
+
+    public class Indexer<T> : IIndexer<T>
+    {
+        private readonly IList<T> _list;
+
+        public Indexer(IList<T> list)
+        {
+            this._list = list;
+        }
+
+        public T this[int index]
+        {
+            get
+            {
+                if (index < _list.Count)
+                {
+                    return _list[index];
+                }
+                else
+                {
+                    return default(T);
+                }
+            }
+        }
+    }
+
     public abstract class GoshProc : GoshObj
     {
         protected IntPtr _ptr;
@@ -69,6 +99,9 @@ namespace GaucheDotNet
         }
 
         public abstract object Apply(params object[] args);
+
+        public abstract IIndexer<Type> ArgumentsType { get; }
+        public abstract IIndexer<Type> ReturnsType { get; }
     }
 }
 

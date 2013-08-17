@@ -61,6 +61,36 @@ namespace GaucheDotNet.Procedure
                 throw e;
             }
         }
+
+        public static object DownCast(Type castTo, object obj, bool callFromGauche)
+        {
+            try
+            {
+                if (castTo.IsValueType)
+                {
+                    return Convert.ChangeType(obj, castTo);
+                }
+                else if (castTo.IsAssignableFrom(obj.GetType()))
+                {
+                    return obj;
+                }
+                else
+                {
+                    throw new InvalidCastException("can not cast from "
+                        + obj.ToString() + "<#" + obj.GetType().Name + "> to <#" +  castTo.Name + ">");
+                }
+            }
+            catch (InvalidCastException e)
+            {
+                if (callFromGauche)
+                {
+                    //TODO Gauche Error
+                }
+
+                throw e;
+            }
+        }
+
     }
 }
 

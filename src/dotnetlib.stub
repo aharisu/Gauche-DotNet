@@ -471,7 +471,7 @@ static ScmString correct_object = SCM_STRING_CONST_INITIALIZER(\"Object\", 6, 6)
             [(and (< #\0 (aref str i)) (<= (aref str i) #\9))
              (set! dimension (+ (* dimension 10) (- (aref str i) #\0)))]
             [else (raise-error clr-type "invalid type spec")]))
-        (set!-append-ary-spec type dimension)))
+        (set!-append-ary-spec type dimension))) 
     ;;resolve clr type
     (let* ([valid::void* (ClrValidTypeName (SCM_STRING_START type))])
       (when valid 
@@ -716,4 +716,74 @@ static ScmString param_attr_params = SCM_STRING_CONST_INITIALIZER(\"params\", 6,
          (result (ClrMember (& type-spec) TRUE n)))]
       [else 
         (Scm_Error "clr-member: obj required <clr-object> or <symbol>, but got %S" obj)])))
+
+;;-----------------
+;;typed lambda
+;;
+
+(define-type
+  <typed-closure>
+  "ScmTypedClosure*"
+  "ScmTypedClosure"
+  "SCM_TYPED_CLOSURE_P"
+  ""
+  "")
+
+(define-cproc tlambda-info (c::<typed-closure>) :: <string>
+  (let* ([builder::ScmDString])
+    (Scm_DStringInit (& builder))
+    (Scm_DStringPutz (& builder) "#<tclosure [" 12)
+    (dotimes [i (@ c->numArgTypeSpec)]
+      (unless (zero? i)
+        (SCM_DSTRING_PUTB (& builder) #\ ))
+      (Scm_DStringAdd (& builder) 
+                      (SCM_STRING (ClrTypeHandleToString (aref (@ c->argTypeAry) i)))))
+    (unless (zero?  (@ c->numRetTypeSpec))
+      (Scm_DStringPutz (& builder) " ->" 3)
+      (dotimes [i (@ c->numRetTypeSpec)]
+        (SCM_DSTRING_PUTB (& builder) #\ )
+        (Scm_DStringAdd (& builder) 
+                        (SCM_STRING (ClrTypeHandleToString (aref (@ c->retTypeAry) i))))))
+    (Scm_DStringPutz (& builder) "]>" 2)
+    (result (SCM_STRING (Scm_DStringGet (& builder) SCM_STRING_IMMUTABLE)))))
+
+(define-cfn is-type-arrow (arg::ScmObj) :: int :static
+  (when (is-type? arg <symbol>)
+    (let* ([body::(const ScmStringBody*) (SCM_STRING_BODY (-> (SCM_SYMBOL arg) name))])
+      (when (and (== (SCM_STRING_BODY_LENGTH body) 2)
+              (== (aref (SCM_STRING_BODY_START body) 0) #\-)
+              (== (aref (SCM_STRING_BODY_START body) 1) #\>))
+        (return 1))))
+  (return 0))
+
+(define-cfn type-arrow-pos (args::ScmObj) :: int :static
+  (let* ([pos::int 0])
+    (dolist [arg args]
+      (if (is-type-arrow arg)
+        (return pos))
+      (pre++ pos))
+    (return pos)))
+
+(define-cproc typed-lambda (types::<list> closure::<closure>) :: <top>
+  (let* ([len::int (Scm_Length types)]
+         [retSpecIndex::int (type-arrow-pos types)]
+         [num-retspec::int (?: (!= len retSpecIndex) (- len retSpecIndex 1) 0)]
+         [retspec-ary::TypeSpec* (?: (zero? num-retspec) 0 (SCM_NEW_ARRAY TypeSpec num-retspec))]
+         [num-typespec::int (- len (- len retSpecIndex))]
+         [typespec-ary::TypeSpec* (?: (zero? num-typespec) 0 (SCM_NEW_ARRAY TypeSpec num-typespec))])
+    ;;constract argument type specifier
+    (dotimes [i num-typespec]
+      (set! (aref typespec-ary i) (parse-type-spec (SCM_CAR (SCM_PAIR types)) FALSE))
+      (set! types (SCM_CDR (SCM_PAIR types))))
+    ;;skip delimiter of return type specifier
+    (unless (== retSpecIndex len)
+      (set! types (SCM_CDR (SCM_PAIR types))))
+    ;;constract return type specifier
+    (dotimes [i num-retspec]
+      (set! (aref retspec-ary i) (parse-type-spec (SCM_CAR (SCM_PAIR types)) FALSE))
+      (set! types (SCM_CDR (SCM_PAIR types))))
+  (result (Scm_MakeTypedClosure 
+            closure
+            num-typespec typespec-ary
+            num-retspec retspec-ary))))
 

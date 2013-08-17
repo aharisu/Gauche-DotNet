@@ -1664,6 +1664,19 @@ namespace GaucheDotNet.Native
         [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr Scm_ClrConditionInnerException(IntPtr obj);
 
+        /// <param name="obj">ScmObj</param>
+        /// <returns>bool</returns>
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        [return:MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_TypedClosureP(IntPtr obj);
+
+        /// <param name="obj">ScmObj</param>
+        /// <returns>bool</returns>
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        [return:MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_TypedClosureSkipCheckClosureP(IntPtr obj);
+
+
         #endregion }
 
         #region gc.h {

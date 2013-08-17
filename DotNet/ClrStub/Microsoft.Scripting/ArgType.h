@@ -19,9 +19,15 @@
 
 using namespace System;
 
+value struct TypeInfo {
+    Type^ type;
+    array<Type^>^ argTypeAry;
+    Type^ retType;
+    int delegateParameterCount;
+};
+
 value struct ArgType {
     ObjKind kind;
-    Type^ type;
-    int delegateParameterCount;
+    TypeInfo typeInfo;
     TypeSpecAttr attr;
 };
