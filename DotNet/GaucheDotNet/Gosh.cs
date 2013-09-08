@@ -1052,6 +1052,45 @@ namespace GaucheDotNet
             return new GoshRefObj(GoshInvoke.Scm_Assoc(Cast.ToIntPtr(obj), Cast.ToIntPtr(alist), (int)cmpmode));
         }
 
+        public static GoshObj AssqRef(object alist, object obj)
+        {
+            IntPtr ret = GoshInvoke.Scm_Assq(Cast.ToIntPtr(obj), Cast.ToIntPtr(alist));
+            if(GoshInvoke.Scm_PairP(ret))
+            {
+                return new GoshRefObj(GoshInvoke.Scm_Cdr(ret));
+            }
+            else
+            {
+                return GoshBool.False;
+            }
+        }
+
+        public static GoshObj AssvRef(object alist, object obj)
+        {
+            IntPtr ret = GoshInvoke.Scm_Assv(Cast.ToIntPtr(obj), Cast.ToIntPtr(alist));
+            if(GoshInvoke.Scm_PairP(ret))
+            {
+                return new GoshRefObj(GoshInvoke.Scm_Cdr(ret));
+            }
+            else
+            {
+                return GoshBool.False;
+            }
+        }
+
+        public static GoshObj AssocRef(object alist, object obj, CmpMode cmpmode)
+        {
+            IntPtr ret = GoshInvoke.Scm_Assoc(Cast.ToIntPtr(obj), Cast.ToIntPtr(alist), (int)cmpmode);
+            if (GoshInvoke.Scm_PairP(ret))
+            {
+                return new GoshRefObj(GoshInvoke.Scm_Cdr(ret));
+            }
+            else
+            {
+                return GoshBool.False;
+            }
+        }
+
         public static GoshObj Delete(object obj, object list, CmpMode cmpmode)
         {
             return new GoshRefObj(GoshInvoke.Scm_Delete(Cast.ToIntPtr(obj), Cast.ToIntPtr(list), (int)cmpmode));
