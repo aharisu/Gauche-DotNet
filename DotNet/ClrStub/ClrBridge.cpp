@@ -540,7 +540,7 @@ DECDLL void* ClrToGoshString(void* clrObj)
 
 DECDLL void* StringToClr(const char* str)
 {
-    Object^ obj = gcnew String(str);
+    Object^ obj = Util::IntPtrToUTF8String((IntPtr)const_cast<char*>(str));
     return (void*)(IntPtr) GCHandle::Alloc(obj);
 }
 
@@ -648,7 +648,7 @@ DECDLL void ClrFieldPropSetClrObj(FieldPropKind kind
 
     String^ fpName = (name == 0) ?
         "Item" : //default indexer name;
-        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
+        Util::IntPtrToUTF8String((IntPtr)const_cast<char*>(name));
 
     try
     {
@@ -725,7 +725,7 @@ DECDLL void ClrFieldPropSetScmObj(FieldPropKind kind
 
     String^ fpName = (name == 0) ?
         "Item" : //default indexer name;
-        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
+        Util::IntPtrToUTF8String((IntPtr)const_cast<char*>(name));
 
     try
     {
@@ -798,7 +798,7 @@ DECDLL void ClrFieldPropSetInt(FieldPropKind kind
 
     String^ fpName = (name == 0) ?
         "Item" : //default indexer name;
-        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
+        Util::IntPtrToUTF8String((IntPtr)const_cast<char*>(name));
 
     try 
     {
@@ -874,11 +874,11 @@ DECDLL void ClrFieldPropSetString(FieldPropKind kind
 
     String^ fpName = (name == 0) ?
         "Item" : //default indexer name;
-        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
+        Util::IntPtrToUTF8String((IntPtr)const_cast<char*>(name));
 
     try
     {
-        String^ str = Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(value)));
+        String^ str = Util::IntPtrToUTF8String((IntPtr)const_cast<char*>(value));
 
         if(kind & KIND_PROP)
         {
@@ -955,7 +955,7 @@ DECDLL void* ClrFieldPropGet(FieldPropKind kind
 
     String^ fpName = (name == 0) ?
         "Item" : //default indexer name;
-        Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
+        Util::IntPtrToUTF8String((IntPtr)const_cast<char*>(name));
 
     try
     {
@@ -1062,7 +1062,7 @@ static void ClrEventAddClrProc(void* obj, const char* name, GoshProc^ proc, IntP
     Object^ hObj = gchObj.Target;
     ObjectNullCheck(hObj);
 
-    String^ eventName = Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
+    String^ eventName = Util::IntPtrToUTF8String((IntPtr)const_cast<char*>(name));
     EventInfo^ eventInfo = hObj->GetType()->GetEvent(eventName);
     InfoNullCheck(eventInfo, hObj, "event", eventName);
 
@@ -1138,7 +1138,7 @@ DECDLL void ClrEventRemove(void* obj, const char* name, void* proc)
     Object^ hObj = gchObj.Target;
     ObjectNullCheck(hObj);
 
-    String^ eventName = Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name)));
+    String^ eventName = Util::IntPtrToUTF8String((IntPtr)const_cast<char*>(name));
     EventInfo^ eventInfo = hObj->GetType()->GetEvent(eventName);
     InfoNullCheck(eventInfo, hObj, "event", eventName);
 
@@ -1156,7 +1156,7 @@ DECDLL void ClrEventRemove(void* obj, const char* name, void* proc)
 
 DECDLL int ClrReferenceAssembly(const char* assemblyName)
 {
-    String^ name = gcnew String(assemblyName);
+    String^ name = Util::IntPtrToUTF8String((IntPtr)const_cast<char*>(assemblyName));
     Assembly^ assembly = nullptr;
 
     try
@@ -1186,13 +1186,13 @@ DECDLL int ClrReferenceAssembly(const char* assemblyName)
 
 DECDLL void ClrUsingNamespace(const char* ns, void* module)
 {
-    ClrMethod::ModuleUsingNamespace((IntPtr)module, 
-    Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(ns))));
+    ClrMethod::ModuleUsingNamespace((IntPtr)module
+        , Util::IntPtrToUTF8String((IntPtr)const_cast<char*>(ns)));
 }
 
 DECDLL void* ClrValidTypeName(const char* fullTypeName)
 {
-    String^ name = gcnew String(fullTypeName);
+    String^ name = Util::IntPtrToUTF8String((IntPtr)const_cast<char*>(fullTypeName));
 
     Type^ ret = ClrMethod::GetType(name, true);
     if(ret == nullptr)
@@ -1272,7 +1272,7 @@ DECDLL int ClrIs(TypeSpec* typeSpec, void* obj)
 DECDLL void* GetEnumObject(TypeSpec* enumTypeSpec, const char* enumObj)
 {
     Type^ t = ClrMethod::TypeSpecToType(enumTypeSpec);
-    String^ value = Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(enumObj)));
+    String^ value = Util::IntPtrToUTF8String((IntPtr)const_cast<char*>(enumObj));
 
     try
     {
@@ -1442,7 +1442,7 @@ DECDLL void* ClrMember(void* obj, int isStatic, const char* name)
     }
     else
     {
-        n = Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(name))) + "*";
+        n = Util::IntPtrToUTF8String((IntPtr)const_cast<char*>(name)) + "*";
     }
 
     for each(MemberInfo^ info in targetType->GetMember(n,

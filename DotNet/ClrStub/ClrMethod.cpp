@@ -54,7 +54,7 @@ Object^ ClrMethod::ToObject(ObjWrapper* obj)
     case OBJWRAP_FLONUM:
         return (double)obj->v.real;
     case OBJWRAP_STRING:
-        return Marshal::PtrToStringAnsi((IntPtr)obj->v.value);
+        return Util::IntPtrToUTF8String((IntPtr)obj->v.value);
     case OBJWRAP_PROC:
             if(GoshInvoke::Scm_TypedClosureP((IntPtr)obj->ptr))
             {
@@ -98,8 +98,7 @@ Type^ ClrMethod::GetType(String^ name, bool valid)
 //TODO delegate type
 static void TypeSpecToString(TypeSpec* spec, StringBuilder^ builder)
 {
-    //builder->Append(gcnew String(spec->name));
-    builder->Append(Marshal::PtrToStringAnsi(IntPtr(const_cast<char*>(spec->name))));
+    builder->Append(Util::IntPtrToUTF8String((IntPtr)const_cast<char*>(spec->name)));
 }
 
 Type^ ClrMethod::TypeSpecToType(TypeSpec* spec)
@@ -147,7 +146,7 @@ static Object^ ToArgumentObject(Type^ type, ObjWrapper* arg)
         }
         else
         {
-            return Marshal::PtrToStringAnsi(IntPtr(arg->v.value));
+            return Util::IntPtrToUTF8String((IntPtr)arg->v.value);
         }
     case OBJWRAP_PROC:
         {
@@ -779,7 +778,7 @@ void* ClrMethod::CallMethod(void* module)
     }
 
     bool isOperator = false;
-    String^ method = gcnew String(_methodSpec->name);
+    String^ method = Util::IntPtrToUTF8String((IntPtr)const_cast<char*>(_methodSpec->name));
     if(_isStatic)
     {
         TypeSpec* spec = (TypeSpec*)_obj;
