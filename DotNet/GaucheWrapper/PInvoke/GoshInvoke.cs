@@ -989,6 +989,47 @@ namespace GaucheDotNet.Native
 
         #endregion }
 
+        #region reader.h {
+
+        /// <param name="port">ScmObj</param>
+        /// <returns>ScmObj</returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_Read(IntPtr port);
+
+        /// <param name="port">ScmString*</param>
+        /// <returns>ScmObj</returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_ReadFromString(IntPtr str);
+
+        /// <returns>ScmObj</returns>
+        public static IntPtr Scm_ReadFromCString(string str)
+        {
+            int bytesLen = Encoding.UTF8.GetByteCount(str);
+            //not contains multi byte character?
+            if (bytesLen == str.Length)
+            {
+                return Scm_ReadFromCString_(str);
+            }
+            else
+            {
+                //convert UTF8 character
+                byte[] buffer = new byte[bytesLen + 1];
+                Encoding.UTF8.GetBytes(str, 0, str.Length, buffer, 0);
+                return Scm_ReadFromCString_(buffer);
+            }
+        }
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "Scm_ReadFromCString")]
+        private static extern IntPtr Scm_ReadFromCString_(
+            [MarshalAs(UnmanagedType.LPArray)][In] byte[] str);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "Scm_ReadFromCString")]
+        private static extern IntPtr Scm_ReadFromCString_(
+            [MarshalAs(UnmanagedType.LPStr)][In] string str);
+
+
+        #endregion }
+
         #region hash.h {
 
         /// <param name="iter">ScmHashIter*</param>

@@ -1209,6 +1209,37 @@ namespace GaucheDotNet
         }
         #endregion
 
+        #region reader.h {
+
+        public static GoshObj Read(object port)
+        {
+            return new GoshRefObj(GoshInvoke.Scm_Read(Cast.ToIntPtr(port)));
+        }
+
+        /// <summary>
+        /// Gaucheの文字列をreadしてGaucheのオブジェクトを作成します
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static GoshObj ReadFromString(object str)
+        {
+            IntPtr strP = Cast.ToIntPtr(str);
+            TypeCheck(strP, GoshInvoke.Scm_StringP, 0);
+            return new GoshRefObj(GoshInvoke.Scm_ReadFromString(strP));
+        }
+
+        /// <summary>
+        /// .Netの文字列をreadしてGaucheのオブジェクトを作成します
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static GoshObj ReadFromString(string str)
+        {
+            return new GoshRefObj(GoshInvoke.Scm_ReadFromCString(str));
+        }
+
+        #endregion }
+
         #region hash.h {
 
         public static GoshHashTable MakeHashTable(HashType type, int initSize)
