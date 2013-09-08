@@ -8,6 +8,31 @@ namespace GaucheDotNet
 {
     public static class RuntimeExtension
     {
+        public static GoshObj Eval(this object expr)
+        {
+            return EvalWithModule(expr, Gosh.UserModule());
+        }
+
+        public static GoshObj EvalWithModule(this object expr, GoshModule module)
+        {
+            GoshEvalPacket packet = new GoshEvalPacket();
+            if (Gosh.Eval(expr, module, packet) < 0)
+            {
+                GoshCondition condition = packet.Exception;
+                Exception e = Gosh.ClrConditionInnerException(condition);
+                if (e == null)
+                {
+                    e = new GoshException(condition.ToString());
+                }
+                throw e;
+            }
+            else
+            {
+                //TODO multiple value
+                return packet[0];
+            }
+        }
+
         public static GoshObj Eval(this string expr, params object[] args)
         {
             return EvalWithModule(expr, Gosh.UserModule(), args);
