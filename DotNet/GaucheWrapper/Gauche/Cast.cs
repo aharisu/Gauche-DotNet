@@ -188,7 +188,8 @@ namespace GaucheDotNet
                     //TODO convert known class ...
 
                     default:
-                        throw new InvalidCastException("unknown type");
+                        //throw new InvalidCastException("unknown type");
+                        return new GoshUnknown(ptr);
                 }
             }
         }

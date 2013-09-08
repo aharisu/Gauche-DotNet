@@ -157,5 +157,17 @@ namespace GaucheDotNet
         }
 
     }
+
+    public class GoshUnknown : GoshObj
+    {
+        private readonly IntPtr _ptr;
+
+        public GoshUnknown(IntPtr ptr)
+        {
+            _ptr = ptr;
+        }
+
+        public override IntPtr Ptr { get { return _ptr; } }
+    }
 }
 
