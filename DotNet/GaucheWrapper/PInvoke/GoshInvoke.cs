@@ -1481,8 +1481,25 @@ namespace GaucheDotNet.Native
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate IntPtr ScmSubProc(IntPtr args, int argc, IntPtr data);
 
-        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr Scm_MakeSubr(
+        private static void SubrFinalizer(IntPtr obj, IntPtr data)
+        {
+            GCHandle handle = (GCHandle)data;
+            handle.Free();
+        }
+        private static ScmFinalizerProc _subrFinalizer = SubrFinalizer;
+
+        public static IntPtr Scm_MakeSubr(ScmSubProc func, IntPtr data, int required, int optional, IntPtr info)
+        {
+            GCHandle handle = GCHandle.Alloc(func); 
+            IntPtr ret = Scm_MakeSubr_(func, data, required, optional, info);
+
+            Scm_RegisterFinalizer(ret, _subrFinalizer, (IntPtr)handle);
+
+            return ret;
+        }
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl, EntryPoint="Scm_MakeSubr")]
+        public static extern IntPtr Scm_MakeSubr_(
             [MarshalAs(UnmanagedType.FunctionPtr)][In] ScmSubProc func
             , IntPtr data, int required, int optional, IntPtr info);
 
@@ -1768,6 +1785,33 @@ namespace GaucheDotNet.Native
 
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern void GC_init();
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void ScmFinalizerProc(IntPtr obj, IntPtr data);
+
+        private static void FinalizerBridge(IntPtr obj, IntPtr data)
+        {
+            GCHandle handle = (GCHandle)data;
+            object[] bridgeData = (object[])handle.Target;
+            handle.Free();
+
+            ((ScmFinalizerProc)bridgeData[0])(obj, (IntPtr)bridgeData[1]);
+        }
+
+        private static ScmFinalizerProc _finalizerProcBridge = FinalizerBridge;
+
+        public static void Scm_RegisterFinalizer(IntPtr obj, ScmFinalizerProc finalizer, IntPtr data)
+        {
+            object[] bridgeData = new object[] { finalizer, data };
+            GCHandle handle = GCHandle.Alloc(bridgeData);
+
+            Scm_RegisterFinalizer_(obj, _finalizerProcBridge, (IntPtr)handle);
+        }
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "Scm_RegisterFinalizer")]
+        public static extern void Scm_RegisterFinalizer_(IntPtr obj,
+            [MarshalAs(UnmanagedType.FunctionPtr)][In] ScmFinalizerProc finalizer
+            , IntPtr data);
 
         #endregion }
 
