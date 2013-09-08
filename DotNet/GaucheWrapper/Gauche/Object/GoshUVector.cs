@@ -92,6 +92,11 @@ namespace GaucheDotNet
             }
         }
 
+        public override object Object
+        {
+            get { return ToArray(_ptr); }
+        }
+
         public static Array ToArray(IntPtr ptr)
         {
             Array ary;

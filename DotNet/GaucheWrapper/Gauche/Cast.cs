@@ -145,6 +145,17 @@ namespace GaucheDotNet
                         return new GoshVector(ptr);
 
                     case KnownClass.UVector:
+                    case KnownClass.U8Vector:
+                    case KnownClass.U16Vector:
+                    case KnownClass.U32Vector:
+                    case KnownClass.U64Vector:
+                    case KnownClass.S8Vector:
+                    case KnownClass.S16Vector:
+                    case KnownClass.S32Vector:
+                    case KnownClass.S64Vector:
+                    case KnownClass.F16Vector:
+                    case KnownClass.F32Vector:
+                    case KnownClass.F64Vector:
                         return new GoshUVector(ptr);
 
                     case KnownClass.Closure:
@@ -254,6 +265,17 @@ namespace GaucheDotNet
                         return GoshVector.ToArray(ptr);
 
                     case KnownClass.UVector:
+                    case KnownClass.U8Vector:
+                    case KnownClass.U16Vector:
+                    case KnownClass.U32Vector:
+                    case KnownClass.U64Vector:
+                    case KnownClass.S8Vector:
+                    case KnownClass.S16Vector:
+                    case KnownClass.S32Vector:
+                    case KnownClass.S64Vector:
+                    case KnownClass.F16Vector:
+                    case KnownClass.F32Vector:
+                    case KnownClass.F64Vector:
                         return GoshUVector.ToArray(ptr);
 
                     case KnownClass.Closure:
