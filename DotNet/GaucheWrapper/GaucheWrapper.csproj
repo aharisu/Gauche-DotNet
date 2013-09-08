@@ -147,6 +147,7 @@
     <Compile Include="Gauche\Object\GoshModule.cs" />
     <Compile Include="Gauche\Object\GoshObj.cs" />
     <Compile Include="Gauche\Object\GoshPair.cs" />
+    <Compile Include="Gauche\Object\GoshPort.cs" />
     <Compile Include="Gauche\Object\GoshProc.cs" />
     <Compile Include="Gauche\Object\GoshRefObj.cs" />
     <Compile Include="Gauche\Object\GoshString.cs" />

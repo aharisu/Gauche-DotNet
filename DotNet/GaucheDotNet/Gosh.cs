@@ -1795,6 +1795,25 @@ namespace GaucheDotNet
 
         #endregion }
 
+        #region port.h {
+
+        public static GoshObj MakeInputStringPort(object str, bool privatep)
+        {
+            IntPtr ptr = Cast.ToIntPtr(str);
+            TypeCheck(ptr, GoshInvoke.Scm_StringP, 0);
+
+            return new GoshRefObj(GoshInvoke.Scm_MakeInputStringPort(ptr, privatep));
+        }
+
+        public static GoshObj MakeInputStringPort(string str, bool privatep)
+        {
+            IntPtr ptr = GoshInvoke.Scm_MakeString(str, StringFlags.Copying | StringFlags.Immutable);
+
+            return new GoshRefObj(GoshInvoke.Scm_MakeInputStringPort(ptr, privatep));
+        }
+
+        #endregion }
+
         #region symbol.h {
 
         public static GoshSymbol MakeSymbol(GoshString name, bool interned)
@@ -1912,6 +1931,19 @@ namespace GaucheDotNet
         }
 
         #endregion }
+
+        #region load.h {
+
+        public static int LoadFromPort(object port, LoadFlags flags, GoshLoadPacket packet)
+        {
+            IntPtr ptr = Cast.ToIntPtr(port);
+            TypeCheck(ptr, GoshInvoke.Scm_PortP, 0);
+
+            return GoshInvoke.Scm_LoadFromPort(ptr, (uint)flags, packet.Ptr);
+        }
+
+        #endregion }
+
 
         #region gc {
 

@@ -265,6 +265,14 @@ namespace GaucheDotNet.Native
         public IntPtr data;
     }
 
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct ScmLoadPacket
+    {
+        public IntPtr exception;
+        public Int32 loaded;
+    }
+
     [StructLayout(LayoutKind.Sequential)]
     public unsafe struct ScmClrObject
     {

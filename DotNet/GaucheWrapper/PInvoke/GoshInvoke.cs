@@ -1474,6 +1474,17 @@ namespace GaucheDotNet.Native
 
         #endregion }
 
+        #region port.h {
+
+        /// <param name="str">ScmString*</param>
+        /// <param name="privatep"></param>
+        /// <returns>ScmObj</returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_MakeInputStringPort(IntPtr str,
+            [MarshalAs(UnmanagedType.Bool)] bool privatep);
+
+        #endregion }
+
         #region symbol.h {
 
         /// <param name="name">ScmString*</param>
@@ -1569,6 +1580,13 @@ namespace GaucheDotNet.Native
         /// <returns>ScmObj</returns>
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr Scm_Raise(IntPtr condition);
+
+        #endregion }
+
+        #region load.h {
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int Scm_LoadFromPort(IntPtr port, uint flags, IntPtr packet);
 
         #endregion }
 

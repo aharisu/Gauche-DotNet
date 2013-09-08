@@ -201,4 +201,16 @@ namespace GaucheDotNet
 
     #endregion }
 
+    #region port.h {
+    [Flags]
+    public enum LoadFlags : uint
+    {
+        QuietNofile = 1 << 0,
+        IgnoreCoding = 1 << 1,
+        PropagateError = 1 << 2,
+        MainScript = 1 << 3,
+        SearchArchive = 1 << 4,
+    }
+    #endregion }
+
 }
