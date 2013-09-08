@@ -53,6 +53,25 @@ SCM_EXTERN ClrObject Scm_ClrConditionInnerException(ScmObj obj)
   }
 }
 
+static void* GC_dotnetthread_start_inner(struct GC_stack_base* sb, void* arg)
+{
+  void (*runner)() = (void (*)())arg;
+
+  GC_register_my_thread(sb);
+
+  (*runner)();
+
+  GC_unregister_my_thread();
+
+  return 0;
+}
+
+SCM_EXTERN void Scm_ThreadRunner(void (*runner)())
+{
+  GC_call_with_stack_base(GC_dotnetthread_start_inner, runner);
+}
+
+
 SCM_EXTERN int Scm_TypedClosureP(ScmObj obj)
 {
   return SCM_TYPED_CLOSURE_P(obj);
@@ -287,5 +306,7 @@ SCM_EXTERN void GaucheDotNetInitialize()
   Scm__SetupPortsForWindows(has_console);
 
   load_gauche_init();
+
+  GC_allow_register_threads();
 }
 

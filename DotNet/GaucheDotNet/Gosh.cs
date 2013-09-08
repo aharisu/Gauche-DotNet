@@ -1986,6 +1986,11 @@ namespace GaucheDotNet
             return GoshInvoke.Scm_XToCString(Cast.ToIntPtr(o));
         }
 
+        public static void ThreadRunner(object runner)
+        {
+            GoshInvoke.Scm_ThreadRunner((System.Threading.ThreadStart)runner);
+        }
+
         public static bool IsList(object obj)
         {
             GoshObj goshObj = obj as GoshObj;

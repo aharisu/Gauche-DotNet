@@ -1742,7 +1742,9 @@ namespace GaucheDotNet.Native
         public static extern IntPtr Scm_WithUnwindProtect(
             [MarshalAs(UnmanagedType.FunctionPtr)][In] UnwindProtectThunk thunk);
 
-
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Scm_ThreadRunner(
+            [MarshalAs(UnmanagedType.FunctionPtr)][In] System.Threading.ThreadStart start);
 
         /// <param name="obj">ScmObj</param>
         /// <returns>GCHandle ptr</returns>
