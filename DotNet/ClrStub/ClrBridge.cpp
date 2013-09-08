@@ -1289,6 +1289,265 @@ DECDLL void* GetEnumObject(TypeSpec* enumTypeSpec, const char* enumObj)
 
 // Util
 
+static bool FindInterfacesFilter(Type^ m, Object^ type)
+{
+    return m->IsGenericType && m->GetGenericTypeDefinition() == type;
+}
+
+[System::Runtime::InteropServices::DllImport(GoshInvoke::GaucheLib, 
+CallingConvention = CallingConvention::Cdecl)]
+void Scm_Printf(void* port, const char* fmt, ...);
+
+static int ClrWriteInternal(Object^ obj, void* port)
+{
+    Type^ t = obj->GetType();
+
+    if(t->IsPrimitive)
+    {
+        switch (Type::GetTypeCode(t))
+        {
+        case TypeCode::Byte:
+            Scm_Printf(port, "%u", (UInt32)(Byte)obj);
+            break;
+        case TypeCode::SByte:
+            Scm_Printf(port, "%d", (Int32)(SByte)obj);
+            break;
+        case TypeCode::UInt16:
+            Scm_Printf(port, "%u", (UInt32)(UInt16)obj);
+            break;
+        case TypeCode::Int16:
+            Scm_Printf(port, "%d", (Int32)(Int16)obj);
+            break;
+        case TypeCode::UInt32:
+            Scm_Printf(port, "%u", (UInt32)obj);
+            break;
+        case TypeCode::Int32:
+            Scm_Printf(port, "%d", (Int32)obj);
+            break;
+        case TypeCode::UInt64:
+            Scm_Printf(port, "%lu", (UInt64)obj);
+            break;
+        case TypeCode::Int64:
+            Scm_Printf(port, "%ld", (Int64)obj);
+            break;
+        case TypeCode::Single:
+            GoshInvoke::Scm_PrintDouble((IntPtr)port, (Double)(Single)obj, IntPtr::Zero);
+            break;
+        case TypeCode::Double:
+            GoshInvoke::Scm_PrintDouble((IntPtr)port, (Double)obj, IntPtr::Zero);
+            break;
+        case TypeCode::Decimal:
+            GoshInvoke::Scm_PrintDouble((IntPtr)port, (Double)(Decimal)obj, IntPtr::Zero);
+            break;
+        case TypeCode::Char:
+            Scm_Printf(port, "#\\u%u", (UInt32)(Char)obj);
+            break;
+        case TypeCode::Boolean:
+            Scm_Printf(port, "%s", ((Boolean)obj) ? "#t" : "#f");
+            break;
+        }
+
+        return 1;
+    }
+    else if(String::typeid == t)
+    {
+        IntPtr str = GoshInvoke::Scm_MakeString((String^)obj
+            , StringFlags::Immutable | StringFlags::Copying);
+        GoshInvoke::Scm_Write(str, (IntPtr)port, GaucheDotNet::WriteMode::Write);
+
+        return 1;
+    }
+    else if(dynamic_cast<System::Collections::IEnumerable^>(obj) != nullptr)
+    {
+        Type^ elemType = nullptr;
+        if(t->IsArray)
+        {
+            elemType = t->GetElementType();
+        }
+        else
+        {
+            Type^ typeAbst = (System::Collections::Generic::IEnumerable<Object^>::typeid)->GetGenericTypeDefinition();
+            array<Type^>^ typeConcrete = t->FindInterfaces(gcnew TypeFilter(FindInterfacesFilter), typeAbst);
+            if(typeConcrete->Length != 0)
+            {
+                elemType = typeConcrete[0]->GetGenericArguments()[0];
+            }
+        }
+
+        if(elemType != nullptr)
+        {
+            TypeCode code = Type::GetTypeCode(elemType);
+            bool isFirst = true;
+            switch (code)
+            {
+            case TypeCode::Byte:
+                Scm_Printf(port, "#u8(");
+                for each(Object^ elem in (System::Collections::IEnumerable^)obj)
+                {
+                    if(!isFirst) Scm_Printf(port, " ");
+                    Scm_Printf(port, "%u", (UInt32)(Byte)elem);
+                    isFirst = false;
+                }
+                break;
+            case TypeCode::SByte:
+                Scm_Printf(port, "#s8(");
+                for each(Object^ elem in (System::Collections::IEnumerable^)obj)
+                {
+                    if(!isFirst) Scm_Printf(port, " ");
+                    Scm_Printf(port, "%d", (Int32)(SByte)elem);
+                    isFirst = false;
+                }
+                break;
+            case TypeCode::UInt16:
+                Scm_Printf(port, "#u16(");
+                for each(Object^ elem in (System::Collections::IEnumerable^)obj)
+                {
+                    if(!isFirst) Scm_Printf(port, " ");
+                    Scm_Printf(port, "%u", (UInt32)(UInt16)elem);
+                    isFirst = false;
+                }
+                break;
+            case TypeCode::Int16:
+                Scm_Printf(port, "#s16(");
+                for each(Object^ elem in (System::Collections::IEnumerable^)obj)
+                {
+                    if(!isFirst) Scm_Printf(port, " ");
+                    Scm_Printf(port, "%d", (Int32)(Int16)elem);
+                    isFirst = false;
+                }
+                break;
+            case TypeCode::UInt32:
+                Scm_Printf(port, "#u32(");
+                for each(Object^ elem in (System::Collections::IEnumerable^)obj)
+                {
+                    if(!isFirst) Scm_Printf(port, " ");
+                    Scm_Printf(port, "%u", (UInt32)elem);
+                    isFirst = false;
+                }
+                break;
+            case TypeCode::Int32:
+                Scm_Printf(port, "#s32(");
+                for each(Object^ elem in (System::Collections::IEnumerable^)obj)
+                {
+                    if(!isFirst) Scm_Printf(port, " ");
+                    Scm_Printf(port, "%d", (Int32)elem);
+                    isFirst = false;
+                }
+                break;
+            case TypeCode::UInt64:
+                Scm_Printf(port, "#u64(");
+                for each(Object^ elem in (System::Collections::IEnumerable^)obj)
+                {
+                    if(!isFirst) Scm_Printf(port, " ");
+                    Scm_Printf(port, "%lu", (UInt64)elem);
+                    isFirst = false;
+                }
+                break;
+            case TypeCode::Int64:
+                Scm_Printf(port, "#s64(");
+                for each(Object^ elem in (System::Collections::IEnumerable^)obj)
+                {
+                    if(!isFirst) Scm_Printf(port, " ");
+                    Scm_Printf(port, "%ld", (Int64)elem);
+                    isFirst = false;
+                }
+                break;
+            case TypeCode::Single:
+                Scm_Printf(port, "#f32(");
+                for each(Object^ elem in (System::Collections::IEnumerable^)obj)
+                {
+                    if(!isFirst) Scm_Printf(port, " ");
+                    GoshInvoke::Scm_PrintDouble((IntPtr)port, (Double)(Single)elem, IntPtr::Zero);
+                    isFirst = false;
+                }
+                break;
+            case TypeCode::Double:
+                Scm_Printf(port, "#f64(");
+                for each(Object^ elem in (System::Collections::IEnumerable^)obj)
+                {
+                    if(!isFirst) Scm_Printf(port, " ");
+                    GoshInvoke::Scm_PrintDouble((IntPtr)port, (Double)elem, IntPtr::Zero);
+                    isFirst = false;
+                }
+                break;
+            case TypeCode::Decimal:
+                Scm_Printf(port, "#f64(");
+                for each(Object^ elem in (System::Collections::IEnumerable^)obj)
+                {
+                    if(!isFirst) Scm_Printf(port, " ");
+                    GoshInvoke::Scm_PrintDouble((IntPtr)port, (Double)(Decimal)elem, IntPtr::Zero);
+                    isFirst = false;
+                }
+                break;
+            case TypeCode::Char:
+                Scm_Printf(port, "#(");
+                for each(Object^ elem in (System::Collections::IEnumerable^)obj)
+                {
+                    if(!isFirst) Scm_Printf(port, " ");
+                    Scm_Printf(port, "#\\u%u", (UInt32)(Char)elem);
+                    isFirst = false;
+                }
+                break;
+            case TypeCode::Boolean:
+                Scm_Printf(port, "#(");
+                for each(Object^ elem in (System::Collections::IEnumerable^)obj)
+                {
+                    if(!isFirst) Scm_Printf(port, " ");
+                    Scm_Printf(port, "%s", ((Boolean)elem) ? "#t" : "#f");
+                    isFirst = false;
+                }
+                break;
+            case TypeCode::String:
+                Scm_Printf(port, "#(");
+                for each(Object^ elem in (System::Collections::IEnumerable^)obj)
+                {
+                    if(!isFirst) Scm_Printf(port, " ");
+
+                    IntPtr str = GoshInvoke::Scm_MakeString((String^)elem
+                        , StringFlags::Immutable | StringFlags::Copying);
+                    GoshInvoke::Scm_Write(str, (IntPtr)port, GaucheDotNet::WriteMode::Write);
+
+                    isFirst = false;
+                }
+                break;
+            default:
+                Scm_Printf(port, "#(");
+                for each(Object^ elem in (System::Collections::IEnumerable^)obj)
+                {
+                    if(!isFirst) Scm_Printf(port, " ");
+
+                    GoshObj^ goshObj = dynamic_cast<GoshObj^>(elem);
+                    if(goshObj != nullptr)
+                    {
+                        GoshInvoke::Scm_Write(goshObj->Ptr, (IntPtr)port, GaucheDotNet::WriteMode::Write);
+                    }
+                    else
+                    {
+                        ClrWriteInternal(elem, port);
+                    }
+
+                    isFirst = false;
+                }
+                break;
+            }
+
+            Scm_Printf(port, ")");
+        }
+
+        return 1;
+    }
+
+    return 0;
+}
+
+DECDLL int ClrWrite(void* clrObj, void* port)
+{
+    GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(clrObj));
+    Object^ obj = gchObj.Target;
+
+    return ClrWriteInternal(obj, port);
+}
+
 DECDLL void* ClrPrint(void* clrObj)
 {
     GCHandle gchObj = GCHandle::FromIntPtr(IntPtr(clrObj));

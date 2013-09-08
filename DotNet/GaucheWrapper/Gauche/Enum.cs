@@ -213,4 +213,30 @@ namespace GaucheDotNet
     }
     #endregion }
 
+    #region write.h {
+
+    /// <summary>
+    /// Print mod flags
+    /// </summary>
+    public enum WriteMode
+    {
+        /// <summary>write mode </summary>
+        Write = 0,
+        /// <summary>display mode </summary>
+        Display = 1,
+        /// <summary>write/ss mode </summary>
+        Shared = 2,
+        /// <summary>this is a specialmode in write/ss </summary>
+        Walk = 3,
+        ModeMask = 0x3,
+        /// <summary>case-fold mode. need to escape captial letters </summary>
+        CaseFold = 4,
+        /// <summary>case-sensitive mode. no need to escape captial letters</summary>
+        CaseNoFold = 8,
+        CaseMask = 0x0c,
+    }
+
+
+    #endregion }
+
 }

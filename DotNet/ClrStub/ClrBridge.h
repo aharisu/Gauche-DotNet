@@ -115,6 +115,7 @@ DECDLL void* GetEnumObject(TypeSpec* enumTypeSpec, const char* enumObj);
 
 // Util
 
+DECDLL int ClrWrite(void* clrObj, void* port);
 DECDLL void* ClrPrint(void* clrObj);
 DECDLL void* ClrGetTypeName(void* obj);
 DECDLL void* ClrTypeSpecToTypeHandle(TypeSpec* spec);

@@ -49,12 +49,14 @@
       ,(symbol->string func-name) ,msg)]
   )
 
-(define-cfn clr-object-print (obj::ScmObj port::ScmPort*) :: void :static
+(define-cfn clr-object-print (obj::ScmObj port::ScmPort* ctx::ScmWriteContext*) :: void :static
   (cond
     [(is-type? obj <clr-object>)
-     (Scm_Printf port "#{<clr-object> %A::%A}" 
-                 (ClrPrint (unboxing obj <clr-object>))
-                 (ClrGetTypeName (unboxing obj <clr-object>)))]
+     (when (or (== (SCM_WRITE_MODE ctx) SCM_WRITE_DISPLAY)
+             (not (ClrWrite (unboxing obj <clr-object>) (cast void* port)))) 
+       (Scm_Printf port "#{<clr-object> %A::%A}" 
+                   (ClrPrint (unboxing obj <clr-object>))
+                   (ClrGetTypeName (unboxing obj <clr-object>))))]
     [else
       (Scm_Printf port "#{<clr-object>}")]))
 
@@ -72,7 +74,7 @@
   ("Scm_CollectionClass")
   ( ;;slot
    )
-  (printer (clr-object-print obj port))
+  (printer (clr-object-print obj port ctx))
   (compare (return (clr-object-compare x y equalp)))
   )
 

@@ -475,7 +475,12 @@ namespace GaucheDotNet.Native
         //TODO
         //ScmNumberFormatInit
         //Scm_PrintNumber
-        //Scm_PrintDouble
+
+        /// <param name="port">ScmPort*</param>
+        /// <param name="d"></param>
+        /// <param name="fmt">ScmNumberFormat*</param>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Scm_PrintDouble(IntPtr port, double d, IntPtr fmt);
 
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr Scm_NumberToString(IntPtr num, int radix,
@@ -989,6 +994,17 @@ namespace GaucheDotNet.Native
 
         #endregion }
 
+        #region write.h {
+
+        /// <param name="obj">ScmObj</param>
+        /// <param name="port">ScmObj</param>
+        /// <param name="mode"></param>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Scm_Write(IntPtr obj, IntPtr port
+            , [MarshalAs(UnmanagedType.I4)] WriteMode mode);
+
+        #endregion
+
         #region reader.h {
 
         /// <param name="port">ScmObj</param>
@@ -1482,6 +1498,44 @@ namespace GaucheDotNet.Native
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr Scm_MakeInputStringPort(IntPtr str,
             [MarshalAs(UnmanagedType.Bool)] bool privatep);
+
+        /// <param name="c">ScmChar</param>
+        /// <param name="p">ScmPort*</param>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Scm_Putc(int c, IntPtr p);
+
+        /// <param name="s">ScmString*</param>
+        /// <param name="p">ScmPort*</param>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Scm_Puts(IntPtr s, IntPtr p);
+
+        public static void Scm_Putz(string s, IntPtr p)
+        {
+            int bytesLen = Encoding.UTF8.GetByteCount(s);
+            //not contains multi byte character?
+            if (bytesLen == s.Length)
+            {
+                Scm_Putz_(s, p);
+            }
+            else
+            {
+                //convert UTF8 character
+                byte[] buffer = new byte[bytesLen + 1];
+                Encoding.UTF8.GetBytes(s, 0, s.Length, buffer, 0);
+                Scm_Putz_(buffer, p);
+            }
+        }
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "Scm_Putz")]
+        private static extern void Scm_Putz_(
+            [MarshalAs(UnmanagedType.LPArray)][In] byte[] s
+            , IntPtr p);
+
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "Scm_Putz")]
+        private static extern void Scm_Putz_(
+            [MarshalAs(UnmanagedType.LPStr)][In] string s
+            , IntPtr p);
+
 
         #endregion }
 
