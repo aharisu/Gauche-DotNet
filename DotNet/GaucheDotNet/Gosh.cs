@@ -109,15 +109,18 @@ namespace GaucheDotNet
             //エラーハンドラの関数を作成
             ErrorHandlerRec = GoshInvoke.Scm_MakeSubr(ErrorHandler, IntPtr.Zero, 1, 0, Gosh.False.Ptr);
             //現在のVMにデフォルトエラーハンドラを設定する
-            InstallErrorHandler();
+            InstallErrorHandler(Gosh.VM());
         }
 
         /// <summary>
         /// 現在のVMにデフォルトエラーハンドラを設定する
         /// </summary>
-        public static void InstallErrorHandler()
+        public static void InstallErrorHandler(object vm)
         {
-            GoshInvoke.Scm_InstallErrorHandler(ErrorHandlerRec);
+            IntPtr ptr = Cast.ToIntPtr(vm);
+            TypeCheck(ptr, GoshInvoke.Scm_VMP, 0);
+
+            GoshInvoke.Scm_InstallErrorHandler(ptr, ErrorHandlerRec);
         }
 
         #endregion }
@@ -137,6 +140,37 @@ namespace GaucheDotNet
         public static int Apply(object proc, object args, GoshEvalPacket packet)
         {
             return GoshInvoke.Scm_Apply(Cast.ToIntPtr(proc), Cast.ToIntPtr(args), packet.Ptr);
+        }
+
+        public static GoshVM VM()
+        {
+            return new GoshVM(GoshInvoke.Scm_VM());
+        }
+
+        public static GoshVM NewVM(object protoVM, object name)
+        {
+            IntPtr protoVMP;
+            if (protoVM == null)
+            {
+                protoVMP = IntPtr.Zero;
+            }
+            else
+            {
+                protoVMP = Cast.ToIntPtr(protoVM);
+                TypeCheck(protoVMP, GoshInvoke.Scm_VMP, 0);
+            }
+
+            IntPtr newVM = GoshInvoke.Scm_NewVM(protoVMP, Cast.ToIntPtr(name));
+            GoshInvoke.Scm_InstallErrorHandler(newVM, ErrorHandlerRec);
+
+            return new GoshVM(newVM);
+        }
+
+        public static bool AttachVM(object vm)
+        {
+            IntPtr vmP = Cast.ToIntPtr(vm);
+            TypeCheck(vmP, GoshInvoke.Scm_VMP, 0);
+            return GoshInvoke.Scm_AttachVM(vmP);
         }
 
         #endregion }

@@ -152,6 +152,7 @@
     <Compile Include="Gauche\Object\GoshString.cs" />
     <Compile Include="Gauche\Object\GoshSymbol.cs" />
     <Compile Include="Gauche\Object\GoshVector.cs" />
+    <Compile Include="Gauche\Object\GoshVM.cs" />
     <Compile Include="Gauche\Object\Number.cs" />
     <Compile Include="Gauche\Object\Other.cs" />
     <Compile Include="Gauche\Object\Procedure\ClrSubr.cs">

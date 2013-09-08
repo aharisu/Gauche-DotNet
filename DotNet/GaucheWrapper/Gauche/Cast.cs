@@ -179,6 +179,9 @@ namespace GaucheDotNet
                     case KnownClass.Condition:
                         return new GoshCondition(ptr);
 
+                    case KnownClass.VM:
+                        return new GoshVM(ptr);
+
                     case KnownClass.ClrObject:
                         return new GoshClrObject(ptr);
 
@@ -296,6 +299,8 @@ namespace GaucheDotNet
                             return e;
                         }
 
+                    case KnownClass.VM:
+                        return new GoshVM(ptr);
                     case KnownClass.ClrObject:
                         return GCHandle.FromIntPtr(ptr).Target;
 

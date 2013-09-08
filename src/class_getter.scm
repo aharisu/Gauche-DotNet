@@ -62,6 +62,7 @@
   Scm_F16VectorClass
   Scm_F32VectorClass
   Scm_F64VectorClass
+  Scm_VMClass
   ;Scm_LazyPairClass
   ;Scm_ListClass
   ;Scm_BottomClass
@@ -89,7 +90,6 @@
   ;Scm_StringPointerClass
   ;Scm_SyntacticClosureClass
   ;Scm_IdentifierClass
-  ;Scm_VMClass
   ;Scm_ModuleClass
   ;Scm_ConditionClass
   ;Scm_MessageConditionClass

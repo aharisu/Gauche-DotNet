@@ -36,9 +36,9 @@
 #include"gauche_dotnet.h"
 #include"dotnet_type.gen.h"
 
-SCM_EXTERN void Scm_InstallErrorHandler(ScmObj ehandler)
+SCM_EXTERN void Scm_InstallErrorHandler(ScmObj vm, ScmObj ehandler)
 {
-  Scm_VM()->exceptionHandler = ehandler;
+  SCM_VM(vm)-> exceptionHandler = ehandler;
 }
 
 SCM_EXTERN ClrObject Scm_ClrConditionInnerException(ScmObj obj)

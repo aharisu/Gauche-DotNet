@@ -670,6 +670,22 @@ namespace GaucheDotNet.Native
 
         //TODO Scm_VMApply ... VMEval ... VM ...
 
+        /// <returns>ScmVM*</returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_VM();
+
+        /// <param name="proto">ScmVM*</param>
+        /// <param name="name">ScmObj</param>
+        /// <returns>ScmVM*</returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_NewVM(IntPtr proto, IntPtr name);
+
+        /// <param name="vm">ScmVM*</param>
+        /// <returns></returns>
+        [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_AttachVM(IntPtr vm);
+
         #endregion
 
 
@@ -1619,7 +1635,7 @@ namespace GaucheDotNet.Native
         public static extern int Scm_IsKnownType(IntPtr ptr);
 
         [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void Scm_InstallErrorHandler(IntPtr ptr);
+        public static extern void Scm_InstallErrorHandler(IntPtr vm, IntPtr ptr);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate IntPtr UnwindProtectThunk();
