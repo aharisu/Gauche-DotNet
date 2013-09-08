@@ -63,6 +63,36 @@ SCM_EXTERN int Scm_TypedClosureSkipCheckClosureP(ScmObj obj)
   return SCM_TYPED_CLOSURE_SKIP_CHECK_CLOSURE_P(obj);
 }
 
+SCM_EXTERN int Scm_ListP(ScmObj obj)
+{
+  return SCM_LISTP(obj);
+}
+
+SCM_EXTERN int Scm_PairP(ScmObj obj)
+{
+  return SCM_PAIRP(obj);
+}
+
+SCM_EXTERN int Scm_NullP(ScmObj obj)
+{
+  return SCM_NULLP(obj);
+}
+
+SCM_EXTERN int Scm_StringP(ScmObj obj)
+{
+  return SCM_STRINGP(obj);
+}
+
+SCM_EXTERN int Scm_KeywordP(ScmObj obj)
+{
+  return SCM_KEYWORDP(obj);
+}
+
+SCM_EXTERN int Scm_SymbolP(ScmObj obj)
+{
+  return SCM_SYMBOLP(obj);
+}
+
 SCM_EXTERN int Scm_ExtendedPairP(ScmObj obj)
 {
   return SCM_EXTENDED_PAIR_P(obj);
@@ -71,6 +101,16 @@ SCM_EXTERN int Scm_ExtendedPairP(ScmObj obj)
 SCM_EXTERN int Scm_HashTableP(ScmObj obj)
 {
   return SCM_HASH_TABLE_P(obj);
+}
+
+SCM_EXTERN int Scm_VMP(ScmObj obj)
+{
+  return SCM_VMP(obj);
+}
+
+SCM_EXTERN int Scm_PortP(ScmObj obj)
+{
+  return SCM_PORTP(obj);
 }
 
 SCM_EXTERN int Scm_BignumP(ScmObj obj)

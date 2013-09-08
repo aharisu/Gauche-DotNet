@@ -1833,6 +1833,114 @@ namespace GaucheDotNet
 
         #endregion }
 
+        #region gauche_dotnet {
+
+        public static bool IsList(object obj)
+        {
+            GoshObj goshObj = obj as GoshObj;
+            if (goshObj == null) return false;
+
+            return GoshInvoke.Scm_ListP(goshObj.Ptr);
+        }
+
+        public static bool IsPair(object obj)
+        {
+            GoshObj goshObj = obj as GoshObj;
+            if (goshObj == null) return false;
+
+            return GoshInvoke.Scm_PairP(goshObj.Ptr);
+        }
+
+        public static bool IsNull(object obj)
+        {
+            GoshObj goshObj = obj as GoshObj;
+            if (goshObj == null) return false;
+
+            return GoshInvoke.Scm_NullP(goshObj.Ptr);
+        }
+
+        public static bool IsString(object obj)
+        {
+            GoshObj goshObj = obj as GoshObj;
+            if (goshObj == null) return false;
+
+            return GoshInvoke.Scm_StringP(goshObj.Ptr);
+        }
+
+        public static bool IsSymbol(object obj)
+        {
+            GoshObj goshObj = obj as GoshObj;
+            if (goshObj == null) return false;
+
+            return GoshInvoke.Scm_SymbolP(goshObj.Ptr);
+        }
+
+        public static bool IsKeyword(object obj)
+        {
+            GoshObj goshObj = obj as GoshObj;
+            if (goshObj == null) return false;
+
+            return GoshInvoke.Scm_KeywordP(goshObj.Ptr);
+        }
+
+        public static bool IsBignum(object obj)
+        {
+            GoshObj goshObj = obj as GoshObj;
+            if (goshObj == null) return false;
+
+            return GoshInvoke.Scm_BignumP(goshObj.Ptr);
+        }
+
+        public static bool IsVector(object obj)
+        {
+            GoshObj goshObj = obj as GoshObj;
+            if (goshObj == null) return false;
+
+            return GoshInvoke.Scm_VectorP(goshObj.Ptr);
+        }
+
+        public static bool IsUVector(object obj)
+        {
+            GoshObj goshObj = obj as GoshObj;
+            if (goshObj == null) return false;
+
+            return GoshInvoke.Scm_UVectorP(goshObj.Ptr);
+        }
+
+        public static bool IsExtendedPair(object obj)
+        {
+            GoshObj goshObj = obj as GoshObj;
+            if (goshObj == null) return false;
+
+            return GoshInvoke.Scm_ExtendedPairP(goshObj.Ptr);
+        }
+
+        public static bool IsHashTable(object obj)
+        {
+            GoshObj goshObj = obj as GoshObj;
+            if (goshObj == null) return false;
+
+            return GoshInvoke.Scm_HashTableP(goshObj.Ptr);
+        }
+
+        public static bool IsVM(object obj)
+        {
+            GoshObj goshObj = obj as GoshObj;
+            if (goshObj == null) return false;
+
+            return GoshInvoke.Scm_VMP(goshObj.Ptr);
+        }
+
+        public static bool IsPort(object obj)
+        {
+            GoshObj goshObj = obj as GoshObj;
+            if (goshObj == null) return false;
+
+            return GoshInvoke.Scm_PortP(goshObj.Ptr);
+        }
+
+        #endregion }
+
     }
 }
 

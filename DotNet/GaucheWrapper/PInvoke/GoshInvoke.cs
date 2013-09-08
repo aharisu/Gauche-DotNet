@@ -199,12 +199,6 @@ namespace GaucheDotNet.Native
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern Int32 Scm_DumpBignum(IntPtr b, IntPtr outPort);
 
-        /// <param name="obj">ScmObj</param>
-        /// <returns>objがScm_Bignumのオブジェクトならtrue</returns>
-        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool Scm_BignumP(IntPtr obj);
-
         #endregion }
 
         #region number.h {
@@ -912,11 +906,6 @@ namespace GaucheDotNet.Native
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr Scm_PairAttrSet(IntPtr pair, IntPtr key, IntPtr value);
 
-        /// <param name="obj">ScmObj</param>
-        /// <returns></returns>
-        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool Scm_ExtendedPairP(IntPtr obj);
-
         #endregion }
 
 
@@ -1045,12 +1034,6 @@ namespace GaucheDotNet.Native
         /// <returns>ScmObj (List)</returns>
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr Scm_HashTableStat(IntPtr table);
-
-        /// <param name="obj">ScmObj</param>
-        /// <returns>objがScm_HashTableのオブジェクトならtrue</returns>
-        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool Scm_HashTableP(IntPtr obj);
 
         #endregion }
 
@@ -1216,12 +1199,6 @@ namespace GaucheDotNet.Native
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr Scm_VectorCopy(IntPtr v, Int32 start, Int32 end, IntPtr fill);
 
-        /// <param name="obj">ScmObj</param>
-        /// <returns>objがScm_Vectorのオブジェクトならtrue</returns>
-        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool Scm_VectorP(IntPtr obj);
-
         /// <param name="klass">ScmClass*</param>
         /// <returns></returns>
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
@@ -1271,12 +1248,6 @@ namespace GaucheDotNet.Native
 
         [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern void Scm_UVectorCopyF16(IntPtr srcVec, IntPtr dest, int length);
-
-        /// <param name="obj">ScmObj</param>
-        /// <returns>objがScm_UVectorのオブジェクトならtrue</returns>
-        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool Scm_UVectorP(IntPtr obj);
 
         [DllImport(GaucheLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr Scm_MakeS8Vector(int size, sbyte fill);
@@ -1665,6 +1636,60 @@ namespace GaucheDotNet.Native
         public static extern IntPtr Scm_ClrConditionInnerException(IntPtr obj);
 
         /// <param name="obj">ScmObj</param>
+        /// <returns>objがリスト構造のオブジェクトならtrue</returns>
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_ListP(IntPtr obj);
+
+        /// <param name="obj">ScmObj</param>
+        /// <returns>objがScm_Pairlのオブジェクトならtrue</returns>
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_PairP(IntPtr obj);
+
+        /// <param name="obj">ScmObj</param>
+        /// <returns>objが'()のオブジェクトならtrue</returns>
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_NullP(IntPtr obj);
+
+        /// <param name="obj">ScmObj</param>
+        /// <returns>objがScm_Stringのオブジェクトならtrue</returns>
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_StringP(IntPtr obj);
+
+        /// <param name="obj">ScmObj</param>
+        /// <returns>objがScm_Symbolのオブジェクトならtrue</returns>
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_SymbolP(IntPtr obj);
+
+        /// <param name="obj">ScmObj</param>
+        /// <returns>objがScm_Keywordのオブジェクトならtrue</returns>
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_KeywordP(IntPtr obj);
+
+        /// <param name="obj">ScmObj</param>
+        /// <returns>objがScm_Bignumのオブジェクトならtrue</returns>
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_BignumP(IntPtr obj);
+
+        /// <param name="obj">ScmObj</param>
+        /// <returns>objがScm_Vectorのオブジェクトならtrue</returns>
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_VectorP(IntPtr obj);
+
+        /// <param name="obj">ScmObj</param>
+        /// <returns>objがScm_UVectorのオブジェクトならtrue</returns>
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_UVectorP(IntPtr obj);
+
+        /// <param name="obj">ScmObj</param>
         /// <returns>bool</returns>
         [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
         [return:MarshalAs(UnmanagedType.Bool)]
@@ -1676,6 +1701,28 @@ namespace GaucheDotNet.Native
         [return:MarshalAs(UnmanagedType.Bool)]
         public static extern bool Scm_TypedClosureSkipCheckClosureP(IntPtr obj);
 
+        /// <param name="obj">ScmObj</param>
+        /// <returns></returns>
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool Scm_ExtendedPairP(IntPtr obj);
+
+        /// <param name="obj">ScmObj</param>
+        /// <returns>objがScm_HashTableのオブジェクトならtrue</returns>
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_HashTableP(IntPtr obj);
+
+        /// <param name="obj">ScmObj</param>
+        /// <returns>objがScm_VMのオブジェクトならtrue</returns>
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_VMP(IntPtr obj);
+
+        /// <param name="obj">ScmObj</param>
+        /// <returns>objがScm_Portのオブジェクトならtrue</returns>
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Scm_PortP(IntPtr obj);
 
         #endregion }
 
