@@ -54,10 +54,5 @@ namespace GaucheDotNet
                 return new GoshString((IntPtr)((ScmSymbol*)_ptr)->name);
             }
         }
-
-        public override string ToString()
-        {
-            return ":" + Name.ToString();
-        }
     }
 }

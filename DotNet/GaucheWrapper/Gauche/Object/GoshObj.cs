@@ -32,6 +32,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using GaucheDotNet.Native;
 
 namespace GaucheDotNet
 {
@@ -64,8 +65,13 @@ namespace GaucheDotNet
             }
             else
             {
-                return (T)Object;
+                return (T)Specify.Object;
             }
+        }
+
+        public sealed override string ToString()
+        {
+            return GoshInvoke.Scm_GetString(GoshInvoke.Scm_WriteToString(Ptr));
         }
 
     }

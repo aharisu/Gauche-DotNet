@@ -74,11 +74,6 @@ namespace GaucheDotNet
                 }
             }
         }
-
-        public override string ToString()
-        {
-            return Name.ToString();
-        }
     }
 }
 

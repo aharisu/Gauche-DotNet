@@ -90,12 +90,6 @@ namespace GaucheDotNet
                 return _specific;
             }
         }
-
-        public override string  ToString()
-        {
-            return GoshInvoke.Scm_GetString(
-                GoshInvoke.Scm_NumberToString(_ptr, 10, NumberFormat.None));
-        }
     }
 
     public class GoshCompnum : GoshNumber
@@ -172,11 +166,6 @@ namespace GaucheDotNet
             get { return Int64; }
         }
 
-        public override string ToString()
-        {
-            return GoshInvoke.Scm_GetString(
-                GoshInvoke.Scm_BignumToString(_ptr, 10, 1));
-        }
     }
 
     public class GoshFixnum : GoshInteger
@@ -209,11 +198,6 @@ namespace GaucheDotNet
         public override object Object
         {
             get { return this.Int; }
-        }
-
-        public override string ToString()
-        {
-            return Cast.ScmFixnumToInt(_ptr).ToString();
         }
     }
 
