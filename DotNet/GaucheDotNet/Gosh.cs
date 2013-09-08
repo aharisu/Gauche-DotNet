@@ -49,9 +49,9 @@ namespace GaucheDotNet
 
         private delegate bool TypeChecker(IntPtr obj);
 
-        private static void TypeCheck(GoshObj obj, TypeChecker checker, int argIndex)
+        private static void TypeCheck(IntPtr ptr, TypeChecker checker, int argIndex)
         {
-            if (!checker(obj.Ptr))
+            if (!checker(ptr))
             {
                 StackFrame caller = new StackFrame(1);
                 System.Reflection.MethodBase callerMethod = caller.GetMethod();
@@ -59,7 +59,7 @@ namespace GaucheDotNet
                 string argName = callerMethod.GetParameters()[argIndex].Name;
 
                 string typename = checker.Method.Name.TrimEnd('P');
-                string objectTypeName = obj.Specify.GetType().Name.Replace("Gosh", "Scm_");
+                string objectTypeName = Cast.Specify(ptr).Specify.GetType().Name.Replace("Gosh", "Scm_");
 
                 throw new GoshException(callerName + ": " + argName + " required " + typename + ", bug got " + objectTypeName + ".");
             }
@@ -165,14 +165,14 @@ namespace GaucheDotNet
 
         public static GoshObj BignumCopy(GoshObj b)
         {
-            TypeCheck(b, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(b.Ptr, GoshInvoke.Scm_BignumP, 0);
 
             return new GoshRefObj(GoshInvoke.Scm_BignumCopy(b.Ptr));
         }
 
         public static GoshObj BignumToString(GoshObj b, int radix, bool useUpper)
         {
-            TypeCheck(b, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(b.Ptr, GoshInvoke.Scm_BignumP, 0);
 
             return new GoshRefObj(GoshInvoke.Scm_BignumToString(b.Ptr, radix, useUpper ? 1 : 0));
         }
@@ -185,7 +185,7 @@ namespace GaucheDotNet
 
         public static Int32 BignumToSI(GoshObj b, ClampMode clamp, out bool oor)
         {
-            TypeCheck(b, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(b.Ptr, GoshInvoke.Scm_BignumP, 0);
 
             return GoshInvoke.Scm_BignumToSI(b.Ptr, clamp, out oor);
         }
@@ -198,7 +198,7 @@ namespace GaucheDotNet
 
         public static UInt32 BignumToUI(GoshObj b, ClampMode clamp, out bool oor)
         {
-            TypeCheck(b, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(b.Ptr, GoshInvoke.Scm_BignumP, 0);
 
             return GoshInvoke.Scm_BignumToUI(b.Ptr, clamp, out oor);
         }
@@ -211,7 +211,7 @@ namespace GaucheDotNet
 
         public static Int64 BignumToSI64(GoshObj b, ClampMode clamp, out bool oor)
         {
-            TypeCheck(b, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(b.Ptr, GoshInvoke.Scm_BignumP, 0);
 
             return GoshInvoke.Scm_BignumToSI64(b.Ptr, clamp, out oor);
         }
@@ -224,105 +224,105 @@ namespace GaucheDotNet
 
         public static UInt64 BignumToUI64(GoshObj b, ClampMode clamp, out bool oor)
         {
-            TypeCheck(b, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(b.Ptr, GoshInvoke.Scm_BignumP, 0);
 
             return GoshInvoke.Scm_BignumToUI64(b.Ptr, clamp, out oor);
         }
 
         public static double BignumToDouble(GoshObj b)
         {
-            TypeCheck(b, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(b.Ptr, GoshInvoke.Scm_BignumP, 0);
 
             return GoshInvoke.Scm_BignumToDouble(b.Ptr);
         }
 
         public static GoshObj NormalizeBignum(GoshObj b)
         {
-            TypeCheck(b, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(b.Ptr, GoshInvoke.Scm_BignumP, 0);
 
             return new GoshRefObj(GoshInvoke.Scm_NormalizeBignum(b.Ptr));
         }
 
         public static GoshObj BignumNegete(GoshObj b)
         {
-            TypeCheck(b, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(b.Ptr, GoshInvoke.Scm_BignumP, 0);
 
             return new GoshRefObj(GoshInvoke.Scm_BignumNegate(b.Ptr));
         }
 
         public static bool BignumCmp(GoshObj bx, GoshObj by)
         {
-            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
-            TypeCheck(by, GoshInvoke.Scm_BignumP, 1);
+            TypeCheck(bx.Ptr, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(by.Ptr, GoshInvoke.Scm_BignumP, 1);
 
             return GoshInvoke.Scm_BignumCmp(bx.Ptr, by.Ptr);
         }
 
         public static bool BignumAbsCmp(GoshObj bx, GoshObj by)
         {
-            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
-            TypeCheck(by, GoshInvoke.Scm_BignumP, 1);
+            TypeCheck(bx.Ptr, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(by.Ptr, GoshInvoke.Scm_BignumP, 1);
 
             return GoshInvoke.Scm_BignumAbsCmp(bx.Ptr, by.Ptr);
         }
 
         public static bool BignumCmp3U(GoshObj bx, GoshObj off, GoshObj by)
         {
-            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
-            TypeCheck(off, GoshInvoke.Scm_BignumP, 1);
-            TypeCheck(by, GoshInvoke.Scm_BignumP, 2);
+            TypeCheck(bx.Ptr, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(off.Ptr, GoshInvoke.Scm_BignumP, 1);
+            TypeCheck(by.Ptr, GoshInvoke.Scm_BignumP, 2);
 
             return GoshInvoke.Scm_BignumCmp3U(bx.Ptr, off.Ptr, by.Ptr);
         }
 
         public static GoshObj BignumComplement(GoshObj bx)
         {
-            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(bx.Ptr, GoshInvoke.Scm_BignumP, 0);
 
             return new GoshRefObj(GoshInvoke.Scm_BignumComplement(bx.Ptr));
         }
 
         public static GoshObj BignumAdd(GoshObj bx, GoshObj by)
         {
-            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
-            TypeCheck(by, GoshInvoke.Scm_BignumP, 1);
+            TypeCheck(bx.Ptr, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(by.Ptr, GoshInvoke.Scm_BignumP, 1);
 
             return new GoshRefObj(GoshInvoke.Scm_BignumAdd(bx.Ptr, by.Ptr));
         }
 
         public static GoshObj BignumAddSI(GoshObj bx, Int32 y)
         {
-            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(bx.Ptr, GoshInvoke.Scm_BignumP, 0);
 
             return new GoshRefObj(GoshInvoke.Scm_BignumAddSI(bx.Ptr, y));
         }
 
         public static GoshObj BignumSub(GoshObj bx, GoshObj by)
         {
-            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
-            TypeCheck(by, GoshInvoke.Scm_BignumP, 1);
+            TypeCheck(bx.Ptr, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(by.Ptr, GoshInvoke.Scm_BignumP, 1);
 
             return new GoshRefObj(GoshInvoke.Scm_BignumSub(bx.Ptr, by.Ptr));
         }
 
         public static GoshObj BignumSubSI(GoshObj bx, Int32 y)
         {
-            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(bx.Ptr, GoshInvoke.Scm_BignumP, 0);
 
             return new GoshRefObj(GoshInvoke.Scm_BignumSubSI(bx.Ptr, y));
         }
 
         public static GoshObj BignumMul(GoshObj bx, GoshObj by)
         {
-            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
-            TypeCheck(by, GoshInvoke.Scm_BignumP, 1);
+            TypeCheck(bx.Ptr, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(by.Ptr, GoshInvoke.Scm_BignumP, 1);
 
             return new GoshRefObj(GoshInvoke.Scm_BignumMul(bx.Ptr, by.Ptr));
         }
 
         public static GoshObj BignumMulSI(GoshObj bx, Int32 y)
         {
-            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(bx.Ptr, GoshInvoke.Scm_BignumP, 0);
 
             return new GoshRefObj(GoshInvoke.Scm_BignumMulSI(bx.Ptr, y));
         }
@@ -335,67 +335,67 @@ namespace GaucheDotNet
 
         public static GoshObj BignumDivSI(GoshObj bx, Int32 y, out int remainder)
         {
-            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(bx.Ptr, GoshInvoke.Scm_BignumP, 0);
 
             return new GoshRefObj(GoshInvoke.Scm_BignumDivSI(bx.Ptr, y, out remainder));
         }
 
         public static GoshObj BignumDivRem(GoshObj bx, GoshObj by)
         {
-            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
-            TypeCheck(by, GoshInvoke.Scm_BignumP, 1);
+            TypeCheck(bx.Ptr, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(by.Ptr, GoshInvoke.Scm_BignumP, 1);
 
             return new GoshRefObj(GoshInvoke.Scm_BignumDivRem(bx.Ptr, by.Ptr));
         }
 
         public static GoshObj BignumRemSI(GoshObj bx, int y)
         {
-            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(bx.Ptr, GoshInvoke.Scm_BignumP, 0);
 
             return new GoshRefObj(GoshInvoke.Scm_BignumRemSI(bx.Ptr, y));
         }
 
         public static GoshObj BignumLogAnd(GoshObj bx, GoshObj by)
         {
-            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
-            TypeCheck(by, GoshInvoke.Scm_BignumP, 1);
+            TypeCheck(bx.Ptr, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(by.Ptr, GoshInvoke.Scm_BignumP, 1);
 
             return new GoshRefObj(GoshInvoke.Scm_BignumLogAnd(bx.Ptr, by.Ptr));
         }
 
         public static GoshObj BignumLogIor(GoshObj bx, GoshObj by)
         {
-            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
-            TypeCheck(by, GoshInvoke.Scm_BignumP, 1);
+            TypeCheck(bx.Ptr, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(by.Ptr, GoshInvoke.Scm_BignumP, 1);
 
             return new GoshRefObj(GoshInvoke.Scm_BignumLogIor(bx.Ptr, by.Ptr));
         }
 
         public static GoshObj BignumLogXor(GoshObj bx, GoshObj by)
         {
-            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
-            TypeCheck(by, GoshInvoke.Scm_BignumP, 1);
+            TypeCheck(bx.Ptr, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(by.Ptr, GoshInvoke.Scm_BignumP, 1);
 
             return new GoshRefObj(GoshInvoke.Scm_BignumLogXor(bx.Ptr, by.Ptr));
         }
 
         public static GoshObj BignumLogNot(GoshObj bx)
         {
-            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(bx.Ptr, GoshInvoke.Scm_BignumP, 0);
 
             return new GoshRefObj(GoshInvoke.Scm_BignumLogNot(bx.Ptr));
         }
 
         public static int BignumLogCount(GoshObj b)
         {
-            TypeCheck(b, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(b.Ptr, GoshInvoke.Scm_BignumP, 0);
 
             return GoshInvoke.Scm_BignumLogCount(b.Ptr);
         }
 
         public static GoshObj BignumAsh(GoshObj bx, int cnt)
         {
-            TypeCheck(bx, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(bx.Ptr, GoshInvoke.Scm_BignumP, 0);
 
             return new GoshRefObj(GoshInvoke.Scm_BignumAsh(bx.Ptr, cnt));
         }
@@ -407,14 +407,14 @@ namespace GaucheDotNet
 
         public static GoshInteger BignumAccMultAddUI(GoshObj acc, UInt32 coef, UInt32 c)
         {
-            TypeCheck(acc, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(acc.Ptr, GoshInvoke.Scm_BignumP, 0);
 
             return new GoshInteger(GoshInvoke.Scm_BignumAccMultAddUI(acc.Ptr, coef, c));
         }
 
         public static int DumpBignum(GoshObj b, GoshObj outPort)
         {
-            TypeCheck(b, GoshInvoke.Scm_BignumP, 0);
+            TypeCheck(b.Ptr, GoshInvoke.Scm_BignumP, 0);
             //TODO outPort type check
 
             return GoshInvoke.Scm_DumpBignum(b.Ptr, outPort.Ptr);
@@ -1150,43 +1150,38 @@ namespace GaucheDotNet
 
         public static object HashTableRef(GoshObj obj, object key)
         {
-            TypeCheck(obj, GoshInvoke.Scm_HashTableP, 0);
+            TypeCheck(obj.Ptr, GoshInvoke.Scm_HashTableP, 0);
             return GoshHashTable.HashTableRef(obj.Ptr, key);
         }
 
         public static void HashTableSet(GoshObj obj, object key, object value)
         {
-            TypeCheck(obj, GoshInvoke.Scm_HashTableP, 0);
+            TypeCheck(obj.Ptr, GoshInvoke.Scm_HashTableP, 0);
             GoshHashTable.HashTableSet(obj.Ptr, key, value);
         }
 
         public static object HashTableDelete(GoshObj obj, object key)
         {
-            TypeCheck(obj, GoshInvoke.Scm_HashTableP, 0);
+            TypeCheck(obj.Ptr, GoshInvoke.Scm_HashTableP, 0);
             return GoshHashTable.HashTableDelete(obj.Ptr, key);
         }
 
         public static GoshObj HashTableKeys(GoshObj obj)
         {
-            TypeCheck(obj, GoshInvoke.Scm_HashTableP, 0);
+            TypeCheck(obj.Ptr, GoshInvoke.Scm_HashTableP, 0);
             return new GoshRefObj(GoshInvoke.Scm_HashTableKeys(obj.Ptr));
         }
 
         public static GoshObj HashTableValues(GoshObj obj)
         {
-            TypeCheck(obj, GoshInvoke.Scm_HashTableP, 0);
+            TypeCheck(obj.Ptr, GoshInvoke.Scm_HashTableP, 0);
             return new GoshRefObj(GoshInvoke.Scm_HashTableValues(obj.Ptr));
         }
 
         public static GoshObj HashTableStat(GoshObj obj)
         {
-            TypeCheck(obj, GoshInvoke.Scm_HashTableP, 0);
+            TypeCheck(obj.Ptr, GoshInvoke.Scm_HashTableP, 0);
             return new GoshRefObj(GoshInvoke.Scm_HashTableStat(obj.Ptr));
-        }
-
-        public static bool IsHashTable(GoshObj obj)
-        {
-            return GoshInvoke.Scm_HashTableP(obj.Ptr);
         }
 
         #endregion }
@@ -1331,19 +1326,19 @@ namespace GaucheDotNet
 
         public static GoshObj VectorRef(GoshObj vec, int i, GoshObj fallback)
         {
-            TypeCheck(vec, GoshInvoke.Scm_VectorP, 0);
+            TypeCheck(vec.Ptr, GoshInvoke.Scm_VectorP, 0);
             return new GoshRefObj(GoshInvoke.Scm_VectorRef(vec.Ptr, i, fallback.Ptr));
         }
 
         public static GoshObj VectorSet(GoshObj vec, int i, GoshObj obj)
         {
-            TypeCheck(vec, GoshInvoke.Scm_VectorP, 0);
+            TypeCheck(vec.Ptr, GoshInvoke.Scm_VectorP, 0);
             return new GoshRefObj(GoshInvoke.Scm_VectorRef(vec.Ptr, i, obj.Ptr));
         }
 
         public static GoshObj VectorFill(GoshObj vec, GoshObj fill, int start, int end)
         {
-            TypeCheck(vec, GoshInvoke.Scm_VectorP, 0);
+            TypeCheck(vec.Ptr, GoshInvoke.Scm_VectorP, 0);
             return new GoshRefObj(GoshInvoke.Scm_VectorFill(vec.Ptr, fill.Ptr, start, end));
         }
 
@@ -1367,7 +1362,7 @@ namespace GaucheDotNet
         }
         public static GoshObj VectorToList(GoshObj vec, int start)
         {
-            TypeCheck(vec, GoshInvoke.Scm_VectorP, 0);
+            TypeCheck(vec.Ptr, GoshInvoke.Scm_VectorP, 0);
 
             int end;
             unsafe
@@ -1379,7 +1374,7 @@ namespace GaucheDotNet
 
         public static GoshObj VectorToList(GoshObj vec, int start, int end)
         {
-            TypeCheck(vec, GoshInvoke.Scm_VectorP, 0);
+            TypeCheck(vec.Ptr, GoshInvoke.Scm_VectorP, 0);
             return new GoshRefObj(GoshInvoke.Scm_VectorToList(vec.Ptr, start, end));
         }
 
@@ -1400,7 +1395,7 @@ namespace GaucheDotNet
 
         public static GoshVector VectorCopy(GoshObj vec, int start, int end, GoshObj fill)
         {
-            TypeCheck(vec, GoshInvoke.Scm_VectorP, 0);
+            TypeCheck(vec.Ptr, GoshInvoke.Scm_VectorP, 0);
             return new GoshVector(GoshInvoke.Scm_VectorCopy(vec.Ptr, start, end, fill.Ptr));
         }
 
@@ -1410,26 +1405,26 @@ namespace GaucheDotNet
 
         public static UVectorType UVectorType(GoshObj uvec)
         {
-            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            TypeCheck(uvec.Ptr, GoshInvoke.Scm_UVectorP, 0);
             return GoshInvoke.Scm_UVectorType(GoshInvoke.Scm_ClassOf(uvec.Ptr));
         }
 
         public static String UVectorTypeName(GoshObj uvec)
         {
-            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            TypeCheck(uvec.Ptr, GoshInvoke.Scm_UVectorP, 0);
             return GoshInvoke.Scm_UVectorTypeName(
                 GoshInvoke.Scm_UVectorType(GoshInvoke.Scm_ClassOf(uvec.Ptr)));
         }
 
         public static int UVectorElementSize(GoshObj uvec)
         {
-            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            TypeCheck(uvec.Ptr, GoshInvoke.Scm_UVectorP, 0);
             return GoshInvoke.Scm_UVectorElementSize(GoshInvoke.Scm_ClassOf(uvec.Ptr));
         }
 
         public static int UVectorSizeInBytes(GoshObj uvec)
         {
-            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            TypeCheck(uvec.Ptr, GoshInvoke.Scm_UVectorP, 0);
             return GoshInvoke.Scm_UVectorSizeInBytes(uvec.Ptr);
         }
 
@@ -1446,14 +1441,14 @@ namespace GaucheDotNet
 
         public static GoshObj UVectorRef(GoshObj uvec, UVectorType type, int index, GoshObj fallback)
         {
-            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            TypeCheck(uvec.Ptr, GoshInvoke.Scm_UVectorP, 0);
 
             return new GoshRefObj(GoshInvoke.Scm_VMUVectorRef(uvec.Ptr, type, index, fallback.Ptr));
         }
 
         public static int UVectorLength(GoshObj uvec)
         {
-            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            TypeCheck(uvec.Ptr, GoshInvoke.Scm_UVectorP, 0);
             return GoshInvoke.Scm_UVectorLength(uvec.Ptr);
         }
 
@@ -1469,13 +1464,13 @@ namespace GaucheDotNet
 
         public static sbyte S8VectorRef(GoshObj uvec, int index)
         {
-            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            TypeCheck(uvec.Ptr, GoshInvoke.Scm_UVectorP, 0);
             return GoshInvoke.Scm_S8VectorRef(uvec.Ptr, index);
         }
 
         public static void S8VectorSet(GoshObj uvec, int index, sbyte value)
         {
-            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            TypeCheck(uvec.Ptr, GoshInvoke.Scm_UVectorP, 0);
             GoshInvoke.Scm_S8VectorSet(uvec.Ptr, index, value);
         }
 
@@ -1491,13 +1486,13 @@ namespace GaucheDotNet
 
         public static byte U8VectorRef(GoshObj uvec, int index)
         {
-            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            TypeCheck(uvec.Ptr, GoshInvoke.Scm_UVectorP, 0);
             return GoshInvoke.Scm_U8VectorRef(uvec.Ptr, index);
         }
 
         public static void U8VectorSet(GoshObj uvec, int index, byte value)
         {
-            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            TypeCheck(uvec.Ptr, GoshInvoke.Scm_UVectorP, 0);
             GoshInvoke.Scm_U8VectorSet(uvec.Ptr, index, value);
         }
 
@@ -1513,13 +1508,13 @@ namespace GaucheDotNet
 
         public static Int16 S16VectorRef(GoshObj uvec, int index)
         {
-            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            TypeCheck(uvec.Ptr, GoshInvoke.Scm_UVectorP, 0);
             return GoshInvoke.Scm_S16VectorRef(uvec.Ptr, index);
         }
 
         public static void S16VectorSet(GoshObj uvec, int index, Int16 value)
         {
-            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            TypeCheck(uvec.Ptr, GoshInvoke.Scm_UVectorP, 0);
             GoshInvoke.Scm_S16VectorSet(uvec.Ptr, index, value);
         }
 
@@ -1535,13 +1530,13 @@ namespace GaucheDotNet
 
         public static UInt16 U16VectorRef(GoshObj uvec, int index)
         {
-            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            TypeCheck(uvec.Ptr, GoshInvoke.Scm_UVectorP, 0);
             return GoshInvoke.Scm_U16VectorRef(uvec.Ptr, index);
         }
 
         public static void U16VectorSet(GoshObj uvec, int index, UInt16 value)
         {
-            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            TypeCheck(uvec.Ptr, GoshInvoke.Scm_UVectorP, 0);
             GoshInvoke.Scm_U16VectorSet(uvec.Ptr, index, value);
         }
 
@@ -1557,13 +1552,13 @@ namespace GaucheDotNet
 
         public static Int32 S32VectorRef(GoshObj uvec, int index)
         {
-            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            TypeCheck(uvec.Ptr , GoshInvoke.Scm_UVectorP, 0);
             return GoshInvoke.Scm_S32VectorRef(uvec.Ptr, index);
         }
 
         public static void S32VectorSet(GoshObj uvec, int index, Int32 value)
         {
-            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            TypeCheck(uvec.Ptr, GoshInvoke.Scm_UVectorP, 0);
             GoshInvoke.Scm_S32VectorSet(uvec.Ptr, index, value);
         }
 
@@ -1579,13 +1574,13 @@ namespace GaucheDotNet
 
         public static UInt32 U32VectorRef(GoshObj uvec, int index)
         {
-            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            TypeCheck(uvec.Ptr, GoshInvoke.Scm_UVectorP, 0);
             return GoshInvoke.Scm_U32VectorRef(uvec.Ptr, index);
         }
 
         public static void U32VectorSet(GoshObj uvec, int index, UInt32 value)
         {
-            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            TypeCheck(uvec.Ptr, GoshInvoke.Scm_UVectorP, 0);
             GoshInvoke.Scm_U32VectorSet(uvec.Ptr, index, value);
         }
 
@@ -1601,13 +1596,13 @@ namespace GaucheDotNet
 
         public static Int64 S64VectorRef(GoshObj uvec, int index)
         {
-            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            TypeCheck(uvec.Ptr, GoshInvoke.Scm_UVectorP, 0);
             return GoshInvoke.Scm_S64VectorRef(uvec.Ptr, index);
         }
 
         public static void S64VectorSet(GoshObj uvec, int index, Int64 value)
         {
-            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            TypeCheck(uvec.Ptr, GoshInvoke.Scm_UVectorP, 0);
             GoshInvoke.Scm_S64VectorSet(uvec.Ptr, index, value);
         }
 
@@ -1623,13 +1618,13 @@ namespace GaucheDotNet
 
         public static UInt64 U64VectorRef(GoshObj uvec, int index)
         {
-            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            TypeCheck(uvec.Ptr, GoshInvoke.Scm_UVectorP, 0);
             return GoshInvoke.Scm_U64VectorRef(uvec.Ptr, index);
         }
 
         public static void U64VectorSet(GoshObj uvec, int index, UInt64 value)
         {
-            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            TypeCheck(uvec.Ptr, GoshInvoke.Scm_UVectorP, 0);
             GoshInvoke.Scm_U64VectorSet(uvec.Ptr, index, value);
         }
 
@@ -1640,13 +1635,13 @@ namespace GaucheDotNet
 
         public static double F16VectorRef(GoshObj uvec, int index)
         {
-            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            TypeCheck(uvec.Ptr, GoshInvoke.Scm_UVectorP, 0);
             return GoshInvoke.Scm_F16VectorRef(uvec.Ptr, index);
         }
 
         public static void F16VectorSet(GoshObj uvec, int index, double value)
         {
-            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            TypeCheck(uvec.Ptr, GoshInvoke.Scm_UVectorP, 0);
             GoshInvoke.Scm_F16VectorSet(uvec.Ptr, index, value);
         }
 
@@ -1662,13 +1657,13 @@ namespace GaucheDotNet
 
         public static Single F32VectorRef(GoshObj uvec, int index)
         {
-            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            TypeCheck(uvec.Ptr, GoshInvoke.Scm_UVectorP, 0);
             return GoshInvoke.Scm_F32VectorRef(uvec.Ptr, index);
         }
 
         public static void F32VectorSet(GoshObj uvec, int index, Single value)
         {
-            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            TypeCheck(uvec.Ptr, GoshInvoke.Scm_UVectorP, 0);
             GoshInvoke.Scm_F32VectorSet(uvec.Ptr, index, value);
         }
 
@@ -1684,13 +1679,13 @@ namespace GaucheDotNet
 
         public static double F64VectorRef(GoshObj uvec, int index)
         {
-            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            TypeCheck(uvec.Ptr, GoshInvoke.Scm_UVectorP, 0);
             return GoshInvoke.Scm_F64VectorRef(uvec.Ptr, index);
         }
 
         public static void F64VectorSet(GoshObj uvec, int index, double value)
         {
-            TypeCheck(uvec, GoshInvoke.Scm_UVectorP, 0);
+            TypeCheck(uvec.Ptr, GoshInvoke.Scm_UVectorP, 0);
             GoshInvoke.Scm_F64VectorSet(uvec.Ptr, index, value);
         }
 
