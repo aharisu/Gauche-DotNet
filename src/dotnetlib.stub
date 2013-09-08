@@ -100,7 +100,7 @@
         (set! (@ o.v.value) (unboxing obj <procedure>))
         (set! (@ o.kind) OBJWRAP_PROC)]
       [for-method-arg
-        (set! (@ o.kind) OBJWRAP_CLROBJECT)]
+        (set! (@ o.kind) OBJWRAP_SCMOBJ)]
       [raise-error
         (Scm_Error "obj required <clr-object>, but got %S" obj)]
       [else (set! (@ o.ptr) 0)])

@@ -56,6 +56,7 @@ typedef struct TypeSpecRec
 } TypeSpec;
 
 typedef enum {
+    OBJWRAP_SCMOBJ,
     OBJWRAP_CLROBJECT,
     OBJWRAP_BOOL,
     OBJWRAP_INT,

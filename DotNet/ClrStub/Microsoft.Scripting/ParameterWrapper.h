@@ -177,6 +177,7 @@ public:
                     return _delegateParameterCount == t->typeInfo.delegateParameterCount;
                 }
                 return Type->IsAssignableFrom(GaucheDotNet::GoshProc::typeid);
+            case OBJWRAP_SCMOBJ:
             case OBJWRAP_CLROBJECT:
             default:
                 return CompilerHelpers::CanConvertFrom(t->typeInfo.type, Type);
@@ -351,6 +352,7 @@ private:
                     }
                 }
             }
+        case OBJWRAP_SCMOBJ:
         case OBJWRAP_CLROBJECT:
         default:
             {

@@ -165,6 +165,8 @@ static Object^ ToArgumentObject(Type^ type, ObjWrapper* arg)
             }
             return ret;
         }
+    case OBJWRAP_SCMOBJ:
+        return gcnew GoshRefObj((IntPtr)arg->ptr);
     case OBJWRAP_CLROBJECT:
     default:
         return GCHandle::FromIntPtr(IntPtr(arg->v.value)).Target;
@@ -236,6 +238,11 @@ bool ClrMethod::CreateArgTypes(StringBuilder^ builder, array<ArgType>^% argTypes
         {
             switch(_args[i].kind)
             {
+            case OBJWRAP_SCMOBJ:
+                argTypes[i + startIndex].typeInfo.type = GoshObj::typeid;
+                argTypes[i + startIndex].kind = OBJWRAP_SCMOBJ;
+                argTypes[i + startIndex].attr = TYPESPEC_ATTR_NORMAL;
+                break;
             case OBJWRAP_CLROBJECT:
                 {
                 Object^ obj = GCHandle::FromIntPtr(IntPtr(_args[i].v.value)).Target;
