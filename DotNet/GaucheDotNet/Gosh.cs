@@ -1864,6 +1864,26 @@ namespace GaucheDotNet
 
         #region gauche_dotnet {
 
+        public static GoshObj WriteToGoshString(object o)
+        {
+            return new GoshRefObj(GoshInvoke.Scm_WriteToString(Cast.ToIntPtr(o)));
+        }
+
+        public static string WriteToString(object o)
+        {
+            return GoshInvoke.Scm_WriteToCString(Cast.ToIntPtr(o));
+        }
+
+        public static GoshObj ToGoshString(object o)
+        {
+            return new GoshRefObj(GoshInvoke.Scm_XToString(Cast.ToIntPtr(o)));
+        }
+
+        public static string ToString(object o)
+        {
+            return GoshInvoke.Scm_XToCString(Cast.ToIntPtr(o));
+        }
+
         public static bool IsList(object obj)
         {
             GoshObj goshObj = obj as GoshObj;

@@ -76,6 +76,39 @@ ScmObj Scm_MakeTypedClosure(ScmClosure* closure
   return SCM_OBJ(c);
 }
 
+static ScmGloc *write_to_string_gloc = NULL;
+static ScmGloc *x_to_string_gloc = NULL;
+
+ScmObj Scm_WriteToString(ScmObj obj)
+{
+  return Scm_ApplyRec1(SCM_GLOC_GET(write_to_string_gloc), obj);
+}
+
+char* Scm_WriteToCString(ScmObj obj)
+{
+  return Scm_GetString(SCM_STRING(Scm_ApplyRec1(SCM_GLOC_GET(write_to_string_gloc), obj)));
+}
+
+ScmObj Scm_XToString(ScmObj obj)
+{
+  return Scm_ApplyRec1(SCM_GLOC_GET(x_to_string_gloc), obj);
+}
+
+char* Scm_XToCString(ScmObj obj)
+{
+  return Scm_GetString(SCM_STRING(Scm_ApplyRec1(SCM_GLOC_GET(x_to_string_gloc), obj)));
+}
+
+#define INIT_GLOC(gloc, name, mod)                                      \
+    do {                                                                \
+        gloc = Scm_FindBinding(mod, SCM_SYMBOL(SCM_INTERN(name)),       \
+                               SCM_BINDING_STAY_IN_MODULE);             \
+        if (gloc == NULL) {                                             \
+            Scm_Panic("no " name " procedure in gauche.internal");      \
+        }                                                               \
+    } while (0)
+
+
 /*
  * Module initialization function.
  */
@@ -84,6 +117,7 @@ extern void Scm_Init_dotnet_type(ScmModule*);
 void Scm_Init_gauche_dotnet(void)
 {
 				ScmModule *mod;
+        ScmModule *g = Scm_GaucheModule();
 
 				/* Register this DSO to Gauche */
 				SCM_INIT_EXTENSION(gauche_dotnet);
@@ -93,5 +127,8 @@ void Scm_Init_gauche_dotnet(void)
 				
 				/* Register stub-generated procedures */
 				Scm_Init_dotnetlib(mod);
-				Scm_Init_dotnet_type(mod);
+				Scm_Init_dotnet_type(mod); 
+
+        INIT_GLOC(write_to_string_gloc,"write-to-string",g);
+        INIT_GLOC(x_to_string_gloc,"x->string",g);
 }

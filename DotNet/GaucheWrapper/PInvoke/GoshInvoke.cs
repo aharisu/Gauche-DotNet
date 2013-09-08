@@ -1626,6 +1626,28 @@ namespace GaucheDotNet.Native
         [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern void GaucheDotNetInitialize();
 
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_WriteToString(IntPtr obj);
+
+        public static string Scm_WriteToCString(IntPtr obj)
+        {
+            return Util.IntPtrToUTF8String(GoshInvoke.Scm_WriteToCString_(obj));
+        }
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "Scm_WriteToCString")]
+        private static extern IntPtr Scm_WriteToCString_(IntPtr obj);
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Scm_XToString(IntPtr obj);
+
+        public static string Scm_XToCString(IntPtr obj)
+        {
+            return Util.IntPtrToUTF8String(Scm_XToCString_(obj));
+        }
+
+        [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "Scm_XToCString")]
+        public static extern IntPtr Scm_XToCString_(IntPtr obj);
+
         /// <param name="data">IntPtr(GCHandle)</param>
         /// <returns>ScmObj(GdnObject*)</returns>
         [DllImport(GaucheDotNetLib, CallingConvention = CallingConvention.Cdecl)]
