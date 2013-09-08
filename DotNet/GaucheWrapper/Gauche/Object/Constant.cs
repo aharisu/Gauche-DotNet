@@ -63,7 +63,7 @@ namespace GaucheDotNet
         }
     }
 
-    public class GoshNIL : GoshObj
+    public class GoshNIL : GoshObj, IEnumerable<GoshObj>
     {
         public static readonly GoshNIL NIL = new GoshNIL();
 
@@ -73,6 +73,27 @@ namespace GaucheDotNet
         {
             get { return (IntPtr)GoshInvoke.SCM_NIL; }
         }
+
+
+        #region IEnumerable<GoshObj> メンバー
+
+        public IEnumerator<GoshObj> GetEnumerator()
+        {
+            //nullオブジェクトは一度も反復できないので直ぐに終了させる
+            yield break;
+        }
+
+        #endregion
+
+        #region IEnumerable メンバー
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            //nullオブジェクトは一度も反復できないので直ぐに終了させる
+            yield break;
+        }
+
+        #endregion
     }
 
     public class GoshEOF : GoshObj
